@@ -5,6 +5,7 @@ namespace Shared.Music
     public class MusicService
     {
         private SongCollection songCollection;
+        private OpusCollection opusCollection;
 
         public MusicService(MusicServiceConfig config)
         {
@@ -12,6 +13,7 @@ namespace Shared.Music
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             songCollection = new SongCollection(database.GetCollection<SongMeta>(typeof(SongMeta).Name));
+            opusCollection = new OpusCollection(database);
         }
     }
 }
