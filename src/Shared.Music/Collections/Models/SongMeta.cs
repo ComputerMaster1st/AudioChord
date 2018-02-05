@@ -3,7 +3,7 @@ using System;
 
 namespace Shared.Music.Collections.Models
 {
-    internal class SongMeta
+    public class SongMeta
     {
         [BsonId] public Guid Id { get; private set; } = new Guid();
         public string Name { get; private set; }
