@@ -4,12 +4,14 @@ namespace Shared.Music
 {
     public class MusicService
     {
-        private IMongoDatabase database;
+        private SongCollection songCollection;
 
         public MusicService(MusicServiceConfig config)
         {
             MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
-            database = client.GetDatabase("sharedmusic");
+            IMongoDatabase database = client.GetDatabase("sharedmusic");
+
+            songCollection = new SongCollection(database.GetCollection<SongMeta>(typeof(SongMeta).Name));
         }
     }
 }
