@@ -2,7 +2,7 @@
 
 namespace Shared.Music.Collections.Models
 {
-    internal class PlaylistMeta
+    internal class Playlist
     {
         public Guid Id { get; private set; } = new Guid();
         public string Name { get; private set; }

@@ -15,7 +15,7 @@ namespace Shared.Music
             MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
-            playlistCollection = new PlaylistCollection(database.GetCollection<PlaylistMeta>(typeof(PlaylistMeta).Name));
+            playlistCollection = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
             songCollection = new SongCollection(database.GetCollection<SongMeta>(typeof(SongMeta).Name));
             opusCollection = new OpusCollection(database);
         }
