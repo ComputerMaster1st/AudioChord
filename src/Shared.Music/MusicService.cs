@@ -2,9 +2,9 @@
 {
     public class MusicService
     {
-        private CommandServiceConfig config;
+        private MusicServiceConfig config;
 
-        public MusicService(CommandServiceConfig config)
+        public MusicService(MusicServiceConfig config)
         {
             this.config = config;
         }
