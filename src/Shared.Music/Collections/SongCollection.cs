@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace Shared.Music
+namespace Shared.Music.Collections
 {
     internal class SongCollection
     {

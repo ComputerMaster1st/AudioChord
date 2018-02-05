@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 
-namespace Shared.Music
+namespace Shared.Music.Collections
 {
     internal class OpusCollection
     {
