@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using Shared.Music.Collections.Models;
 
 namespace Shared.Music.Collections
 {

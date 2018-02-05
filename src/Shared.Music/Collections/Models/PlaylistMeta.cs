@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shared.Music.Collections
+namespace Shared.Music.Collections.Models
 {
     internal class PlaylistMeta
     {

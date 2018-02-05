@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace Shared.Music
+namespace Shared.Music.Collections.Models
 {
     internal class SongMeta
     {
