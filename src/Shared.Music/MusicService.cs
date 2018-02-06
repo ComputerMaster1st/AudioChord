@@ -16,7 +16,7 @@ namespace Shared.Music
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             playlistCollection = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
-            songCollection = new SongCollection(database.GetCollection<SongMeta>(typeof(SongMeta).Name));
+            songCollection = new SongCollection(database.GetCollection<Song>(typeof(Song).Name));
             opusCollection = new OpusCollection(database);
         }
     }

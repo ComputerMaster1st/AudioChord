@@ -5,9 +5,9 @@ namespace Shared.Music.Collections
 {
     internal class SongCollection
     {
-        private IMongoCollection<SongMeta> collection;
+        private IMongoCollection<Song> collection;
 
-        internal SongCollection(IMongoCollection<SongMeta> collection)
+        internal SongCollection(IMongoCollection<Song> collection)
         {
             this.collection = collection;
         }
