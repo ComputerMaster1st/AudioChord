@@ -1,6 +1,8 @@
 ﻿using MongoDB.Driver;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
+using System;
+using System.Threading.Tasks;
 
 namespace Shared.Music
 {
@@ -18,6 +20,11 @@ namespace Shared.Music
             playlistCollection = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
             songCollection = new SongCollection(database.GetCollection<Song>(typeof(Song).Name));
             opusCollection = new OpusCollection(database);
+        }
+
+        public async Task<bool> AddSongToPlaylistAsync(Guid songId, Guid playlistId = new Guid())
+        {
+            return await playlistCollection.UpdatePlaylistAsync(songId, playlistId);
         }
     }
 }
