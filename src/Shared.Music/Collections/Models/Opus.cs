@@ -4,6 +4,6 @@ namespace Shared.Music.Collections.Models
 {
     public class Opus : Song
     {
-        public Stream OpusStream { get; private set; }
+        public Stream OpusStream { get; internal set; }
     }
 }

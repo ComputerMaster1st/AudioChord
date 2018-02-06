@@ -1,5 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using Shared.Music.Collections.Models;
+using System.Threading.Tasks;
 
 namespace Shared.Music.Collections
 {
@@ -13,6 +15,13 @@ namespace Shared.Music.Collections
                 BucketName = "OpusData",
                 ChunkSizeBytes = 2097152
             });
+        }
+
+        public async Task<Opus> GetStreamAsync(Song song)
+        {
+            Opus stream = (Opus)song;
+            stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
+            return stream;
         }
     }
 }
