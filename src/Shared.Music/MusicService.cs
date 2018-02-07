@@ -18,7 +18,7 @@ namespace Shared.Music
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
-            Songs = new SongCollection(database.GetCollection<MusicMeta>(typeof(MusicMeta).Name));
+            Songs = new SongCollection(database);
         }
 
         public async Task<Guid> CreatePlaylistAsync()
@@ -61,11 +61,9 @@ namespace Shared.Music
             return await Songs.GetAsync(Id);
         }
 
-        public async Task GetOpusStreamAsync(MusicMeta Song)
+        public async Task<MusicStream> GetOpusStreamAsync(MusicMeta Song)
         {
-            /// TODO: Return an opus data stream.
-            MusicStream Stream = (MusicStream)Song;
-            Stream.LastAccessed = DateTime.Now;
+            return await Songs.GetStreamAsync(Song);
         }
 
         private async Task ResyncAsync()
