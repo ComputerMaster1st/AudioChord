@@ -20,42 +20,47 @@ namespace Shared.Music
 
         public async Task<Guid> CreatePlaylistAsync()
         {
-            // Creates an empty playlist
+            /// Create Empty Playlist
             return await Playlists.CreateAsync();
         }
 
         public async Task<Playlist> GetPlaylistAsync(Guid Id)
         {
-            // Get Specified Playlist
+            /// TODO: Get Specified Playlist
             return await Playlists.GetAsync(Id);
+        }
+
+        public async Task DeletePlaylistAsync(Guid Id)
+        {
+            /// Delete Specified Playlist
+            await Playlists.DeleteAsync(Id);
+        }
+
+        public async Task AddSongToPlaylistAsync()
+        {
+            /// TODO: Add Song To Playlist
+            /// TODO: Process the newly added song using YoutubeExplode, FFMPEG, etc
+            throw new NotImplementedException("Post Song To Playlist Not Yet Implemented");
+        }
+
+        public async Task DeleteSongFromPlaylistAsync()
+        {
+            /// TODO: Remove specified song from playlist
+        }
+
+        public async Task GetSongAsync()
+        {
+            /// TODO: Get Song Meta Data
+        }
+
+        public async Task GetOpusStreamAsync()
+        {
+            /// TODO: Create an Opus Stream for specified song
+        }
+
+        private async Task ResyncAsync()
+        {
+            /// TODO: Delete unused songs. Automate if possible.
         }
     }
 }
-
-//    Public Async Function DeletePlaylistAsync(Id As Guid) As Task
-//        'Delete Playlist
-//        Await Playlists.DeleteAsync(Id)
-//    End Function
-
-//    Public Async Function AddSongToPlaylist() As Task
-//        'Post Song To Playlist
-//    End Function
-
-//    Public Async Function DeleteSongFromPlaylistAsync() As Task
-//        'Remove Song
-//    End Function
-
-//    Public Async Function GetSongAsync() As Task
-//        'Get Song Meta Data
-//        'Post Song To Process
-//    End Function
-
-//    Public Async Function GetSongAndOpusStreamAsync() As Task
-//        'Get Song Opus Stream
-//    End Function
-
-//    Private Async Function ResyncRepositoryAsync() As Task
-//        'Delete Song
-//        'Automatic Resync
-//    End Function
-//End Class
