@@ -7,16 +7,16 @@ namespace Shared.Music.Collections
 {
     internal class SongCollection
     {
-        private IMongoCollection<Models.Music> collection;
+        private IMongoCollection<MusicMeta> collection;
 
-        internal SongCollection(IMongoCollection<Models.Music> collection)
+        internal SongCollection(IMongoCollection<MusicMeta> collection)
         {
             this.collection = collection;
         }
 
-        public async Task<Models.Music> GetAsync(Guid Id)
+        public async Task<MusicMeta> GetAsync(Guid Id)
         {
-            var result = await collection.FindAsync((f) => f.Id.Equals(Id));
+            var result = await collection.FindAsync((f) => f.PrimaryId.Equals(Id));
 
             if ((await result.ToListAsync()).Count < 1) return null;
 

@@ -2,6 +2,7 @@
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Shared.Music
@@ -13,21 +14,29 @@ namespace Shared.Music
         public MusicService(MusicServiceConfig config)
         {
             MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
-            IMongoDatabase database = client.GetDatabase("SharedMusic");
+            IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
         }
 
         public async Task<Guid> CreatePlaylistAsync()
         {
-            /// Create Empty Playlist
             return await Playlists.CreateAsync();
         }
 
-        public async Task<Playlist> GetPlaylistAsync(Guid Id)
+        public async Task<List<MusicMeta>> GetPlaylistAsync(Guid Id)
         {
             /// TODO: Get Specified Playlist
-            return await Playlists.GetAsync(Id);
+            
+            Playlist playlist = await Playlists.GetAsync(Id);
+            List<MusicMeta> Playlist = new List<MusicMeta>();
+            
+            foreach (Guid MusicId in playlist.SongList)
+            {
+                /// TODO: Get MusicMeta objects and store into playlist before returning
+            }
+
+            return Playlist;
         }
 
         public async Task DeletePlaylistAsync(Guid Id)
