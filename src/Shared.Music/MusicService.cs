@@ -61,9 +61,11 @@ namespace Shared.Music
             return await Songs.GetAsync(Id);
         }
 
-        public async Task GetOpusStreamAsync()
+        public async Task GetOpusStreamAsync(MusicMeta Song)
         {
-            /// TODO: Create an Opus Stream for specified song
+            /// TODO: Return an opus data stream.
+            MusicStream Stream = (MusicStream)Song;
+            Stream.LastAccessed = DateTime.Now;
         }
 
         private async Task ResyncAsync()
