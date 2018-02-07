@@ -26,5 +26,10 @@ namespace Shared.Music
         {
             return await playlistCollection.UpdatePlaylistAsync(songId, playlistId);
         }
+
+        public async Task<Song> GetSongAsync(Guid id)
+        {
+            return await songCollection.GetAsync(id);
+        }
     }
 }

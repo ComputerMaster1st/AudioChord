@@ -17,6 +17,9 @@ namespace Shared.Music.Collections
         public async Task<Song> GetAsync(Guid Id)
         {
             var result = await collection.FindAsync((f) => f.Id.Equals(Id));
+
+            if ((await result.ToListAsync()).Count < 1) return null;
+
             return await result.FirstOrDefaultAsync();
         }
     }
