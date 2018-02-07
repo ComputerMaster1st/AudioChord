@@ -17,9 +17,9 @@ namespace Shared.Music.Collections
             });
         }
 
-        public async Task<Opus> GetStreamAsync(Song song)
+        public async Task<MusicStream> GetStreamAsync(Models.Music song)
         {
-            Opus stream = (Opus)song;
+            MusicStream stream = (MusicStream)song;
             stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
             return stream;
         }

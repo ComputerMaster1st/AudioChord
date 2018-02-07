@@ -1,11 +1,12 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace Shared.Music.Collections.Models
 {
-    public class Playlist : List<Guid>
+    public class Playlist
     {
-        public Guid Id { get; internal set; } = new Guid();
-        public string Name { get; private set; }
+        [BsonId] public Guid Id { get; internal set; } = new Guid();
+        public List<Guid> SongList { get; internal set; } = new List<Guid>();
     }
 }

@@ -8,28 +8,54 @@ namespace Shared.Music
 {
     public class MusicService
     {
-        private PlaylistCollection playlistCollection;
-        private SongCollection songCollection;
-        private OpusCollection opusCollection;
+        private PlaylistCollection Playlists;
 
         public MusicService(MusicServiceConfig config)
         {
             MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
-            IMongoDatabase database = client.GetDatabase("sharedmusic");
+            IMongoDatabase database = client.GetDatabase("SharedMusic");
 
-            playlistCollection = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
-            songCollection = new SongCollection(database.GetCollection<Song>(typeof(Song).Name));
-            opusCollection = new OpusCollection(database);
+            Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
         }
 
-        public async Task<bool> AddSongToPlaylistAsync(Guid songId, Guid playlistId = new Guid())
+        public async Task<Guid> CreatePlaylistAsync()
         {
-            return await playlistCollection.UpdatePlaylistAsync(songId, playlistId);
+            // Creates an empty playlist
+            return await Playlists.CreateAsync();
         }
 
-        public async Task<Song> GetSongAsync(Guid id)
+        public async Task<Playlist> GetPlaylistAsync(Guid Id)
         {
-            return await songCollection.GetAsync(id);
+            // Get Specified Playlist
+            return await Playlists.GetAsync(Id);
         }
     }
 }
+
+//    Public Async Function DeletePlaylistAsync(Id As Guid) As Task
+//        'Delete Playlist
+//        Await Playlists.DeleteAsync(Id)
+//    End Function
+
+//    Public Async Function AddSongToPlaylist() As Task
+//        'Post Song To Playlist
+//    End Function
+
+//    Public Async Function DeleteSongFromPlaylistAsync() As Task
+//        'Remove Song
+//    End Function
+
+//    Public Async Function GetSongAsync() As Task
+//        'Get Song Meta Data
+//        'Post Song To Process
+//    End Function
+
+//    Public Async Function GetSongAndOpusStreamAsync() As Task
+//        'Get Song Opus Stream
+//    End Function
+
+//    Private Async Function ResyncRepositoryAsync() As Task
+//        'Delete Song
+//        'Automatic Resync
+//    End Function
+//End Class

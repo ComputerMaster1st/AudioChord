@@ -7,29 +7,29 @@ namespace Shared.Music.Collections
 {
     internal class PlaylistCollection
     {
-        private IMongoCollection<Playlist> collection;
+        private IMongoCollection<Playlist> Collection;
 
-        internal PlaylistCollection(IMongoCollection<Playlist> collection)
+        internal PlaylistCollection(IMongoCollection<Playlist> Collection)
         {
-            this.collection = collection;
+            this.Collection = Collection;
         }
 
-        private Playlist CreatePlaylist(Guid playlistId)
+        internal async Task<Guid> CreateAsync()
         {
-            return new Playlist() { Id = playlistId };
+            Playlist playlist = new Playlist();
+            await Collection.InsertOneAsync(playlist);
+            return playlist.Id;
         }
 
-        public async Task<bool> UpdatePlaylistAsync(Guid songId, Guid playlistId)
+        internal async Task<Playlist> GetAsync(Guid Id)
         {
-            var result = await collection.FindAsync((f) => f.Id.Equals(playlistId));
-            Playlist playlist = await result.FirstOrDefaultAsync();
+            var Result = await Collection.FindAsync((f) => f.Id.Equals(Id));
+            return await Result.FirstOrDefaultAsync();
+        }
 
-            if (playlist == null) return false;
-            else if (playlist.Contains(songId)) return false;
-
-            playlist.Add(songId);
-            await collection.ReplaceOneAsync((f) => f.Id.Equals(playlistId), playlist, new UpdateOptions() { IsUpsert = true });
-            return true;
+        internal async Task DeleteAsync(Guid Id)
+        {
+            await Collection.DeleteOneAsync((f) => f.Id.Equals(Id));
         }
     }
 }
