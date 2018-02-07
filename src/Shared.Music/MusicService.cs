@@ -10,6 +10,7 @@ namespace Shared.Music
     public class MusicService
     {
         private PlaylistCollection Playlists;
+        private SongCollection Songs;
 
         public MusicService(MusicServiceConfig config)
         {
@@ -17,6 +18,7 @@ namespace Shared.Music
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
+            Songs = new SongCollection(database.GetCollection<MusicMeta>(typeof(MusicMeta).Name));
         }
 
         public async Task<Guid> CreatePlaylistAsync()
@@ -26,14 +28,12 @@ namespace Shared.Music
 
         public async Task<List<MusicMeta>> GetPlaylistAsync(Guid Id)
         {
-            /// TODO: Get Specified Playlist
-            
             Playlist playlist = await Playlists.GetAsync(Id);
             List<MusicMeta> Playlist = new List<MusicMeta>();
             
-            foreach (Guid MusicId in playlist.SongList)
+            foreach (Guid SongId in playlist.SongList)
             {
-                /// TODO: Get MusicMeta objects and store into playlist before returning
+                Playlist.Add(await GetSongAsync(SongId));
             }
 
             return Playlist;
@@ -41,7 +41,6 @@ namespace Shared.Music
 
         public async Task DeletePlaylistAsync(Guid Id)
         {
-            /// Delete Specified Playlist
             await Playlists.DeleteAsync(Id);
         }
 
@@ -57,9 +56,9 @@ namespace Shared.Music
             /// TODO: Remove specified song from playlist
         }
 
-        public async Task GetSongAsync()
+        public async Task<MusicMeta> GetSongAsync(Guid Id)
         {
-            /// TODO: Get Song Meta Data
+            return await Songs.GetAsync(Id);
         }
 
         public async Task GetOpusStreamAsync()
