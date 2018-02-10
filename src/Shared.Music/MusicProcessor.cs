@@ -14,6 +14,7 @@ namespace Shared.Music
         private TimeSpan Length;
         private string Author;
         private AudioStreamInfo StreamInfo;
+        private string Filename;
 
         internal MusicProcessor(string Url)
         {
@@ -50,6 +51,19 @@ namespace Shared.Music
                 MediaStreamInfoSet StreamInfoSet = await Client.GetVideoMediaStreamInfosAsync(VideoId);
                 StreamInfo = StreamInfoSet.Audio.WithHighestBitrate();
 
+                return true;
+            } catch
+            {
+                return false;
+            }
+        }
+
+        internal async Task<bool> DownloadAudioAsync()
+        {
+            try
+            {
+                Filename = $"{VideoId}.{StreamInfo.Container.GetFileExtension()}";
+                await Client.DownloadMediaStreamAsync(StreamInfo, Filename);
                 return true;
             } catch
             {
