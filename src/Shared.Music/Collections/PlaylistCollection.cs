@@ -27,6 +27,11 @@ namespace Shared.Music.Collections
             return await Result.FirstOrDefaultAsync();
         }
 
+        internal async Task UpdateAsync(Guid PlaylistId, Playlist Playlist)
+        {
+            await Collection.ReplaceOneAsync((f) => f.Id.Equals(PlaylistId), Playlist);
+        }
+
         internal async Task DeleteAsync(Guid Id)
         {
             await Collection.DeleteOneAsync((f) => f.Id.Equals(Id));

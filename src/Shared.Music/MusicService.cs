@@ -51,9 +51,15 @@ namespace Shared.Music
             throw new NotImplementedException("Post Song To Playlist Not Yet Implemented");
         }
 
-        public async Task DeleteSongFromPlaylistAsync()
+        public async Task<bool> DeleteSongFromPlaylistAsync(Guid PlaylistId, Guid SongId)
         {
-            /// TODO: Remove specified song from playlist
+            Playlist playlist = await Playlists.GetAsync(PlaylistId);
+
+            if (playlist.SongList.Contains(SongId)) return false;
+
+            playlist.SongList.Add(SongId);
+            await Playlists.UpdateAsync(PlaylistId, playlist);
+            return true;
         }
 
         public async Task<MusicMeta> GetSongAsync(Guid Id)
