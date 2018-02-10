@@ -37,6 +37,12 @@ namespace Shared.Music
             }
         }
 
+        internal bool VideoLengthCheck()
+        {
+            if (Length.TotalMinutes > 15.0) return false;
+            else return true;
+        }
+
         internal async Task<bool> ObtainAudioStreamAsync()
         {
             try
