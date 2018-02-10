@@ -35,7 +35,20 @@ namespace Shared.Music
             {
                 return false;
             }
+        }
 
+        internal async Task<bool> ObtainAudioStreamAsync()
+        {
+            try
+            {
+                MediaStreamInfoSet StreamInfoSet = await Client.GetVideoMediaStreamInfosAsync(VideoId);
+                StreamInfo = StreamInfoSet.Audio.WithHighestBitrate();
+
+                return true;
+            } catch
+            {
+                return false;
+            }
         }
     }
 }
