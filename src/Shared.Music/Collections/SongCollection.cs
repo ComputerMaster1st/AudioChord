@@ -22,13 +22,13 @@ namespace Shared.Music.Collections
             });
         }
 
-        public async Task<MusicMeta> GetAsync(Guid Id)
+        internal async Task<MusicMeta> GetAsync(Guid Id)
         {
             var result = await collection.FindAsync((f) => f.PrimaryId.Equals(Id));
             return await result.FirstOrDefaultAsync();
         }
 
-        public async Task<MusicStream> GetStreamAsync(MusicMeta song)
+        internal async Task<MusicStream> GetStreamAsync(MusicMeta song)
         {
             song.LastAccessed = DateTime.Now;
             await collection.ReplaceOneAsync((f) => f.PrimaryId.Equals(song.PrimaryId), song);
