@@ -29,12 +29,7 @@ namespace Shared.Music.Collections
 
         internal async Task UpdateAsync(Playlist Playlist)
         {
-            await Collection.ReplaceOneAsync((f) => f.Id.Equals(Playlist.Id), Playlist);
-        }
-
-        internal async Task UpdateAsync(ObjectId PlaylistId, Playlist Playlist)
-        {
-            await Collection.ReplaceOneAsync((f) => f.Id.Equals(PlaylistId), Playlist);
+            await Collection.ReplaceOneAsync((f) => f.Id.Equals(Playlist.Id), Playlist, new UpdateOptions() { IsUpsert = true });
         }
 
         internal async Task DeleteAsync(ObjectId Id)
