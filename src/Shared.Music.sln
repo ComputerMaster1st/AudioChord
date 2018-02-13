@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Music", "Shared.Music\Shared.Music.csproj", "{238F4E36-96DF-43B2-84DB-DD4BB9E7215C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Music", "Shared.Music\Shared.Music.csproj", "{238F4E36-96DF-43B2-84DB-DD4BB9E7215C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Music.Tests", "Shared.Music.Tests\Shared.Music.Tests.csproj", "{6872F6D1-1E8D-499D-8AD6-B8F7DFCA81B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{238F4E36-96DF-43B2-84DB-DD4BB9E7215C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{238F4E36-96DF-43B2-84DB-DD4BB9E7215C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{238F4E36-96DF-43B2-84DB-DD4BB9E7215C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6872F6D1-1E8D-499D-8AD6-B8F7DFCA81B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6872F6D1-1E8D-499D-8AD6-B8F7DFCA81B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6872F6D1-1E8D-499D-8AD6-B8F7DFCA81B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6872F6D1-1E8D-499D-8AD6-B8F7DFCA81B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
