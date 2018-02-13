@@ -6,8 +6,7 @@ namespace Shared.Music.Collections.Models
 {
     public class MusicMeta
     {
-        [BsonId] public Guid PrimaryId { get; private set; } = new Guid();
-        public string SimpleId { get; private set; }
+        [BsonId] public ObjectId PrimaryId { get; private set; } = new ObjectId();
         public string Name { get; private set; }
         public TimeSpan Length { get; private set; }
         public string Uploader { get; private set; }
