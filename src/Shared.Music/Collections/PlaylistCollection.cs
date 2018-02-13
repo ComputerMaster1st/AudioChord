@@ -1,7 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Shared.Music.Collections.Models;
-using System;
 using System.Threading.Tasks;
 
 namespace Shared.Music.Collections
@@ -15,17 +14,22 @@ namespace Shared.Music.Collections
             this.Collection = Collection;
         }
 
-        internal async Task<ObjectId> CreateAsync()
+        internal async Task<Playlist> CreateAsync()
         {
-            Playlist playlist = new Playlist();
+            Playlist playlist = new Playlist(this);
             await Collection.InsertOneAsync(playlist);
-            return playlist.Id;
+            return playlist;
         }
 
         internal async Task<Playlist> GetAsync(ObjectId Id)
         {
             var Result = await Collection.FindAsync((f) => f.Id.Equals(Id));
             return await Result.FirstOrDefaultAsync();
+        }
+
+        internal async Task UpdateAsync(Playlist Playlist)
+        {
+            await Collection.ReplaceOneAsync((f) => f.Id.Equals(Playlist.Id), Playlist);
         }
 
         internal async Task UpdateAsync(ObjectId PlaylistId, Playlist Playlist)

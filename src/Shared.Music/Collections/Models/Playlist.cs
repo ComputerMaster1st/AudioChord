@@ -1,12 +1,24 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Shared.Music.Collections.Models
 {
-    public class Playlist
+    public class Playlist : List<MusicMeta>
     {
-        [BsonId] public ObjectId Id { get; internal set; } = new ObjectId();
-        public List<ObjectId> SongList { get; internal set; } = new List<ObjectId>();
+        //the id of the playlist in the database
+        internal ObjectId Id { get; private set; } = new ObjectId();
+
+        private readonly PlaylistCollection playlistStorage;
+
+        internal Playlist(PlaylistCollection storage)
+        {
+            playlistStorage = storage;
+        }
+
+        public async Task Save()
+        {
+            await playlistStorage.UpdateAsync(this);
+        }
     }
 }

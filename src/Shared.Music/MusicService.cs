@@ -22,45 +22,19 @@ namespace Shared.Music
             Songs = new SongCollection(database);
         }
 
-        public async Task<ObjectId> CreatePlaylistAsync()
+        public async Task<Playlist> CreatePlaylistAsync()
         {
             return await Playlists.CreateAsync();
         }
 
-        public async Task<List<MusicMeta>> GetPlaylistAsync(ObjectId Id)
+        public async Task<Playlist> GetPlaylistAsync(ObjectId Id)
         {
-            Playlist playlist = await Playlists.GetAsync(Id);
-            List<MusicMeta> Playlist = new List<MusicMeta>();
-            
-            foreach (ObjectId SongId in playlist.SongList)
-            {
-                Playlist.Add(await GetSongAsync(SongId));
-            }
-
-            return Playlist;
+            return await Playlists.GetAsync(Id);
         }
 
         public async Task DeletePlaylistAsync(ObjectId Id)
         {
             await Playlists.DeleteAsync(Id);
-        }
-
-        public async Task AddSongToPlaylistAsync()
-        {
-            /// TODO: Add Song To Playlist
-            /// TODO: Process the newly added song using YoutubeExplode, FFMPEG, etc
-            throw new NotImplementedException("Post Song To Playlist Not Yet Implemented");
-        }
-
-        public async Task<bool> DeleteSongFromPlaylistAsync(ObjectId PlaylistId, ObjectId SongId)
-        {
-            Playlist playlist = await Playlists.GetAsync(PlaylistId);
-
-            if (playlist.SongList.Contains(SongId)) return false;
-
-            playlist.SongList.Add(SongId);
-            await Playlists.UpdateAsync(PlaylistId, playlist);
-            return true;
         }
 
         public async Task<MusicMeta> GetSongAsync(ObjectId Id)
