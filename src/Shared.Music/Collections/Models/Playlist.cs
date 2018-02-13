@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 
 namespace Shared.Music.Collections.Models
 {
-    public class Playlist : List<MusicMeta>
+    public class Playlist
     {
         //the id of the playlist in the database
         internal ObjectId Id { get; private set; } = new ObjectId();
+        public List<MusicMeta> Songs { get; private set; } = new List<MusicMeta>();
 
         private readonly PlaylistCollection playlistStorage;
 
