@@ -2,6 +2,7 @@ using System;
 using Xunit;
 using Shared.Music;
 using Shared.Music.Collections.Models;
+using MongoDB.Bson;
 
 namespace Shared.Music.Tests
 {
@@ -13,7 +14,6 @@ namespace Shared.Music.Tests
         {
             service = new MusicService(new MusicServiceConfig()
             {
-                
             });
         }
 
@@ -28,7 +28,8 @@ namespace Shared.Music.Tests
         public async void Playlist_CanSaveSong_ReturnsTrue()
         {
             Playlist playlist = await service.CreatePlaylistAsync();
-            playlist.Songs.Add(new Song() { Length = new TimeSpan(), Name})
+            playlist.Songs.Add(new Song("test", TimeSpan.Zero, "test", ObjectId.GenerateNewId()));
+            await playlist.Save();
         }
     }
 }

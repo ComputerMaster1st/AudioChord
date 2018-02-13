@@ -29,12 +29,12 @@ namespace Shared.Music.Collections
             return await result.FirstOrDefaultAsync();
         }
 
-        internal async Task<MusicStream> GetStreamAsync(Song song)
+        internal async Task<Opus> GetStreamAsync(Song song)
         {
             song.LastAccessed = DateTime.Now;
             await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song);
 
-            MusicStream stream = (MusicStream)song;
+            Opus stream = (Opus)song;
             stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
             return stream;
         }

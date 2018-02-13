@@ -42,7 +42,7 @@ namespace Shared.Music
             return await Songs.GetAsync(Id);
         }
 
-        public async Task<MusicStream> GetOpusStreamAsync(Song Song)
+        public async Task<Opus> GetOpusStreamAsync(Song Song)
         {
             return await Songs.GetStreamAsync(Song);
         }
