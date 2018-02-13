@@ -4,7 +4,7 @@ using System;
 
 namespace Shared.Music.Collections.Models
 {
-    public class MusicMeta
+    public class Song
     {
         [BsonId] public ObjectId Id { get; private set; } = new ObjectId();
         public string Name { get; private set; }

@@ -23,5 +23,12 @@ namespace Shared.Music.Tests
             Playlist playlist = await service.CreatePlaylistAsync();
             Assert.NotNull(playlist);
         }
+
+        [Fact]
+        public async void Playlist_CanSaveSong_ReturnsTrue()
+        {
+            Playlist playlist = await service.CreatePlaylistAsync();
+            playlist.Songs.Add(new Song() { Length = new TimeSpan(), Name})
+        }
     }
 }

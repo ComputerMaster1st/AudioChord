@@ -9,12 +9,12 @@ namespace Shared.Music.Collections
 {
     internal class SongCollection
     {
-        private IMongoCollection<MusicMeta> collection;
+        private IMongoCollection<Song> collection;
         private GridFSBucket bucket;
 
         internal SongCollection(IMongoDatabase database)
         {
-            collection = database.GetCollection<MusicMeta>(typeof(MusicMeta).Name);
+            collection = database.GetCollection<Song>(typeof(Song).Name);
 
             bucket = new GridFSBucket(database, new GridFSBucketOptions()
             {
@@ -23,13 +23,13 @@ namespace Shared.Music.Collections
             });
         }
 
-        internal async Task<MusicMeta> GetAsync(ObjectId Id)
+        internal async Task<Song> GetAsync(ObjectId Id)
         {
             var result = await collection.FindAsync((f) => f.Id.Equals(Id));
             return await result.FirstOrDefaultAsync();
         }
 
-        internal async Task<MusicStream> GetStreamAsync(MusicMeta song)
+        internal async Task<MusicStream> GetStreamAsync(Song song)
         {
             song.LastAccessed = DateTime.Now;
             await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song);

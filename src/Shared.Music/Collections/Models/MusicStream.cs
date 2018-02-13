@@ -2,7 +2,7 @@
 
 namespace Shared.Music.Collections.Models
 {
-    public class MusicStream : MusicMeta
+    public class MusicStream : Song
     {
         public Stream OpusStream { get; internal set; }
     }

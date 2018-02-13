@@ -8,7 +8,7 @@ namespace Shared.Music.Collections.Models
     {
         //the id of the playlist in the database
         internal ObjectId Id { get; private set; } = new ObjectId();
-        public List<MusicMeta> Songs { get; private set; } = new List<MusicMeta>();
+        public List<Song> Songs { get; private set; } = new List<Song>();
 
         private readonly PlaylistCollection playlistStorage;
 

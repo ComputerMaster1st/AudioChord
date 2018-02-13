@@ -37,12 +37,12 @@ namespace Shared.Music
             await Playlists.DeleteAsync(Id);
         }
 
-        public async Task<MusicMeta> GetSongAsync(ObjectId Id)
+        public async Task<Song> GetSongAsync(ObjectId Id)
         {
             return await Songs.GetAsync(Id);
         }
 
-        public async Task<MusicStream> GetOpusStreamAsync(MusicMeta Song)
+        public async Task<MusicStream> GetOpusStreamAsync(Song Song)
         {
             return await Songs.GetStreamAsync(Song);
         }
