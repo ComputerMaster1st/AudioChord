@@ -6,7 +6,7 @@ using YoutubeExplode.Models.MediaStreams;
 
 namespace Shared.Music
 {
-    internal class MusicProcessor
+    internal class YouTubeProcessor
     {
         private YoutubeClient Client = new YoutubeClient();
         private string VideoId;
@@ -16,7 +16,7 @@ namespace Shared.Music
         private AudioStreamInfo StreamInfo;
         private string Filename;
 
-        internal MusicProcessor(string Url)
+        internal YouTubeProcessor(string Url)
         {
             VideoId = YoutubeClient.ParseVideoId(Url);
         }

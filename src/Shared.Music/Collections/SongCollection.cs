@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Shared.Music.Collections.Models;
 using System;
@@ -22,16 +23,16 @@ namespace Shared.Music.Collections
             });
         }
 
-        internal async Task<MusicMeta> GetAsync(Guid Id)
+        internal async Task<MusicMeta> GetAsync(ObjectId Id)
         {
-            var result = await collection.FindAsync((f) => f.PrimaryId.Equals(Id));
+            var result = await collection.FindAsync((f) => f.Id.Equals(Id));
             return await result.FirstOrDefaultAsync();
         }
 
         internal async Task<MusicStream> GetStreamAsync(MusicMeta song)
         {
             song.LastAccessed = DateTime.Now;
-            await collection.ReplaceOneAsync((f) => f.PrimaryId.Equals(song.PrimaryId), song);
+            await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song);
 
             MusicStream stream = (MusicStream)song;
             stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);

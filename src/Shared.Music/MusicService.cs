@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
 using System;
@@ -21,17 +22,17 @@ namespace Shared.Music
             Songs = new SongCollection(database);
         }
 
-        public async Task<Guid> CreatePlaylistAsync()
+        public async Task<ObjectId> CreatePlaylistAsync()
         {
             return await Playlists.CreateAsync();
         }
 
-        public async Task<List<MusicMeta>> GetPlaylistAsync(Guid Id)
+        public async Task<List<MusicMeta>> GetPlaylistAsync(ObjectId Id)
         {
             Playlist playlist = await Playlists.GetAsync(Id);
             List<MusicMeta> Playlist = new List<MusicMeta>();
             
-            foreach (Guid SongId in playlist.SongList)
+            foreach (ObjectId SongId in playlist.SongList)
             {
                 Playlist.Add(await GetSongAsync(SongId));
             }
@@ -39,7 +40,7 @@ namespace Shared.Music
             return Playlist;
         }
 
-        public async Task DeletePlaylistAsync(Guid Id)
+        public async Task DeletePlaylistAsync(ObjectId Id)
         {
             await Playlists.DeleteAsync(Id);
         }
@@ -51,7 +52,7 @@ namespace Shared.Music
             throw new NotImplementedException("Post Song To Playlist Not Yet Implemented");
         }
 
-        public async Task<bool> DeleteSongFromPlaylistAsync(Guid PlaylistId, Guid SongId)
+        public async Task<bool> DeleteSongFromPlaylistAsync(ObjectId PlaylistId, ObjectId SongId)
         {
             Playlist playlist = await Playlists.GetAsync(PlaylistId);
 
@@ -62,7 +63,7 @@ namespace Shared.Music
             return true;
         }
 
-        public async Task<MusicMeta> GetSongAsync(Guid Id)
+        public async Task<MusicMeta> GetSongAsync(ObjectId Id)
         {
             return await Songs.GetAsync(Id);
         }
