@@ -2,8 +2,6 @@
 using MongoDB.Driver;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Shared.Music
