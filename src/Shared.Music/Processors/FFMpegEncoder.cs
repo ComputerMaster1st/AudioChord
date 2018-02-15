@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Shared.Music.Processors
 {
-    internal class FFMpegEncoder
+    public class FFMpegEncoder
     {
         ProcessStartInfo ffmpegProcessInfo;
 
@@ -12,8 +12,8 @@ namespace Shared.Music.Processors
         {
             ffmpegProcessInfo = new ProcessStartInfo()
             {
-                FileName = "ffmpeg", //don't know how concentus will react to different bitrate (was 96k)
-                Arguments = $"-i {filepath} -ar 48k -codec:a opus -b:a 128k -vbr on -vn -ac 2 pipe:1",
+                FileName = @"C:\Users\ComputerMaster1st\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
+                Arguments = $"-i {filepath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = false
@@ -23,6 +23,7 @@ namespace Shared.Music.Processors
         public Task<Stream> ProcessAsync()
         {
             TaskCompletionSource<Stream> taskCompletionSource = new TaskCompletionSource<Stream>();
+            MemoryStream stream = new MemoryStream();
 
             //create a new process for ffmpeg
             Process process = new Process()
@@ -30,6 +31,14 @@ namespace Shared.Music.Processors
                 StartInfo = ffmpegProcessInfo,
                 EnableRaisingEvents = true
             };
+
+            void OutputDelegate(object sender, DataReceivedEventArgs args)
+            {
+                process.OutputDataReceived -= OutputDelegate;
+                process.StandardOutput.BaseStream.CopyTo(stream);
+            }
+
+            process.OutputDataReceived += OutputDelegate;
 
             //set what to do when the process finishes working
             process.Exited += (sender, args) =>
