@@ -1,6 +1,5 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
 using System;
@@ -16,7 +15,7 @@ namespace Shared.Music
 
         public MusicService(MusicServiceConfig config)
         {
-            MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
+            MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@{config.Hostname}:27017/sharedmusic");
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
