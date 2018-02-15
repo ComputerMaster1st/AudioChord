@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
+using System;
 using System.Threading.Tasks;
 
 namespace Shared.Music
@@ -10,24 +11,21 @@ namespace Shared.Music
     {
         private PlaylistCollection Playlists;
         private SongCollection Songs;
+        private OpusCollection opusCollection;
 
         public MusicService(MusicServiceConfig config)
         {
-            MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@localhost:27017/sharedmusic");
+            MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@{config.Hostname}:27017/sharedmusic");
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
             Songs = new SongCollection(database);
+            opusCollection = new OpusCollection(database);
         }
 
-        public async Task<Playlist> CreatePlaylistAsync()
+        public async Task<Playlist> GetPlaylistAsync(ObjectId PlaylistId)
         {
-            return await Playlists.CreateAsync();
-        }
-
-        public async Task<Playlist> GetPlaylistAsync(ObjectId Id)
-        {
-            return await Playlists.GetAsync(Id);
+            return await Playlists.GetAsync(PlaylistId);
         }
 
         public async Task DeletePlaylistAsync(ObjectId Id)
@@ -37,12 +35,15 @@ namespace Shared.Music
 
         public async Task<Song> GetSongAsync(ObjectId Id)
         {
-            return await Songs.GetAsync(Id);
+            return await Songs.GetSongAsync(Id);
         }
 
-        public async Task<Opus> GetOpusStreamAsync(Song Song)
+        public async Task<Opus> GetOpusStreamAsync(Song song)
         {
-            return await Songs.GetStreamAsync(Song);
+            song.LastAccessed = DateTime.Now;
+            await Songs.UpdateSongAsync(song);
+            Opus opus = await opusCollection.OpenOpusStreamAsync(song);
+            return opus;
         }
 
         private async Task ResyncAsync()
