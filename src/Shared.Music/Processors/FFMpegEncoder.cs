@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Shared.Music.Processors
@@ -21,7 +22,7 @@ namespace Shared.Music.Processors
 
         public Task ProcessAsync()
         {
-            TaskCompletionSource<bool> taskCompletionSource = new TaskCompletionSource<bool>();
+            TaskCompletionSource<Stream> taskCompletionSource = new TaskCompletionSource<Stream>();
 
             //create a new process for ffmpeg
             Process process = new Process()
@@ -34,7 +35,7 @@ namespace Shared.Music.Processors
             process.Exited += (sender, args) =>
             {
                 //TODO: Add handling for when the process has an error (doesn't return 0 as exitcode)
-                taskCompletionSource.SetResult(true);
+                taskCompletionSource.SetResult(process.StandardOutput.BaseStream);
                 process.Dispose();
             };
 
