@@ -20,7 +20,7 @@ namespace Shared.Music.Processors
             };
         }
 
-        public Task ProcessAsync()
+        public Task<Stream> ProcessAsync()
         {
             TaskCompletionSource<Stream> taskCompletionSource = new TaskCompletionSource<Stream>();
 
