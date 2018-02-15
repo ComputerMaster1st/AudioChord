@@ -23,7 +23,7 @@ namespace Shared.Music.Collections
             });
         }
 
-        internal async Task<Song> GetAsync(ObjectId Id)
+        internal async Task<Song> GetSongAsync(ObjectId Id)
         {
             var result = await collection.FindAsync((f) => f.Id.Equals(Id));
             return await result.FirstOrDefaultAsync();
