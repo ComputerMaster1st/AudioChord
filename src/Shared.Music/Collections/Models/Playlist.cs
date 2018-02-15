@@ -18,7 +18,7 @@ namespace Shared.Music.Collections.Models
             playlistStorage = storage;
         }
 
-        public async Task Save()
+        public async Task SaveAsync()
         {
             await playlistStorage.UpdateAsync(this);
         }

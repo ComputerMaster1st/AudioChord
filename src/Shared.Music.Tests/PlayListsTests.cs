@@ -18,18 +18,18 @@ namespace Shared.Music.Tests
         }
 
         [Fact]
-        public async void Playlist_CanCreate_ReturnsTrue()
+        public void Playlist_CanCreate_ReturnsTrue()
         {
-            Playlist playlist = await service.CreatePlaylist();
+            Playlist playlist = service.CreatePlaylist();
             Assert.NotNull(playlist);
         }
 
         [Fact]
         public async void Playlist_CanSaveSong_ReturnsTrue()
         {
-            Playlist playlist = await service.CreatePlaylist();
+            Playlist playlist = service.CreatePlaylist();
             playlist.Songs.Add(new Song("test", TimeSpan.Zero, "test", ObjectId.GenerateNewId()));
-            await playlist.Save();
+            await playlist.SaveAsync();
         }
     }
 }
