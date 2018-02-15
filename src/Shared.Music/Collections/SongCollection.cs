@@ -27,5 +27,10 @@ namespace Shared.Music.Collections
         {
             await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song, new UpdateOptions() { IsUpsert = true });
         }
+
+        internal async Task DeleteSongAsync(ObjectId Id)
+        {
+            await collection.DeleteOneAsync((f) => f.Id.Equals(Id));
+        }
     }
 }
