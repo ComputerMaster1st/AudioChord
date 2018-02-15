@@ -12,7 +12,7 @@ namespace Shared.Music.Processors
         {
             ffmpegProcessInfo = new ProcessStartInfo()
             {
-                FileName = @"C:\Users\ComputerMaster1st\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
+                FileName = @"C:\Users\Mr_MA\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
                 Arguments = $"-i {filepath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -20,37 +20,22 @@ namespace Shared.Music.Processors
             };
         }
 
-        public Task<Stream> ProcessAsync()
+        public async Task<MemoryStream> ProcessAsync()
         {
-            TaskCompletionSource<Stream> taskCompletionSource = new TaskCompletionSource<Stream>();
             MemoryStream stream = new MemoryStream();
 
             //create a new process for ffmpeg
             Process process = new Process()
             {
-                StartInfo = ffmpegProcessInfo,
-                EnableRaisingEvents = true
-            };
-
-            void OutputDelegate(object sender, DataReceivedEventArgs args)
-            {
-                process.OutputDataReceived -= OutputDelegate;
-                process.StandardOutput.BaseStream.CopyTo(stream);
-            }
-
-            process.OutputDataReceived += OutputDelegate;
-
-            //set what to do when the process finishes working
-            process.Exited += (sender, args) =>
-            {
-                //TODO: Add handling for when the process has an error (doesn't return 0 as exitcode)
-                taskCompletionSource.SetResult(process.StandardOutput.BaseStream);
-                process.Dispose();
+                StartInfo = ffmpegProcessInfo
             };
 
             process.Start();
+            await process.StandardOutput.BaseStream.CopyToAsync(stream);
+            stream.Position = 0;
+            process.WaitForExit();
 
-            return taskCompletionSource.Task;
+            return stream;
         }
     }
 }
