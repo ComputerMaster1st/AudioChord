@@ -14,7 +14,7 @@ namespace Shared.Music.Collections
             this.Collection = Collection;
         }
 
-        private Playlist CreateAsync()
+        internal Playlist Create()
         {
             Playlist playlist = new Playlist(this);
             return playlist;
@@ -23,7 +23,7 @@ namespace Shared.Music.Collections
         internal async Task<Playlist> GetAsync(ObjectId PlaylistId)
         {
             var Result = await Collection.FindAsync((f) => f.Id.Equals(PlaylistId));
-            Playlist playlist = ((await Result.ToListAsync()).Count > 0) ? await Result.FirstOrDefaultAsync() : CreateAsync();
+            Playlist playlist = ((await Result.ToListAsync()).Count > 0) ? await Result.FirstOrDefaultAsync() : Create();
             return playlist;
         }
 

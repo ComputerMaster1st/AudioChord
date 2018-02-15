@@ -23,6 +23,11 @@ namespace Shared.Music
             opusCollection = new OpusCollection(database);
         }
 
+        public Playlist CreatePlaylist()
+        {
+            return Playlists.Create();
+        }
+
         public async Task<Playlist> GetPlaylistAsync(ObjectId PlaylistId)
         {
             return await Playlists.GetAsync(PlaylistId);
