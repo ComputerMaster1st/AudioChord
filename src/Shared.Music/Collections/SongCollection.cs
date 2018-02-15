@@ -15,12 +15,6 @@ namespace Shared.Music.Collections
         internal SongCollection(IMongoDatabase database)
         {
             collection = database.GetCollection<Song>(typeof(Song).Name);
-
-            bucket = new GridFSBucket(database, new GridFSBucketOptions()
-            {
-                BucketName = "OpusData",
-                ChunkSizeBytes = 2097152
-            });
         }
 
         internal async Task<Song> GetSongAsync(ObjectId Id)
@@ -29,14 +23,9 @@ namespace Shared.Music.Collections
             return await result.FirstOrDefaultAsync();
         }
 
-        internal async Task<Opus> GetStreamAsync(Song song)
+        internal async Task UpdateSongAsync(Song song)
         {
-            song.LastAccessed = DateTime.Now;
-            await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song);
-
-            Opus stream = (Opus)song;
-            stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
-            return stream;
+            await collection.ReplaceOneAsync((f) => f.Id.Equals(song.Id), song, new UpdateOptions() { IsUpsert = true });
         }
     }
 }

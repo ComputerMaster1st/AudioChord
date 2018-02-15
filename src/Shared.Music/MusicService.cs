@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Shared.Music
@@ -12,6 +12,7 @@ namespace Shared.Music
     {
         private PlaylistCollection Playlists;
         private SongCollection Songs;
+        private OpusCollection opusCollection;
 
         public MusicService(MusicServiceConfig config)
         {
@@ -20,6 +21,7 @@ namespace Shared.Music
 
             Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
             Songs = new SongCollection(database);
+            opusCollection = new OpusCollection(database);
         }
 
         public async Task<Playlist> GetPlaylistAsync(ObjectId PlaylistId)
@@ -37,9 +39,12 @@ namespace Shared.Music
             return await Songs.GetSongAsync(Id);
         }
 
-        public async Task<Opus> GetOpusStreamAsync(Song Song)
+        public async Task<Opus> GetOpusStreamAsync(Song song)
         {
-            return await Songs.GetStreamAsync(Song);
+            song.LastAccessed = DateTime.Now;
+            await Songs.UpdateSongAsync(song);
+            Opus opus = await opusCollection.OpenOpusStreamAsync(song);
+            return opus;
         }
 
         private async Task ResyncAsync()
