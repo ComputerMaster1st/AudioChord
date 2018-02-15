@@ -1,6 +1,8 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Shared.Music.Collections.Models;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Shared.Music.Collections
@@ -23,6 +25,11 @@ namespace Shared.Music.Collections
             Opus stream = (Opus)song;
             stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
             return stream;
+        }
+
+        internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
+        {
+            return await bucket.UploadFromStreamAsync(Filename, FfmpegStream);
         }
     }
 }
