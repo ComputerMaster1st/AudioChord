@@ -22,14 +22,9 @@ namespace Shared.Music
             Songs = new SongCollection(database);
         }
 
-        public async Task<Playlist> CreatePlaylistAsync()
+        public async Task<Playlist> GetPlaylistAsync(ObjectId PlaylistId)
         {
-            return await Playlists.CreateAsync();
-        }
-
-        public async Task<Playlist> GetPlaylistAsync(ObjectId Id)
-        {
-            return await Playlists.GetAsync(Id);
+            return await Playlists.GetAsync(PlaylistId);
         }
 
         public async Task DeletePlaylistAsync(ObjectId Id)

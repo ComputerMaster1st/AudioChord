@@ -14,17 +14,17 @@ namespace Shared.Music.Collections
             this.Collection = Collection;
         }
 
-        internal async Task<Playlist> CreateAsync()
+        private Playlist CreateAsync()
         {
             Playlist playlist = new Playlist(this);
-            await Collection.InsertOneAsync(playlist);
             return playlist;
         }
 
-        internal async Task<Playlist> GetAsync(ObjectId Id)
+        internal async Task<Playlist> GetAsync(ObjectId PlaylistId)
         {
-            var Result = await Collection.FindAsync((f) => f.Id.Equals(Id));
-            return await Result.FirstOrDefaultAsync();
+            var Result = await Collection.FindAsync((f) => f.Id.Equals(PlaylistId));
+            Playlist playlist = ((await Result.ToListAsync()).Count > 0) ? await Result.FirstOrDefaultAsync() : CreateAsync();
+            return playlist;
         }
 
         internal async Task UpdateAsync(Playlist Playlist)
