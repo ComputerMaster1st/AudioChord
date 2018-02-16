@@ -14,6 +14,7 @@ namespace Shared.Music.Collections.Models
         [BsonElement] internal DateTime LastAccessed { get; set; } = DateTime.Now;
         [BsonElement] internal ObjectId OpusId { get; private set; }
 
+        [BsonConstructor]
         public Song(string Name, TimeSpan Length, string Uploader, ObjectId OpusId)
         {
             this.Name = Name;
