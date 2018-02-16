@@ -43,12 +43,9 @@ namespace Shared.Music
             return await Songs.GetSongAsync(Id);
         }
 
-        public async Task<Opus> GetOpusStreamAsync(Song song)
+        public async Task<SongMetadata> GetMetadataAsync(ObjectId Id)
         {
-            song.LastAccessed = DateTime.Now;
-            await Songs.UpdateSongAsync(song);
-            Opus opus = await opusCollection.OpenOpusStreamAsync(song);
-            return opus;
+            throw new NotImplementedException("metadata not being returned yet");
         }
 
         private async Task ResyncAsync()

@@ -1,26 +1,19 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using System;
+using System.IO;
 
 namespace Shared.Music.Collections.Models
 {
     public class Song
     {
-        [BsonId] public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
-        public string Name { get; private set; }
-        public TimeSpan Length { get; private set; }
-        public string Uploader { get; private set; }
+        public ObjectId Id { get; private set; }
+        public SongMetadata Metadata { get; private set; }
+        public Stream Music { get; private set; }
 
-        [BsonElement] internal DateTime LastAccessed { get; set; } = DateTime.Now;
-        [BsonElement] internal ObjectId OpusId { get; private set; }
-
-        [BsonConstructor]
-        public Song(string Name, TimeSpan Length, string Uploader, ObjectId OpusId)
+        public Song(SongMetadata metadata, Stream song, ObjectId internalId)
         {
-            this.Name = Name;
-            this.Length = Length;
-            this.Uploader = Uploader;
-            this.OpusId = OpusId;
+            Id = internalId;
+            Metadata = metadata;
+            Music = song;
         }
     }
 }

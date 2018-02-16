@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Shared.Music.Collections.Models;
+using Shared.Music.Processors;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Models;
@@ -9,61 +12,54 @@ namespace Shared.Music
     internal class YouTubeProcessor
     {
         private YoutubeClient Client = new YoutubeClient();
+        private FFMpegEncoder encoder = new FFMpegEncoder();
+        private Song result;
+
+        public SongMetadata Metadata { get; private set; }
+
         private string VideoId;
-        private string Name;
-        private TimeSpan Length;
-        private string Author;
-        private AudioStreamInfo StreamInfo;
-        private string Filename;
 
-        internal YouTubeProcessor(string Url)
+        private YouTubeProcessor()
+        { }
+
+        internal static async Task<YouTubeProcessor> RetrieveAsync(string url)
         {
-            VideoId = YoutubeClient.ParseVideoId(Url);
-        }
+            YouTubeProcessor processor = new YouTubeProcessor();
 
-        internal async Task<bool> ObtainVideoAsync()
-        {
-            try
+            if(!YoutubeClient.TryParseVideoId(url, out string videoId))
             {
-                Video VInfo = await Client.GetVideoAsync(VideoId);
-
-                Name = VInfo.Title;
-                Length = VInfo.Duration;
-                Author = VInfo.Author;
-
-                return true;
-            } catch
-            {
-                return false;
+                throw new ArgumentException("video url is invalid!");
             }
+
+            await processor.GetVideoMetadataAsync();
+
+            return processor;
         }
 
-        internal bool VideoLengthCheck()
+        //obtain metadata
+        //validate if too long
+        //obtain audio stream metadata
+        //(?)select audio stream
+        //retrieve selected audio stream
+        //convert audio to opus
+        //create and return song
+        //return song
+
+        private async Task GetVideoMetadataAsync()
         {
-            if (Length.TotalMinutes > 15.0) return false;
-            else return true;
+            Video videoInfo = await Client.GetVideoAsync(VideoId);
+            Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
         }
 
-        internal async Task<bool> ObtainAudioStreamAsync()
+        internal async Task<bool> ProcessAudioAsync()
         {
             try
             {
-                MediaStreamInfoSet StreamInfoSet = await Client.GetVideoMediaStreamInfosAsync(VideoId);
-                StreamInfo = StreamInfoSet.Audio.WithHighestBitrate();
+                AudioStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Audio.WithHighestBitrate();
 
-                return true;
-            } catch
-            {
-                return false;
-            }
-        }
-
-        internal async Task<bool> DownloadAudioAsync()
-        {
-            try
-            {
-                Filename = $"{VideoId}.{StreamInfo.Container.GetFileExtension()}";
+                string Filename = $"{VideoId}.{StreamInfo.Container.GetFileExtension()}";
                 await Client.DownloadMediaStreamAsync(StreamInfo, Filename);
+
                 return true;
             } catch
             {
