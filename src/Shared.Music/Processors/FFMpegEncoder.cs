@@ -14,13 +14,13 @@ namespace Shared.Music.Processors
                 Arguments = $"-i {filePath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardError = false
+                RedirectStandardInput = true
             };
         }
 
         public async Task<MemoryStream> ProcessAsync(string filePath)
         {
-            MemoryStream stream = new MemoryStream();
+            MemoryStream output = new MemoryStream();
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
 
             //create a new process for ffmpeg
@@ -37,14 +37,14 @@ namespace Shared.Music.Processors
                 };
 
                 process.Start();
-                await process.StandardOutput.BaseStream.CopyToAsync(stream);
-                stream.Position = 0;
+                await process.StandardOutput.BaseStream.CopyToAsync(output);
+                output.Position = 0;
 
                 //wait for the exit event to happen
                 int exitCode = await awaitExitSource.Task;
             }
 
-            return stream;
+            return output;
         }
     }
 }
