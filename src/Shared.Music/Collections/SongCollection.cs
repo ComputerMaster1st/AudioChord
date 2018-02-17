@@ -42,12 +42,20 @@ namespace Shared.Music.Collections
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
 
+        private async Task<bool> DuplicateCheckAsync(ObjectId songId)
+        {
+            if (await GetSongAsync(songId) != null) return false;
+            return true;
+        }
+        
         internal async Task<ObjectId> DownloadFromYouTubeAsync(string url)
         {
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
-            Stream opusStream = await processor.ProcessAudioAsync();
-
             ObjectId songId = ObjectId.Parse(processor.VideoId);
+
+            if (await DuplicateCheckAsync(songId)) return songId;
+
+            Stream opusStream = await processor.ProcessAudioAsync();
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
             SongData songData = new SongData(songId, opusId, processor.Metadata);
 
