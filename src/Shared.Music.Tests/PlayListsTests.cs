@@ -39,7 +39,7 @@ namespace Shared.Music.Tests
         {
             FFMpegEncoder encoder = new FFMpegEncoder();
             var stream = await encoder.ProcessAsync(@"C:\Users\Mr_MA\Desktop\Neptune.mp3");
-            var opusTest = File.OpenWrite(@"C:\Users\Mr_MA\Desktop\Opus.mp3");
+            var opusTest = File.OpenWrite(@"C:\Users\Mr_MA\Desktop\Opus.opus");
             await stream.CopyToAsync(opusTest);
             opusTest.Close();
         }

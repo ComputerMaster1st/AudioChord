@@ -6,13 +6,14 @@ namespace Shared.Music.Processors
 {
     public class FFMpegEncoder
     {
-        private ProcessStartInfo CreateEncoderInfo(string filePath)
+        private ProcessStartInfo CreateEncoderInfo(string filePath, bool redirectInput = false)
         {
             return new ProcessStartInfo()
             {
-                FileName = @"C:\Users\Lucas\Desktop\ffmpeg-3.4.1\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
+                FileName = @"C:\Users\Mr_MA\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
                 Arguments = $"-i {filePath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
+                RedirectStandardInput = redirectInput,
                 RedirectStandardOutput = true
             };
         }
@@ -26,14 +27,7 @@ namespace Shared.Music.Processors
 
             using (Process process = new Process()
             {
-                StartInfo = new ProcessStartInfo()
-                {
-                    FileName = "ffmpeg", //don't know how concentus will react to different bitrate (was 96k)
-                    Arguments = $"-i pipe:0 -ar 48k -codec:a libopus -b:a 128k -ac 2 -vn -f opus pipe:1",
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true
-                },
+                StartInfo = CreateEncoderInfo("pipe:0", true),
                 EnableRaisingEvents = true
             })
             {
