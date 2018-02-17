@@ -9,48 +9,97 @@ namespace Shared.Music
 {
     public class MusicService
     {
-        private PlaylistCollection Playlists;
-        private SongCollection Songs;
-        private OpusCollection opusCollection;
+        private PlaylistCollection playlistCollection;
+        private SongCollection songCollection;
 
         public MusicService(MusicServiceConfig config)
         {
             MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@{config.Hostname}:27017/sharedmusic");
             IMongoDatabase database = client.GetDatabase("sharedmusic");
 
-            Playlists = new PlaylistCollection(database.GetCollection<Playlist>(typeof(Playlist).Name));
-            Songs = new SongCollection(database);
-            opusCollection = new OpusCollection(database);
+            playlistCollection = new PlaylistCollection(database);
+            songCollection = new SongCollection(database);
         }
 
+        /// <summary>
+        /// Create a new playlist.
+        /// </summary>
         public Playlist CreatePlaylist()
         {
-            return Playlists.Create();
+            return playlistCollection.Create();
         }
 
-        public async Task<Playlist> GetPlaylistAsync(ObjectId PlaylistId)
+        /// <summary>
+        /// Retrieve your playlist from database.
+        /// </summary>
+        /// <param name="playlistId">Place playlist Id to fetch.</param>
+        /// <returns>A <see cref="Playlist"/> Playlist contains list of all available song Ids.</returns>
+        public async Task<Playlist> GetPlaylistAsync(ObjectId playlistId)
         {
-            return await Playlists.GetAsync(PlaylistId);
+            return await playlistCollection.GetPlaylistAsync(playlistId);
         }
 
-        public async Task DeletePlaylistAsync(ObjectId Id)
+        /// <summary>
+        /// Delete the playlist from database.
+        /// </summary>
+        /// <param name="playlistId">The playlist Id to delete.</param>
+        public async Task DeletePlaylistAsync(ObjectId playlistId)
         {
-            await Playlists.DeleteAsync(Id);
+            await playlistCollection.DeleteAsync(playlistId);
         }
 
-        public async Task<Song> GetSongAsync(ObjectId Id)
+        /// <summary>
+        /// Fetch song metadata from database.
+        /// </summary>
+        /// <param name="songId">The song Id.</param>
+        /// <returns>A <see cref="SongMeta"/> SongMeta contains song metadata.</returns>
+        public async Task<SongMeta> GetSongMetadataAsync(ObjectId songId)
         {
-            return await Songs.GetSongAsync(Id);
+            SongData songData = await songCollection.GetSongAsync(songId);
+            return songData.Metadata;
         }
 
-        public async Task<SongMetadata> GetMetadataAsync(ObjectId Id)
+        /// <summary>
+        /// Fetch song metadata with opus stream from database.
+        /// </summary>
+        /// <param name="songId">The song Id.</param>
+        /// <returns>A <see cref="SongStream"/> SongStream contains song metadata and opus stream.</returns>
+        public async Task<SongStream> GetSongStreamAsync(ObjectId songId)
         {
-            throw new NotImplementedException("metadata not being returned yet");
+            SongData songData = await songCollection.GetSongAsync(songId);
+
+            SongStream songStream = new SongStream();
+            songStream.Id = songData.Id;
+            songStream.Metadata = songData.Metadata;
+            songStream.MusicStream = await songCollection.OpenOpusStreamAsync(songData.OpusId);
+
+            songData.LastAccessed = DateTime.Now;
+            await songCollection.UpdateSongAsync(songData);
+
+            return songStream;
         }
 
-        private async Task ResyncAsync()
+        // ===============
+        // ALL PROCESSOR BASED METHODS GO BELOW THIS COMMENT!
+        // ===============
+
+        /// <summary>
+        /// Download a song to database. (Note: Exceptions are to be expected.)
+        /// </summary>
+        /// <param name="url">The youtube video url.</param>
+        /// <returns>Returns ObjectId of newly downloaded song.</returns>
+        public async Task<ObjectId> DownloadSongFromYouTubeAsync(string url)
         {
-            /// TODO: Delete unused songs. Automate if possible.
+            return await songCollection.DownloadFromYouTubeAsync(url);
+        }
+
+        // ===============
+        // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
+        // ===============
+
+        private void Resync()
+        {
+            throw new NotImplementedException("Music Auto-Resync has yet to be implemented!");
         }
     }
 }

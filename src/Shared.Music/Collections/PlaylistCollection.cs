@@ -7,11 +7,11 @@ namespace Shared.Music.Collections
 {
     internal class PlaylistCollection
     {
-        private IMongoCollection<Playlist> Collection;
+        private IMongoCollection<Playlist> collection;
 
-        internal PlaylistCollection(IMongoCollection<Playlist> Collection)
+        internal PlaylistCollection(IMongoDatabase database)
         {
-            this.Collection = Collection;
+            collection = database.GetCollection<Playlist>(typeof(Playlist).Name);
         }
 
         internal Playlist Create()
@@ -20,21 +20,20 @@ namespace Shared.Music.Collections
             return playlist;
         }
 
-        internal async Task<Playlist> GetAsync(ObjectId PlaylistId)
+        internal async Task<Playlist> GetPlaylistAsync(ObjectId playlistId)
         {
-            var Result = await Collection.FindAsync((f) => f.Id.Equals(PlaylistId));
-            Playlist playlist = ((await Result.ToListAsync()).Count > 0) ? await Result.FirstOrDefaultAsync() : Create();
-            return playlist;
+            var result = await collection.FindAsync((f) => f.Id == playlistId);
+            return await result.FirstOrDefaultAsync();
         }
 
-        internal async Task UpdateAsync(Playlist Playlist)
+        internal async Task UpdateAsync(Playlist playlist)
         {
-            await Collection.ReplaceOneAsync((f) => f.Id.Equals(Playlist.Id), Playlist, new UpdateOptions() { IsUpsert = true });
+            await collection.ReplaceOneAsync((f) => f.Id == playlist.Id, playlist, new UpdateOptions() { IsUpsert = true });
         }
 
-        internal async Task DeleteAsync(ObjectId Id)
+        internal async Task DeleteAsync(ObjectId id)
         {
-            await Collection.DeleteOneAsync((f) => f.Id.Equals(Id));
+            await collection.DeleteOneAsync((f) => f.Id == id);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using Shared.Music.Collections.Models;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -9,27 +8,25 @@ namespace Shared.Music.Collections
 {
     internal class OpusCollection
     {
-        private GridFSBucket bucket;
+        private GridFSBucket collection;
 
         internal OpusCollection(IMongoDatabase database)
         {
-            bucket = new GridFSBucket(database, new GridFSBucketOptions()
+            collection = new GridFSBucket(database, new GridFSBucketOptions()
             {
                 BucketName = "OpusData",
                 ChunkSizeBytes = 2097152
             });
         }
 
-        internal async Task<Opus> OpenOpusStreamAsync(Song song)
+        internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
-            Opus stream = (Opus)song;
-            stream.OpusStream = await bucket.OpenDownloadStreamAsync(song.OpusId);
-            return stream;
+            return await collection.OpenDownloadStreamAsync(opusId);
         }
 
         internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
         {
-            return await bucket.UploadFromStreamAsync(Filename, FfmpegStream);
+            return await collection.UploadFromStreamAsync(Filename, FfmpegStream);
         }
     }
 }

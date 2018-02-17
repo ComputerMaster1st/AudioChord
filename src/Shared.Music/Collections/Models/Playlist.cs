@@ -7,20 +7,19 @@ namespace Shared.Music.Collections.Models
 {
     public class Playlist
     {
-        //the id of the playlist in the database
         [BsonId] internal ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
-        public List<Song> Songs { get; private set; } = new List<Song>();
+        public List<ObjectId> Songs { get; private set; } = new List<ObjectId>();
 
-        private readonly PlaylistCollection playlistStorage;
+        [BsonIgnore] private PlaylistCollection collection;
 
-        internal Playlist(PlaylistCollection storage)
+        internal Playlist(PlaylistCollection collection)
         {
-            playlistStorage = storage;
+            this.collection = collection;
         }
 
         public async Task SaveAsync()
         {
-            await playlistStorage.UpdateAsync(this);
+            await collection.UpdateAsync(this);
         }
     }
 }

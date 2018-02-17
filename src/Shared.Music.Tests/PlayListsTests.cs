@@ -37,7 +37,7 @@ namespace Shared.Music.Tests
         [Fact]
         public async void FFMpeg_MemoryStream_ReturnsFile()
         {
-            FFMpegEncoder encoder = new FFMpegEncoder();
+            Encoder encoder = new Encoder();
             var stream = await encoder.ProcessAsync(@"C:\Users\Mr_MA\Desktop\Neptune.mp3");
             var opusTest = File.OpenWrite(@"C:\Users\Mr_MA\Desktop\Opus.opus");
             await stream.CopyToAsync(opusTest);
