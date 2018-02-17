@@ -15,7 +15,7 @@ namespace Shared.Music
     internal class YouTubeProcessor
     {
         private YoutubeClient Client = new YoutubeClient();
-        private Encoder encoder = new Encoder();
+        private FFMpegEncoder encoder = new FFMpegEncoder();
 
         public string VideoId { get; private set; }
         public SongMeta Metadata { get; private set; }

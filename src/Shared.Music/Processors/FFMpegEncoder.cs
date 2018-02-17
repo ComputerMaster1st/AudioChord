@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Shared.Music.Processors
 {
-    internal class Encoder
+    internal class FFMpegEncoder
     {
         private ProcessStartInfo CreateEncoderInfo(string filePath, bool redirectInput = false)
         {
