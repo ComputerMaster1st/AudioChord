@@ -13,8 +13,7 @@ namespace Shared.Music.Processors
                 FileName = @"C:\Users\Lucas\Desktop\ffmpeg-3.4.1\bin\ffmpeg.exe", //don't know how concentus will react to different bitrate (was 96k)
                 Arguments = $"-i {filePath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardInput = true
+                RedirectStandardOutput = true
             };
         }
 

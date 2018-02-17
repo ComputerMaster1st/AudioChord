@@ -22,6 +22,12 @@ namespace Shared.Music
         private YouTubeProcessor()
         { }
 
+        /// <summary>
+        /// Try to retrieve the video information using the given url
+        /// </summary>
+        /// <param name="url">The url to try to retrieve videos from</param>
+        /// <returns>A <see cref="YouTubeProcessor"/> instance with a valid video and metadata</returns>
+        /// <exception cref="ArgumentException">The video url given is invalid</exception>
         internal static async Task<YouTubeProcessor> RetrieveAsync(string url)
         {
             YouTubeProcessor processor = new YouTubeProcessor();
