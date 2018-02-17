@@ -17,6 +17,43 @@ namespace Shared.Music.Processors
             };
         }
 
+        public async Task<MemoryStream> ProcessAsync(Stream input)
+        {
+            MemoryStream output = new MemoryStream();
+            TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
+
+            //create a new process for ffmpeg
+
+            using (Process process = new Process()
+            {
+                StartInfo = new ProcessStartInfo()
+                {
+                    FileName = "ffmpeg", //don't know how concentus will react to different bitrate (was 96k)
+                    Arguments = $"-i pipe:0 -ar 48k -codec:a libopus -b:a 128k -ac 2 -vn -f opus pipe:1",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true
+                },
+                EnableRaisingEvents = true
+            })
+            {
+                process.Exited += (obj, args) =>
+                {
+                    awaitExitSource.SetResult(process.ExitCode);
+                };
+
+                process.Start();
+
+                await Task.WhenAny(input.CopyToAsync(process.StandardInput.BaseStream), process.StandardOutput.BaseStream.CopyToAsync(output));
+
+                process.StandardInput.Close();
+                int exitCode = await awaitExitSource.Task;
+            }
+
+            output.Position = 0;
+            return output;
+        }
+
         public async Task<MemoryStream> ProcessAsync(string filePath)
         {
             MemoryStream output = new MemoryStream();
