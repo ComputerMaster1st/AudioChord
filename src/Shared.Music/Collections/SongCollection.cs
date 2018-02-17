@@ -44,8 +44,8 @@ namespace Shared.Music.Collections
 
         private async Task<bool> DuplicateCheckAsync(ObjectId songId)
         {
-            if (await GetSongAsync(songId) != null) return false;
-            return true;
+            if (await GetSongAsync(songId) != null) return true;
+            return false;
         }
         
         internal async Task<ObjectId> DownloadFromYouTubeAsync(string url)
