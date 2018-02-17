@@ -39,6 +39,10 @@ namespace Shared.Music
         {
             VideoId = youtubeVideoId;
             Video videoInfo = await Client.GetVideoAsync(VideoId);
+
+            if (videoInfo.Duration.TotalMinutes > 15.0)
+                throw new ArgumentOutOfRangeException("Video duration longer than 15 minutes!");
+
             Metadata = new SongMeta(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
         }
 
