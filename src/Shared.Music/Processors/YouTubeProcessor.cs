@@ -1,4 +1,5 @@
-﻿using Shared.Music.Collections.Models;
+﻿using MongoDB.Bson;
+using Shared.Music.Collections.Models;
 using Shared.Music.Processors;
 using System;
 using System.IO;
@@ -9,11 +10,13 @@ using YoutubeExplode.Models.MediaStreams;
 
 namespace Shared.Music
 {
+    /// <summary>
+    /// Convert youtube url links to opus audio data
+    /// </summary>
     internal class YouTubeProcessor
     {
         private YoutubeClient Client = new YoutubeClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
-        private Song result;
 
         public SongMetadata Metadata { get; private set; }
 
@@ -28,8 +31,14 @@ namespace Shared.Music
         /// <param name="url">The url to try to retrieve videos from</param>
         /// <returns>A <see cref="YouTubeProcessor"/> instance with a valid video and metadata</returns>
         /// <exception cref="ArgumentException">The video url given is invalid</exception>
+        /// <exception cref="ArgumentNullException">the given url is null or empty</exception>
         internal static async Task<YouTubeProcessor> RetrieveAsync(string url)
         {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ArgumentNullException("the url given was null or empty");
+            }
+
             YouTubeProcessor processor = new YouTubeProcessor();
 
             if(!YoutubeClient.TryParseVideoId(url, out string videoId))
@@ -37,40 +46,39 @@ namespace Shared.Music
                 throw new ArgumentException("video url is invalid!");
             }
 
-            await processor.GetVideoMetadataAsync();
+            await processor.GetVideoMetadataAsync(videoId);
 
             return processor;
         }
 
-        //obtain metadata
-        //validate if too long
-        //obtain audio stream metadata
-        //(?)select audio stream
-        //retrieve selected audio stream
-        //convert audio to opus
-        //create and return song
-        //return song
-
-        private async Task GetVideoMetadataAsync()
+        private async Task GetVideoMetadataAsync(string videoId)
         {
+            VideoId = videoId;
             Video videoInfo = await Client.GetVideoAsync(VideoId);
             Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
         }
 
-        internal async Task<bool> ProcessAudioAsync()
+        /// <summary>
+        /// Convert the given video to an <see cref="Song"/> with an audio stream
+        /// </summary>
+        /// <returns>A song with an encoded audio stream and metadata</returns>
+        internal async Task<Song> ProcessAudioAsync()
         {
-            try
-            {
-                AudioStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Audio.WithHighestBitrate();
+            //select the highest quality audio
+            AudioStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Audio.WithHighestBitrate();
 
-                string Filename = $"{VideoId}.{StreamInfo.Container.GetFileExtension()}";
-                await Client.DownloadMediaStreamAsync(StreamInfo, Filename);
+            //encode the song using ffmpeg
+            FFMpegEncoder encoder = new FFMpegEncoder();
 
-                return true;
-            } catch
+            Stream song;
+            using (MediaStream youtubeAudioStream = await Client.GetMediaStreamAsync(StreamInfo))
             {
-                return false;
-            }
+                // encode the youtube stream to opus
+                song = await encoder.ProcessAsync(youtubeAudioStream);
+            } 
+
+            //return a new song
+            return new Song(Metadata, song, ObjectId.GenerateNewId());
         }
     }
 }
