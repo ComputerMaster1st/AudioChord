@@ -19,7 +19,6 @@ namespace Shared.Music.Processors
         private FFMpegEncoder encoder = new FFMpegEncoder();
         private string filename;
 
-        public string AttachmentId { get; private set; }
         public SongMeta Metadata { get; private set; }
 
         internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader)
@@ -95,7 +94,7 @@ namespace Shared.Music.Processors
 
         internal async Task<Stream> ProcessAudioAsync()
         {
-            throw new NotImplementedException();
+            return await encoder.ProcessAsync(filename);
         }
     }
 }
