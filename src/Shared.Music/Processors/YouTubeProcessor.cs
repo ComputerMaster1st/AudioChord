@@ -7,7 +7,7 @@ using YoutubeExplode;
 using YoutubeExplode.Models;
 using YoutubeExplode.Models.MediaStreams;
 
-namespace Shared.Music
+namespace Shared.Music.Processors
 {
     /// <summary>
     /// Convert youtube url links to opus audio data

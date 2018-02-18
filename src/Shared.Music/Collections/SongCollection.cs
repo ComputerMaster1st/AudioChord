@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Shared.Music.Collections.Models;
+using Shared.Music.Processors;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -52,6 +53,22 @@ namespace Shared.Music.Collections
         {
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
             ObjectId songId = ObjectId.Parse(processor.VideoId);
+
+            if (await DuplicateCheckAsync(songId)) return songId;
+
+            Stream opusStream = await processor.ProcessAudioAsync();
+            ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
+            SongData songData = new SongData(songId, opusId, processor.Metadata);
+
+            await UpdateSongAsync(songData);
+
+            return songId;
+        }
+
+        internal async Task<ObjectId> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        {
+            DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
+            ObjectId songId = ObjectId.Parse(attachmentId.ToString());
 
             if (await DuplicateCheckAsync(songId)) return songId;
 

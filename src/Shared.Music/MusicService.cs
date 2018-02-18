@@ -84,13 +84,25 @@ namespace Shared.Music
         // ===============
 
         /// <summary>
-        /// Download a song to database. (Note: Exceptions are to be expected.)
+        /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
         /// </summary>
         /// <param name="url">The youtube video url.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
         public async Task<ObjectId> DownloadSongFromYouTubeAsync(string url)
         {
             return await songCollection.DownloadFromYouTubeAsync(url);
+        }
+
+        /// <summary>
+        /// Download song from Discord to database. (Note: Exceptions are to be expected.)
+        /// </summary>
+        /// <param name="url">The discord attachment url.</param>
+        /// <param name="uploader">The discord username.</param>
+        /// <param name="attachmentId">The discord attachment Id.</param>
+        /// <returns>Returns ObjectId of newly downloaded song.</returns>
+        public async Task<ObjectId> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        {
+            return await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
         }
 
         // ===============
