@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Shared.Music.Collections.Models;
 using System;
 using System.Collections.Generic;
@@ -16,23 +17,24 @@ namespace Shared.Music.Processors
     {
         private WebClient client = new WebClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
+        private string filename;
 
         public string AttachmentId { get; private set; }
         public SongMeta Metadata { get; private set; }
 
-        internal static async Task<DiscordProcessor> RetrieveAsync(string url)
+        internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader)
         {
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentNullException("The url given is either null or empty!");
 
             DiscordProcessor processor = new DiscordProcessor();
 
-            await processor.GetMetadataAsync(url);
+            await processor.GetMetadataAsync(url, uploader);
 
             return processor;
         }
 
-        private async Task<Dictionary<string, dynamic>> ProbeFileAsync(string filename)
+        private async Task<string> ProbeFileAsync(string filename)
         {
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
             string json;
@@ -41,10 +43,10 @@ namespace Shared.Music.Processors
             {
                 StartInfo = new ProcessStartInfo()
                 {
-                    FileName = "ffmpeg",
+                    FileName = "ffprobe",
                     Arguments = $"-i {filename} -hide_banner -show_format -print_format json -v quiet",
                     UseShellExecute = false,
-                    RedirectStandardError = true
+                    RedirectStandardOutput = true
                 },
                 EnableRaisingEvents = true
             })
@@ -59,20 +61,36 @@ namespace Shared.Music.Processors
                 int exitCode = await awaitExitSource.Task;
             }
 
-            return JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(json);
+            return json;
         }
 
-        private async Task GetMetadataAsync(string url)
+        private async Task GetMetadataAsync(string url, string uploader)
         {
-            // TODO: ffprobe -i wow_its_so_happy.ogg  > test.json
             if (!Uri.TryCreate(url, UriKind.Absolute, out Uri result))
                 throw new ArgumentException("Url Provided is invalid!");
 
-            string filename = url.Substring(url.LastIndexOf('/'));
+            filename = url.Substring(url.LastIndexOf('/'));
+            string songName = Path.GetFileNameWithoutExtension(filename);
+            TimeSpan length;
 
             client.DownloadFileAsync(result, filename);
 
-            Dictionary<string, dynamic> probe = await ProbeFileAsync(filename);
+            string json = await ProbeFileAsync(filename);
+
+            JObject root = JObject.Parse(json);
+            if (root["format"].HasValues)
+            {
+                length = TimeSpan.FromSeconds(root["format"]["duration"].Value<double>());
+
+                if (root["format"]["tags"].HasValues && ((JObject)root["format"]["tags"]).TryGetValue("title", out JToken title))
+                {
+                    songName = title.ToString();
+                }
+
+                Metadata = new SongMeta(songName, length, uploader);
+                return;
+            }
+            throw new ArgumentException("Unable to probe file.");
         }
 
         internal async Task<Stream> ProcessAudioAsync()
