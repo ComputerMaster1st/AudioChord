@@ -29,6 +29,7 @@ namespace Shared.Music.Processors
 
         private async Task GetMetadataAsync()
         {
+            // TODO: ffprobe -i wow_its_so_happy.ogg -hide_banner -show_format -print_format json -v quiet > test.json
             throw new NotImplementedException();
         }
 
