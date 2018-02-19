@@ -63,7 +63,7 @@ namespace Shared.Music
         /// </summary>
         /// <param name="songId">The song Id.</param>
         /// <returns>A <see cref="SongMeta"/> SongMeta contains song metadata.</returns>
-        public async Task<SongMeta> GetSongMetadataAsync(ObjectId songId)
+        public async Task<SongMeta> GetSongMetadataAsync(string songId)
         {
             SongData songData = await songCollection.GetSongAsync(songId);
             return songData.Metadata;
@@ -74,7 +74,7 @@ namespace Shared.Music
         /// </summary>
         /// <param name="songId">The song Id.</param>
         /// <returns>A <see cref="SongStream"/> SongStream contains song metadata and opus stream.</returns>
-        public async Task<SongStream> GetSongStreamAsync(ObjectId songId)
+        public async Task<SongStream> GetSongStreamAsync(string songId)
         {
             SongData songData = await songCollection.GetSongAsync(songId);
 
@@ -100,7 +100,7 @@ namespace Shared.Music
         /// </summary>
         /// <param name="url">The youtube video url.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<ObjectId> DownloadSongFromYouTubeAsync(string url)
+        public async Task<string> DownloadSongFromYouTubeAsync(string url)
         {
             return await songCollection.DownloadFromYouTubeAsync(url);
         }
@@ -112,7 +112,7 @@ namespace Shared.Music
         /// <param name="uploader">The discord username.</param>
         /// <param name="attachmentId">The discord attachment Id.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<ObjectId> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        public async Task<string> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
             return await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
         }

@@ -19,7 +19,7 @@ namespace Shared.Music.Collections
             opusCollection = new OpusCollection(database);
         }
 
-        internal async Task<SongData> GetSongAsync(ObjectId songId)
+        internal async Task<SongData> GetSongAsync(string songId)
         {
             var result = await collection.FindAsync((f) => f.Id == songId);
             return await result.FirstOrDefaultAsync();
@@ -51,16 +51,16 @@ namespace Shared.Music.Collections
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
 
-        private async Task<bool> DuplicateCheckAsync(ObjectId songId)
+        private async Task<bool> DuplicateCheckAsync(string songId)
         {
             if (await GetSongAsync(songId) != null) return true;
             return false;
         }
         
-        internal async Task<ObjectId> DownloadFromYouTubeAsync(string url)
+        internal async Task<string> DownloadFromYouTubeAsync(string url)
         {
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
-            ObjectId songId = new ObjectId(processor.VideoId);
+            string songId = $"YOUTUBE#{processor.VideoId}";
 
             if (await DuplicateCheckAsync(songId)) return songId;
 
@@ -73,10 +73,10 @@ namespace Shared.Music.Collections
             return songId;
         }
 
-        internal async Task<ObjectId> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
             DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
-            ObjectId songId = new ObjectId(attachmentId.ToString());
+            string songId = $"DISCORD#{attachmentId}";
 
             if (await DuplicateCheckAsync(songId)) return songId;
 

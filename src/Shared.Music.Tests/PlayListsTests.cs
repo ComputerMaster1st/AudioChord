@@ -1,6 +1,5 @@
 using Xunit;
 using Shared.Music.Collections.Models;
-using MongoDB.Bson;
 
 namespace Shared.Music.Tests
 {
@@ -27,7 +26,7 @@ namespace Shared.Music.Tests
         {
             Playlist test = await service.CreatePlaylist();
             Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            ObjectId songId = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
+            string songId = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
             playlist.Songs.Add(songId);
             await playlist.SaveAsync();
         }
@@ -37,7 +36,7 @@ namespace Shared.Music.Tests
         {
             Playlist test = await service.CreatePlaylist();
             Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            ObjectId songId = await service.DownloadSongFromDiscordAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
+            string songId = await service.DownloadSongFromDiscordAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
             playlist.Songs.Add(songId);
             await playlist.SaveAsync();
         }

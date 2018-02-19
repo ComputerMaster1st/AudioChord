@@ -25,7 +25,9 @@ namespace Shared.Music.Collections
         internal async Task<Playlist> GetPlaylistAsync(ObjectId playlistId)
         {
             var result = await collection.FindAsync((f) => f.Id == playlistId);
-            return await result.FirstOrDefaultAsync();
+            Playlist playlist = await result.FirstOrDefaultAsync();
+            playlist.collection = this;
+            return playlist;
         }
 
         internal async Task UpdateAsync(Playlist playlist)
