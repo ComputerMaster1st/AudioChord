@@ -34,16 +34,16 @@ namespace Shared.Music.Processors
         private async Task<string> ProbeFileAsync(string filename)
         {
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
-            string json;
+            string json = null;
 
             using (Process process = new Process()
             {
                 StartInfo = new ProcessStartInfo()
                 {
-                    FileName = @"C:\Users\Mr_MA\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffprobe.exe",
+                    FileName = @"C:\Users\ComputerMaster1st\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffprobe.exe",
                     Arguments = $"-i {filename} -hide_banner -show_format -print_format json -v quiet",
                     UseShellExecute = false,
-                    RedirectStandardError = true
+                    RedirectStandardOutput = true
                 },
                 EnableRaisingEvents = true
             })
@@ -54,7 +54,7 @@ namespace Shared.Music.Processors
 
                 process.Start();
 
-                json = await process.StandardError.ReadToEndAsync();
+                json = await process.StandardOutput.ReadToEndAsync();
                 int exitCode = await awaitExitSource.Task;
             }
 
