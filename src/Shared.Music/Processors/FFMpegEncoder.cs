@@ -12,7 +12,7 @@ namespace Shared.Music.Processors
 
             return new ProcessStartInfo()
             {
-                FileName = "ffmpeg",
+                FileName = @"C:\Users\Mr_MA\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffmpeg.exe",
                 Arguments = $"-i {filePath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
                 RedirectStandardInput = redirectInput,

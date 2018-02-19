@@ -60,7 +60,7 @@ namespace Shared.Music.Collections
         internal async Task<ObjectId> DownloadFromYouTubeAsync(string url)
         {
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
-            ObjectId songId = ObjectId.Parse(processor.VideoId);
+            ObjectId songId = new ObjectId(processor.VideoId);
 
             if (await DuplicateCheckAsync(songId)) return songId;
 
@@ -76,7 +76,7 @@ namespace Shared.Music.Collections
         internal async Task<ObjectId> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
             DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
-            ObjectId songId = ObjectId.Parse(attachmentId.ToString());
+            ObjectId songId = new ObjectId(attachmentId.ToString());
 
             if (await DuplicateCheckAsync(songId)) return songId;
 

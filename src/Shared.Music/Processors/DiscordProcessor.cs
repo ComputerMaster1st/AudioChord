@@ -40,7 +40,7 @@ namespace Shared.Music.Processors
             {
                 StartInfo = new ProcessStartInfo()
                 {
-                    FileName = "ffprobe",
+                    FileName = @"C:\Users\Mr_MA\Downloads\ffmpeg-20180215-fb58073-win64-static\bin\ffprobe.exe",
                     Arguments = $"-i {filename} -hide_banner -show_format -print_format json -v quiet",
                     UseShellExecute = false,
                     RedirectStandardOutput = true
