@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Shared.Music.Collections.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Shared.Music.Collections
@@ -34,6 +35,12 @@ namespace Shared.Music.Collections
         internal async Task DeleteAsync(ObjectId id)
         {
             await collection.DeleteOneAsync((f) => f.Id == id);
+        }
+
+        internal async Task<List<Playlist>> GetAllAsync()
+        {
+            var result = await collection.FindAsync(FilterDefinition<Playlist>.Empty);
+            return await result.ToListAsync();
         }
     }
 }

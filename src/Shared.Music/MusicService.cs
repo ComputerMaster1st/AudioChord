@@ -3,7 +3,9 @@ using MongoDB.Driver;
 using Shared.Music.Collections;
 using Shared.Music.Collections.Models;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Shared.Music
 {
@@ -11,6 +13,7 @@ namespace Shared.Music
     {
         private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
+        private Timer resyncTimer = new Timer();
 
         public MusicService(MusicServiceConfig config)
         {
@@ -19,6 +22,13 @@ namespace Shared.Music
 
             playlistCollection = new PlaylistCollection(database);
             songCollection = new SongCollection(database);
+
+            resyncTimer.Interval = TimeSpan.FromHours(24).TotalMilliseconds;
+            resyncTimer.AutoReset = true;
+            resyncTimer.Elapsed += async (obj, args) => await Resync();
+            resyncTimer.Enabled = true;
+
+            resyncTimer.Start();
         }
 
         /// <summary>
@@ -109,9 +119,29 @@ namespace Shared.Music
         // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
         // ===============
 
-        private void Resync()
+        private async Task Resync()
         {
-            throw new NotImplementedException("Music Auto-Resync has yet to be implemented!");
+            List<SongData> expiredSongs = new List<SongData>();
+            List<SongData> songList = await songCollection.GetAllAsync();
+
+            foreach (SongData song in songList)
+                if (song.LastAccessed < DateTime.Now.AddMonths(-3))
+                    expiredSongs.Add(song);
+
+            if (expiredSongs.Count < 1) return;
+
+            List<Playlist> playlists = await playlistCollection.GetAllAsync();
+
+            foreach (Playlist playlist in playlists)
+                foreach (SongData song in expiredSongs)
+                    if (playlist.Songs.Contains(song.Id))
+                    {
+                        playlist.Songs.Remove(song.Id);
+                        await playlist.SaveAsync();
+                    }
+
+            foreach (SongData song in expiredSongs)
+                await songCollection.DeleteSongAsync(song);
         }
     }
 }

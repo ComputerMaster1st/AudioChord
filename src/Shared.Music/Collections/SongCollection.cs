@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Shared.Music.Collections.Models;
 using Shared.Music.Processors;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -29,14 +30,21 @@ namespace Shared.Music.Collections
             await collection.ReplaceOneAsync((f) => f.Id == song.Id, song, new UpdateOptions() { IsUpsert = true });
         }
 
-        internal async Task DeleteSongAsync(ObjectId songId)
+        internal async Task DeleteSongAsync(SongData song)
         {
-            await collection.DeleteOneAsync((f) => f.Id == songId);
+            await collection.DeleteOneAsync((f) => f.Id == song.Id);
+            await opusCollection.DeleteAsync(song.OpusId);
         }
 
         internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
             return await opusCollection.OpenOpusStreamAsync(opusId);
+        }
+
+        internal async Task<List<SongData>> GetAllAsync()
+        {
+            var result = await collection.FindAsync(FilterDefinition<SongData>.Empty);
+            return await result.ToListAsync();
         }
 
         // ==========

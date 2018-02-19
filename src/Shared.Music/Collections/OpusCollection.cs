@@ -19,14 +19,19 @@ namespace Shared.Music.Collections
             });
         }
 
+        internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
+        {
+            return await collection.UploadFromStreamAsync(Filename, FfmpegStream);
+        }
+
         internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
             return await collection.OpenDownloadStreamAsync(opusId);
         }
 
-        internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
+        internal async Task DeleteAsync(ObjectId opusId)
         {
-            return await collection.UploadFromStreamAsync(Filename, FfmpegStream);
+            await collection.DeleteAsync(opusId);
         }
     }
 }
