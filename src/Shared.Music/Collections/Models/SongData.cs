@@ -9,9 +9,9 @@ namespace Shared.Music.Collections.Models
         [BsonId] public string Id { get; private set; }
         public DateTime LastAccessed { get; set; } = DateTime.Now;
         public ObjectId OpusId { get; private set; }
-        public SongMeta Metadata { get; private set; }
+        public SongMetadata Metadata { get; private set; }
 
-        internal SongData(string songId, ObjectId opusId, SongMeta songMeta)
+        internal SongData(string songId, ObjectId opusId, SongMetadata songMeta)
         {
             Id = songId;
             OpusId = opusId;

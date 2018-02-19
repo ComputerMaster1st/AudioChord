@@ -18,7 +18,7 @@ namespace Shared.Music.Processors
         private FFMpegEncoder encoder = new FFMpegEncoder();
 
         public string VideoId { get; private set; }
-        public SongMeta Metadata { get; private set; }
+        public SongMetadata Metadata { get; private set; }
 
         internal static async Task<YouTubeProcessor> RetrieveAsync(string url)
         {
@@ -43,7 +43,7 @@ namespace Shared.Music.Processors
             if (videoInfo.Duration.TotalMinutes > 15.0)
                 throw new ArgumentOutOfRangeException("Video duration longer than 15 minutes!");
 
-            Metadata = new SongMeta(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
+            Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
         }
 
         internal async Task<Stream> ProcessAudioAsync()

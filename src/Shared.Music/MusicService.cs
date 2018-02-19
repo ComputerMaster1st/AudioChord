@@ -62,8 +62,8 @@ namespace Shared.Music
         /// Fetch song metadata from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="SongMeta"/> SongMeta contains song metadata.</returns>
-        public async Task<SongMeta> GetSongMetadataAsync(string songId)
+        /// <returns>A <see cref="SongMetadata"/> SongMeta contains song metadata.</returns>
+        public async Task<SongMetadata> GetSongMetadataAsync(string songId)
         {
             SongData songData = await songCollection.GetSongAsync(songId);
             return songData.Metadata;

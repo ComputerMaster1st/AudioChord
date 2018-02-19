@@ -17,7 +17,7 @@ namespace Shared.Music.Processors
         private FFMpegEncoder encoder = new FFMpegEncoder();
         private string filename;
 
-        public SongMeta Metadata { get; private set; }
+        public SongMetadata Metadata { get; private set; }
 
         internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader)
         {
@@ -84,7 +84,7 @@ namespace Shared.Music.Processors
                     songName = title.ToString();
                 }
 
-                Metadata = new SongMeta(songName, length, uploader);
+                Metadata = new SongMetadata(songName, length, uploader);
                 return;
             }
             throw new ArgumentException("Unable to probe file.");
