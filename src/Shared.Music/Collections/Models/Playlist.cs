@@ -7,7 +7,7 @@ namespace Shared.Music.Collections.Models
 {
     public class Playlist
     {
-        [BsonId] internal ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
+        [BsonId] public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
         public List<ObjectId> Songs { get; private set; } = new List<ObjectId>();
 
         [BsonIgnore] private PlaylistCollection collection;

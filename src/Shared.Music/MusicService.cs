@@ -34,9 +34,9 @@ namespace Shared.Music
         /// <summary>
         /// Create a new playlist.
         /// </summary>
-        public Playlist CreatePlaylist()
+        public async Task<Playlist> CreatePlaylist()
         {
-            return playlistCollection.Create();
+            return await playlistCollection.Create();
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Shared.Music
             List<SongData> songList = await songCollection.GetAllAsync();
 
             foreach (SongData song in songList)
-                if (song.LastAccessed < DateTime.Now.AddMonths(-3))
+                if (song.LastAccessed < DateTime.Now.AddDays(-90))
                     expiredSongs.Add(song);
 
             if (expiredSongs.Count < 1) return;

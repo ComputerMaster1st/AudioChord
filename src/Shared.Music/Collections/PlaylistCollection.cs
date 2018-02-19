@@ -15,9 +15,10 @@ namespace Shared.Music.Collections
             collection = database.GetCollection<Playlist>(typeof(Playlist).Name);
         }
 
-        internal Playlist Create()
+        internal async Task<Playlist> Create()
         {
             Playlist playlist = new Playlist(this);
+            await UpdateAsync(playlist);
             return playlist;
         }
 
