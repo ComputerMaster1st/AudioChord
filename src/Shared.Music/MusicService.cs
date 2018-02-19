@@ -78,10 +78,12 @@ namespace Shared.Music
         {
             SongData songData = await songCollection.GetSongAsync(songId);
 
-            SongStream songStream = new SongStream();
-            songStream.Id = songData.Id;
-            songStream.Metadata = songData.Metadata;
-            songStream.MusicStream = await songCollection.OpenOpusStreamAsync(songData.OpusId);
+            SongStream songStream = new SongStream
+            {
+                Id = songData.Id,
+                Metadata = songData.Metadata,
+                MusicStream = await songCollection.OpenOpusStreamAsync(songData.OpusId)
+            };
 
             songData.LastAccessed = DateTime.Now;
             await songCollection.UpdateSongAsync(songData);
