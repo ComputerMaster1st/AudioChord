@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using Shared.Music.Collections.Models;
 using Shared.Music.Processors;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -22,7 +23,16 @@ namespace Shared.Music.Collections
         internal async Task<SongData> GetSongAsync(string songId)
         {
             var result = await collection.FindAsync((f) => f.Id == songId);
-            return await result.FirstOrDefaultAsync();
+            SongData song = await result.FirstOrDefaultAsync();
+
+            if (song == null) return null;
+            else if (song.LastAccessed < DateTime.Now.AddDays(-90))
+            {
+                await DeleteSongAsync(song);
+                return null;
+            }
+
+            return song;
         }
 
         internal async Task UpdateSongAsync(SongData song)
