@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -32,6 +33,18 @@ namespace Shared.Music.Collections
         internal async Task DeleteAsync(ObjectId opusId)
         {
             await collection.DeleteAsync(opusId);
+        }
+
+        internal async Task<double> TotalBytesUsedAsync()
+        {
+            var result = await collection.FindAsync(FilterDefinition<GridFSFileInfo>.Empty);
+            List<GridFSFileInfo> fileList = await result.ToListAsync();
+            double totalBytes = 0;
+
+            foreach (GridFSFileInfo fileInfo in fileList)
+                totalBytes += fileInfo.Length;
+
+            return totalBytes;
         }
     }
 }

@@ -57,6 +57,11 @@ namespace Shared.Music.Collections
             return await result.ToListAsync();
         }
 
+        internal async Task<double> GetTotalBytesUsedAsync()
+        {
+            return await opusCollection.TotalBytesUsedAsync();
+        }
+
         // ==========
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========

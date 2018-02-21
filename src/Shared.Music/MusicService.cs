@@ -91,6 +91,24 @@ namespace Shared.Music
             return songStream;
         }
 
+        /// <summary>
+        /// Get total song count in database.
+        /// </summary>
+        /// <returns>An integer containing total songs in database.</returns>
+        public async Task<int> GetTotalSongsAsync()
+        {
+            return (await songCollection.GetAllAsync()).Count;
+        }
+
+        /// <summary>
+        /// Get total bytes count in database.
+        /// </summary>
+        /// <returns>A double containing total bytes used.</returns>
+        public async Task<double> GetTotalBytesUsedAsync()
+        {
+            return await songCollection.GetTotalBytesUsedAsync();
+        }
+
         // ===============
         // ALL PROCESSOR BASED METHODS GO BELOW THIS COMMENT!
         // ===============
