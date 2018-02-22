@@ -84,7 +84,7 @@ namespace Shared.Music.Processors
                     songName = title.ToString();
                 }
 
-                Metadata = new SongMetadata(songName, length, uploader);
+                Metadata = new SongMetadata(songName, length, uploader, url);
                 return;
             }
             throw new ArgumentException("Unable to probe file.");

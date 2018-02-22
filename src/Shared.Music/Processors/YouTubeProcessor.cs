@@ -43,7 +43,7 @@ namespace Shared.Music.Processors
             if (videoInfo.Duration.TotalMinutes > 15.0)
                 throw new ArgumentOutOfRangeException("Video duration longer than 15 minutes!");
 
-            Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author);
+            Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
         }
 
         internal async Task<Stream> ProcessAudioAsync()
