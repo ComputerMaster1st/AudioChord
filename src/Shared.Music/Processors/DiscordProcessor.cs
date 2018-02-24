@@ -63,14 +63,11 @@ namespace Shared.Music.Processors
 
         private async Task GetMetadataAsync(string url, string uploader)
         {
-            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri result))
-                throw new ArgumentException("Url Provided is invalid!");
-
             filename = url.Substring(url.LastIndexOf('/'));
             string songName = Path.GetFileNameWithoutExtension(filename);
             TimeSpan length;
 
-            client.DownloadFileAsync(result, filename);
+            await client.DownloadFileTaskAsync(url, filename);
 
             string json = await ProbeFileAsync(filename);
 
