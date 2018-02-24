@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using YoutubeExplode;
 
 namespace Shared.Music.Collections
 {
@@ -74,10 +75,14 @@ namespace Shared.Music.Collections
         
         internal async Task<string> DownloadFromYouTubeAsync(string url)
         {
-            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
-            string songId = $"YOUTUBE#{processor.VideoId}";
+            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
+                throw new ArgumentException("Video Url could not be parsed!");
+
+            string songId = $"YOUTUBE#{videoId}";
 
             if (await DuplicateCheckAsync(songId)) return songId;
+
+            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
 
             Stream opusStream = await processor.ProcessAudioAsync();
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);

@@ -13,7 +13,7 @@ namespace Shared.Music
     {
         private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
-        //private Timer resyncTimer = new Timer();
+        private Timer resyncTimer = new Timer();
 
         public MusicService(MusicServiceConfig config)
         {
@@ -23,12 +23,12 @@ namespace Shared.Music
             playlistCollection = new PlaylistCollection(database);
             songCollection = new SongCollection(database);
 
-            //resyncTimer.Interval = TimeSpan.FromHours(24).TotalMilliseconds;
-            //resyncTimer.AutoReset = true;
-            //resyncTimer.Elapsed += async (obj, args) => await Resync();
-            //resyncTimer.Enabled = true;
+            resyncTimer.Interval = TimeSpan.FromHours(24).TotalMilliseconds;
+            resyncTimer.AutoReset = true;
+            resyncTimer.Elapsed += async (obj, args) => await Resync();
+            resyncTimer.Enabled = true;
 
-            //resyncTimer.Start();
+            resyncTimer.Start();
         }
 
         /// <summary>
@@ -92,12 +92,19 @@ namespace Shared.Music
         }
 
         /// <summary>
-        /// Get total song count in database.
+        /// Get all songs in database.
         /// </summary>
-        /// <returns>An integer containing total songs in database.</returns>
-        public async Task<int> GetTotalSongsAsync()
+        /// <returns>Dictionary of songs in database.</returns>
+        public async Task<Dictionary<string, SongMetadata>> GetTotalSongsAsync()
         {
-            return (await songCollection.GetAllAsync()).Count;
+            Dictionary<string, SongMetadata> songList = new Dictionary<string, SongMetadata>();
+            List<SongData> songDataList =  await songCollection.GetAllAsync();
+
+            if (songDataList.Count > 0)
+                foreach (SongData data in songDataList)
+                    songList.Add(data.Id, data.Metadata);
+
+            return songList;
         }
 
         /// <summary>
@@ -139,29 +146,29 @@ namespace Shared.Music
         // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
         // ===============
 
-        //private async Task Resync()
-        //{
-        //    List<SongData> expiredSongs = new List<SongData>();
-        //    List<SongData> songList = await songCollection.GetAllAsync();
+        private async Task Resync()
+        {
+            List<SongData> expiredSongs = new List<SongData>();
+            List<SongData> songList = await songCollection.GetAllAsync();
 
-        //    foreach (SongData song in songList)
-        //        if (song.LastAccessed < DateTime.Now.AddDays(-90))
-        //            expiredSongs.Add(song);
+            foreach (SongData song in songList)
+                if (song.LastAccessed < DateTime.Now.AddDays(-90))
+                    expiredSongs.Add(song);
 
-        //    if (expiredSongs.Count < 1) return;
+            if (expiredSongs.Count < 1) return;
 
-        //    List<Playlist> playlists = await playlistCollection.GetAllAsync();
+            List<Playlist> playlists = await playlistCollection.GetAllAsync();
 
-        //    foreach (Playlist playlist in playlists)
-        //        foreach (SongData song in expiredSongs)
-        //            if (playlist.Songs.Contains(song.Id))
-        //            {
-        //                playlist.Songs.Remove(song.Id);
-        //                await playlist.SaveAsync();
-        //            }
+            foreach (Playlist playlist in playlists)
+                foreach (SongData song in expiredSongs)
+                    if (playlist.Songs.Contains(song.Id))
+                    {
+                        playlist.Songs.Remove(song.Id);
+                        await playlist.SaveAsync();
+                    }
 
-        //    foreach (SongData song in expiredSongs)
-        //        await songCollection.DeleteSongAsync(song);
-        //}
+            foreach (SongData song in expiredSongs)
+                await songCollection.DeleteSongAsync(song);
+        }
     }
 }

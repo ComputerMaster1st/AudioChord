@@ -20,17 +20,14 @@ namespace Shared.Music.Processors
         public string VideoId { get; private set; }
         public SongMetadata Metadata { get; private set; }
 
-        internal static async Task<YouTubeProcessor> RetrieveAsync(string url)
+        internal static async Task<YouTubeProcessor> RetrieveAsync(string id)
         {
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException("The url given is either null or empty!");
 
             YouTubeProcessor processor = new YouTubeProcessor();
 
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
-                throw new ArgumentException("Video Url could not be parsed!");
-
-            await processor.GetVideoMetadataAsync(videoId);
+            await processor.GetVideoMetadataAsync(id);
 
             return processor;
         }
