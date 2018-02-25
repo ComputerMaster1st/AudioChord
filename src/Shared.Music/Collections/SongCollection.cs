@@ -73,7 +73,7 @@ namespace Shared.Music.Collections
             return false;
         }
         
-        internal async Task<string> DownloadFromYouTubeAsync(string url)
+        internal async Task<string> DownloadFromYouTubeAsync(string url, bool autoDownload)
         {
             if (!YoutubeClient.TryParseVideoId(url, out string videoId))
                 throw new ArgumentException("Video Url could not be parsed!");
@@ -81,6 +81,7 @@ namespace Shared.Music.Collections
             string songId = $"YOUTUBE#{videoId}";
 
             if (await DuplicateCheckAsync(songId)) return songId;
+            if (!autoDownload) throw new Exception("Could not download song! Auto-Download Disabled!");
 
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
 
@@ -93,12 +94,13 @@ namespace Shared.Music.Collections
             return songId;
         }
 
-        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId, bool autoDownload)
         {
             DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
             string songId = $"DISCORD#{attachmentId}";
 
             if (await DuplicateCheckAsync(songId)) return songId;
+            if (!autoDownload) throw new Exception("Could not download song! Auto-Download Disabled!");
 
             Stream opusStream = await processor.ProcessAudioAsync();
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);

@@ -124,10 +124,11 @@ namespace Shared.Music
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
         /// </summary>
         /// <param name="url">The youtube video url.</param>
+        /// <param name="autoDownload">Automatically download if non-existent.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<string> DownloadSongFromYouTubeAsync(string url)
+        public async Task<string> DownloadSongFromYouTubeAsync(string url, bool autoDownload = true)
         {
-            return await songCollection.DownloadFromYouTubeAsync(url);
+            return await songCollection.DownloadFromYouTubeAsync(url, autoDownload);
         }
 
         /// <summary>
@@ -136,10 +137,11 @@ namespace Shared.Music
         /// <param name="url">The discord attachment url.</param>
         /// <param name="uploader">The discord username.</param>
         /// <param name="attachmentId">The discord attachment Id.</param>
+        /// <param name="autoDownload">Automatically download if non-existent.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<string> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        public async Task<string> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId, bool autoDownload = true)
         {
-            return await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
+            return await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId, autoDownload);
         }
 
         // ===============
