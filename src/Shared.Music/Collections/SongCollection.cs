@@ -5,6 +5,7 @@ using Shared.Music.Processors;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using YoutubeExplode;
 
@@ -67,25 +68,30 @@ namespace Shared.Music.Collections
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
 
-        private async Task<bool> DuplicateCheckAsync(string songId)
+        private async Task<string> DuplicateCheckAsync(Stream stream)
         {
-            if (await GetSongAsync(songId) != null) return true;
-            return false;
+            byte[] hashByte = MD5.Create().ComputeHash(stream);
+            string hash = BitConverter.ToString(hashByte).Replace("-", string.Empty);
+            ObjectId opusId = await opusCollection.MatchMD5Async(hash);
+
+            if (opusId == ObjectId.Empty) return null;
+
+            var result = await collection.FindAsync((f) => f.OpusId == opusId);
+            SongData data = await result.FirstOrDefaultAsync();
+
+            if (data == null) return null;
+            return data.Id;
         }
         
-        internal async Task<string> DownloadFromYouTubeAsync(string url, bool autoDownload)
+        internal async Task<string> DownloadFromYouTubeAsync(string url)
         {
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
-                throw new ArgumentException("Video Url could not be parsed!");
-
-            string songId = $"YOUTUBE#{videoId}";
-
-            if (await DuplicateCheckAsync(songId)) return songId;
-            if (!autoDownload) throw new Exception("Could not download song! Auto-Download Disabled!");
-
-            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
-
+            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
             Stream opusStream = await processor.ProcessAudioAsync();
+            string dupCheck = await DuplicateCheckAsync(opusStream);
+
+            if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
+
+            string songId = "YOUTUBE#" + processor.VideoId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
             SongData songData = new SongData(songId, opusId, processor.Metadata);
 
@@ -94,15 +100,15 @@ namespace Shared.Music.Collections
             return songId;
         }
 
-        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId, bool autoDownload)
+        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
             DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
-            string songId = $"DISCORD#{attachmentId}";
-
-            if (await DuplicateCheckAsync(songId)) return songId;
-            if (!autoDownload) throw new Exception("Could not download song! Auto-Download Disabled!");
-
             Stream opusStream = await processor.ProcessAudioAsync();
+            string dupCheck = await DuplicateCheckAsync(opusStream);
+
+            if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
+
+            string songId = "DISCORD#" + attachmentId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
             SongData songData = new SongData(songId, opusId, processor.Metadata);
 

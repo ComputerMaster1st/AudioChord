@@ -20,13 +20,13 @@ namespace Shared.Music.Collections
             });
         }
 
-        internal async Task<bool> MatchMD5Async(string MD5Hash)
+        internal async Task<ObjectId> MatchMD5Async(string MD5Hash)
         {
             List<GridFSFileInfo> result = await (await collection.FindAsync(FilterDefinition<GridFSFileInfo>.Empty)).ToListAsync();
             foreach (GridFSFileInfo fileInfo in result)
                 if (fileInfo.MD5 == MD5Hash)
-                    return true;
-            return false;
+                    return fileInfo.Id;
+            return ObjectId.Empty;
         }
 
         internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
