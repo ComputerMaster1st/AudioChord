@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
+using YoutubeExplode;
 
 namespace Shared.Music
 {
@@ -119,6 +120,18 @@ namespace Shared.Music
         // ===============
         // ALL PROCESSOR BASED METHODS GO BELOW THIS COMMENT!
         // ===============
+
+        /// <summary>
+        /// Capture Youtube Video Id
+        /// </summary>
+        /// <param name="url">The youtube video url.</param>
+        /// <returns>Return youtube video id.</returns>
+        public string ParseYoutubeUrl(string url)
+        {
+            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
+                throw new ArgumentException("Video Url could not be parsed!");
+            return videoId;
+        }
 
         /// <summary>
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
