@@ -18,8 +18,17 @@ namespace Shared.Music
 
         public MusicService(MusicServiceConfig config)
         {
-            MongoClient client = new MongoClient($"mongodb://{config.Username}:{config.Password}@{config.Hostname}:27017/sharedmusic");
-            IMongoDatabase database = client.GetDatabase("sharedmusic");
+            //Use the builder to allow to connect to database without authentication
+            MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder();
+
+            connectionStringBuilder.DatabaseName = config.Database;
+            connectionStringBuilder.Server = new MongoServerAddress(config.Hostname);
+
+            connectionStringBuilder.Username = config.Username;
+            connectionStringBuilder.Password = config.Password;
+
+            MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
+            IMongoDatabase database = client.GetDatabase(config.Database);
 
             playlistCollection = new PlaylistCollection(database);
             songCollection = new SongCollection(database);
