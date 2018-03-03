@@ -51,9 +51,13 @@ namespace Shared.Music.Processors
             AudioStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Audio.WithHighestBitrate();
             Stream opusStream;
 
+
             using (MediaStream youtubeAudioStream = await Client.GetMediaStreamAsync(StreamInfo))
             {
-                opusStream = await encoder.ProcessAsync(youtubeAudioStream);
+                MemoryStream output = new MemoryStream();
+                await youtubeAudioStream.CopyToAsync(output);
+                output.Position = 0;
+                opusStream = await encoder.ProcessAsync(output);
             }
 
             return opusStream;
