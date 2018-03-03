@@ -3,6 +3,7 @@ using Shared.Music.Collections.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Shared.Music.Processors
@@ -12,6 +13,7 @@ namespace Shared.Music.Processors
     /// </summary>
     internal class DiscordProcessor
     {
+        private WebClient client = new WebClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
         private string filename;
 
@@ -64,6 +66,8 @@ namespace Shared.Music.Processors
             filename = url.Substring(url.LastIndexOf('/'));
             string songName = Path.GetFileNameWithoutExtension(filename);
             TimeSpan length;
+
+            await client.DownloadFileTaskAsync(url, filename);
 
             string json = await ProbeFileAsync(filename);
 
