@@ -36,7 +36,10 @@ namespace Shared.Music.Collections
 
         internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
-            return await collection.OpenDownloadStreamAsync(opusId);
+            MemoryStream result = new MemoryStream();
+            await collection.DownloadToStreamAsync(opusId, result);
+            result.Position = 0;
+            return result;
         }
 
         internal async Task DeleteAsync(ObjectId opusId)
