@@ -19,13 +19,14 @@ namespace Shared.Music
         public MusicService(MusicServiceConfig config)
         {
             //Use the builder to allow to connect to database without authentication
-            MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder();
+            MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder
+            {
+                DatabaseName = config.Database,
+                Server = new MongoServerAddress(config.Hostname),
 
-            connectionStringBuilder.DatabaseName = config.Database;
-            connectionStringBuilder.Server = new MongoServerAddress(config.Hostname);
-
-            connectionStringBuilder.Username = config.Username;
-            connectionStringBuilder.Password = config.Password;
+                Username = config.Username,
+                Password = config.Password
+            };
 
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
@@ -137,7 +138,7 @@ namespace Shared.Music
         /// <returns>Return youtube video id.</returns>
         public string ParseYoutubeUrl(string url)
         {
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
+            if (YoutubeClient.TryParseVideoId(url, out string videoId))
                 throw new ArgumentException("Video Url could not be parsed!");
             return videoId;
         }
