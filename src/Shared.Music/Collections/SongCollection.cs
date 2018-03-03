@@ -71,6 +71,8 @@ namespace Shared.Music.Collections
         private async Task<string> DuplicateCheckAsync(Stream stream)
         {
             byte[] hashByte = MD5.Create().ComputeHash(stream);
+            stream.Position = 0;
+
             string hash = BitConverter.ToString(hashByte).Replace("-", string.Empty);
             ObjectId opusId = await opusCollection.MatchMD5Async(hash);
 
@@ -91,7 +93,6 @@ namespace Shared.Music.Collections
 
             if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
 
-            opusStream.Position = 0;
             string songId = "YOUTUBE#" + processor.VideoId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
             SongData songData = new SongData(songId, opusId, processor.Metadata);
