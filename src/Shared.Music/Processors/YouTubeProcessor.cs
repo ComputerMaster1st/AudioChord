@@ -25,7 +25,7 @@ namespace Shared.Music.Processors
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentNullException("The url given is either null or empty!");
 
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
+            if (YoutubeClient.TryParseVideoId(url, out string videoId))
                 throw new ArgumentException("Video Url could not be parsed!");
 
             YouTubeProcessor processor = new YouTubeProcessor();
