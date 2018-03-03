@@ -153,7 +153,7 @@ namespace Shared.Music
         }
 
         /// <summary>
-        /// Download song from Discord to database. (Note: Exceptions are to be expected.)
+        /// Download song from Discord to database. (Note: Exceptions are to be expected. YOU MUST DOWNLOAD FILE BEFORE THIS METHOD!)
         /// </summary>
         /// <param name="url">The discord attachment url.</param>
         /// <param name="uploader">The discord username.</param>
