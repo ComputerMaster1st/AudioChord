@@ -63,7 +63,7 @@ namespace Shared.Music.Processors
 
         private async Task GetMetadataAsync(string url, string uploader)
         {
-            filename = url.Substring(url.LastIndexOf('/'));
+            filename = url.Substring(url.LastIndexOf('/') + 1);
             string songName = Path.GetFileNameWithoutExtension(filename);
             TimeSpan length;
 
