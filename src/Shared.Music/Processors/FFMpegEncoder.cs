@@ -65,6 +65,7 @@ namespace Shared.Music.Processors
             {
                 process.Exited += (obj, args) => {
                     awaitExitSource.SetResult(process.ExitCode);
+                    File.Delete(filePath);
                 };
 
                 process.Start();
