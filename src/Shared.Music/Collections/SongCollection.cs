@@ -71,6 +71,8 @@ namespace Shared.Music.Collections
         private async Task<string> DuplicateCheckAsync(Stream stream)
         {
             byte[] hashByte = MD5.Create().ComputeHash(stream);
+            stream.Position = 0;
+
             string hash = BitConverter.ToString(hashByte).Replace("-", string.Empty);
             ObjectId opusId = await opusCollection.MatchMD5Async(hash);
 
