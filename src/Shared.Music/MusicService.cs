@@ -138,7 +138,7 @@ namespace Shared.Music
         /// <returns>Return youtube video id.</returns>
         public string ParseYoutubeUrl(string url)
         {
-            if (YoutubeClient.TryParseVideoId(url, out string videoId))
+            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
                 throw new ArgumentException("Video Url could not be parsed!");
             return videoId;
         }
