@@ -15,7 +15,7 @@ namespace Shared.Music.Processors
     {
         private WebClient client = new WebClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
-        private MemoryStream downloadedFile;
+        private string filename;
 
         public SongMetadata Metadata { get; private set; }
 
@@ -31,7 +31,7 @@ namespace Shared.Music.Processors
             return processor;
         }
 
-        private async Task<string> ProbeFileAsync(Stream filestream)
+        private async Task<string> ProbeFileAsync(string filename)
         {
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
             string json = null;
@@ -41,10 +41,9 @@ namespace Shared.Music.Processors
                 StartInfo = new ProcessStartInfo()
                 {
                     FileName = "ffprobe",
-                    Arguments = $"-i pipe:0 -hide_banner -show_format -print_format json -v quiet",
+                    Arguments = $"-i {filename} -hide_banner -show_format -print_format json -v quiet",
                     UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true
+                    RedirectStandardOutput = true
                 },
                 EnableRaisingEvents = true
             })
@@ -55,8 +54,6 @@ namespace Shared.Music.Processors
 
                 process.Start();
 
-                await filestream.CopyToAsync(process.StandardInput.BaseStream);
-
                 json = await process.StandardOutput.ReadToEndAsync();
                 int exitCode = await awaitExitSource.Task;
             }
@@ -66,12 +63,13 @@ namespace Shared.Music.Processors
 
         private async Task GetMetadataAsync(string url, string uploader)
         {
-            string songName = Path.GetFileNameWithoutExtension(url.Substring(url.LastIndexOf('/') + 1));
+            filename = url.Substring(url.LastIndexOf('/') + 1);
+            string songName = Path.GetFileNameWithoutExtension(filename);
             TimeSpan length;
 
-            downloadedFile = new MemoryStream(await client.DownloadDataTaskAsync(url));
+            await client.DownloadFileTaskAsync(url, filename);
 
-            string json = await ProbeFileAsync(downloadedFile);
+            string json = await ProbeFileAsync(filename);
 
             JObject root = JObject.Parse(json);
             if (root["format"].HasValues)
@@ -91,7 +89,7 @@ namespace Shared.Music.Processors
 
         internal async Task<Stream> ProcessAudioAsync()
         {
-            return await encoder.ProcessAsync(downloadedFile);
+            return await encoder.ProcessAsync(filename);
         }
     }
 }
