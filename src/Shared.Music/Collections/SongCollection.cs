@@ -91,6 +91,7 @@ namespace Shared.Music.Collections
 
             if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
 
+            opusStream.Position = 0;
             string songId = "YOUTUBE#" + processor.VideoId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
             SongData songData = new SongData(songId, opusId, processor.Metadata);
