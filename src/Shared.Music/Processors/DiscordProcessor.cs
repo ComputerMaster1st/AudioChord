@@ -76,7 +76,7 @@ namespace Shared.Music.Processors
             {
                 length = TimeSpan.FromSeconds(root["format"]["duration"].Value<double>());
 
-                if (root["format"]["tags"].HasValues && ((JObject)root["format"]["tags"]).TryGetValue("title", out JToken title))
+                if (root["format"]["tags"] != null && root["format"]["tags"].HasValues && ((JObject)root["format"]["tags"]).TryGetValue("title", out JToken title))
                 {
                     songName = title.ToString();
                 }
