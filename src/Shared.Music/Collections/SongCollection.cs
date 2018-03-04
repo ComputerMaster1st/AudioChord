@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using YoutubeExplode;
 
 namespace Shared.Music.Collections
 {
@@ -86,7 +87,16 @@ namespace Shared.Music.Collections
         
         internal async Task<string> DownloadFromYouTubeAsync(string url)
         {
-            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(url);
+            if (string.IsNullOrWhiteSpace(url))
+                throw new ArgumentNullException("No url has been provided!");
+
+            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
+                throw new ArgumentException("Video Url could not be parsed!");
+
+            SongData songData = await GetSongAsync("YOUTUBE#" + videoId);
+            if (songData != null) return songData.Id;
+
+            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
             Stream opusStream = await processor.ProcessAudioAsync();
             string dupCheck = await DuplicateCheckAsync(opusStream);
 
@@ -94,7 +104,7 @@ namespace Shared.Music.Collections
 
             string songId = "YOUTUBE#" + processor.VideoId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
-            SongData songData = new SongData(songId, opusId, processor.Metadata);
+            songData = new SongData(songId, opusId, processor.Metadata);
 
             await UpdateSongAsync(songData);
 
