@@ -78,7 +78,6 @@ namespace Shared.Music
         {
             SongData songData = await songCollection.GetSongAsync(songId);
 
-            if (songData == null) return null;
             return new Song(songData.Id, songData.Metadata, songData.OpusId, songCollection);
         }
 
