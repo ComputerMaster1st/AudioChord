@@ -48,9 +48,17 @@ namespace Shared.Music.Collections
             await opusCollection.DeleteAsync(song.OpusId);
         }
 
-        internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
+        internal async Task<Stream> OpenOpusStreamAsync(Song song)
         {
-            return await opusCollection.OpenOpusStreamAsync(opusId);
+            //retrieve the current song
+            SongData songData = await GetSongAsync(song.Id);
+
+            //update the last-used timestamp
+            songData.LastAccessed = DateTime.Now;
+            await UpdateSongAsync(songData);
+
+            //give the stream back
+            return await opusCollection.OpenOpusStreamAsync(song.opusFileId);
         }
 
         internal async Task<List<SongData>> GetAllAsync()

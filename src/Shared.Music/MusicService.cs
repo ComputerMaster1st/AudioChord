@@ -70,50 +70,29 @@ namespace Shared.Music
         }
 
         /// <summary>
-        /// Fetch song metadata from database.
-        /// </summary>
-        /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="SongMetadata"/> SongMeta contains song metadata.</returns>
-        public async Task<SongMetadata> GetSongMetadataAsync(string songId)
-        {
-            SongData songData = await songCollection.GetSongAsync(songId);
-            return songData.Metadata;
-        }
-
-        /// <summary>
         /// Fetch song metadata with opus stream from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="SongStream"/> SongStream contains song metadata and opus stream.</returns>
-        public async Task<SongStream> GetSongStreamAsync(string songId)
+        /// <returns>A <see cref="Song"/> SongStream contains song metadata and opus stream.</returns>
+        public async Task<Song> GetSongAsync(string songId)
         {
             SongData songData = await songCollection.GetSongAsync(songId);
 
-            SongStream songStream = new SongStream
-            {
-                Id = songData.Id,
-                Metadata = songData.Metadata,
-                MusicStream = await songCollection.OpenOpusStreamAsync(songData.OpusId)
-            };
-
-            songData.LastAccessed = DateTime.Now;
-            await songCollection.UpdateSongAsync(songData);
-
-            return songStream;
+            return new Song(songData.Id, songData.Metadata, songData.OpusId, songCollection);
         }
 
         /// <summary>
         /// Get all songs in database.
         /// </summary>
         /// <returns>Dictionary of songs in database.</returns>
-        public async Task<Dictionary<string, SongMetadata>> GetTotalSongsAsync()
+        public async Task<IEnumerable<Song>> GetAllSongsAsync()
         {
-            Dictionary<string, SongMetadata> songList = new Dictionary<string, SongMetadata>();
+            List<Song> songList = new List<Song>();
             List<SongData> songDataList =  await songCollection.GetAllAsync();
 
             if (songDataList.Count > 0)
                 foreach (SongData data in songDataList)
-                    songList.Add(data.Id, data.Metadata);
+                    songList.Add(new Song(data.Id, data.Metadata, data.OpusId, songCollection));
 
             return songList;
         }
