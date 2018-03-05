@@ -1,10 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Shared.Music.Collections.Models;
+using AudioChord.Collections.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Collections
+namespace AudioChord.Collections
 {
     internal class PlaylistCollection
     {

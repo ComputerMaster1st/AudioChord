@@ -3,7 +3,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Collections.Models
+namespace AudioChord.Collections.Models
 {
     public class Playlist
     {

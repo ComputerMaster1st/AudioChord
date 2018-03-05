@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Collections.Models
+namespace AudioChord.Collections.Models
 {
     public class Song
     {

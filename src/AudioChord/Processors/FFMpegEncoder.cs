@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Processors
+namespace AudioChord.Processors
 {
     internal class FFMpegEncoder
     {

@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json.Linq;
-using Shared.Music.Collections.Models;
+using AudioChord.Collections.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Processors
+namespace AudioChord.Processors
 {
     /// <summary>
     /// Convert discord url links to opus audio data

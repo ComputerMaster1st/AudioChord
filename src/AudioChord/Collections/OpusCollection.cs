@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Shared.Music.Collections
+namespace AudioChord.Collections
 {
     internal class OpusCollection
     {

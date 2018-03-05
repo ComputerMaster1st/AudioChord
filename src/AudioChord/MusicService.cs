@@ -1,14 +1,14 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Shared.Music.Collections;
-using Shared.Music.Collections.Models;
+using AudioChord.Collections;
+using AudioChord.Collections.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Timers;
 using YoutubeExplode;
 
-namespace Shared.Music
+namespace AudioChord
 {
     public class MusicService
     {

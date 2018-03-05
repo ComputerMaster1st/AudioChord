@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Shared.Music.Collections.Models;
-using Shared.Music.Processors;
+using AudioChord.Collections.Models;
+using AudioChord.Processors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using YoutubeExplode;
 
-namespace Shared.Music.Collections
+namespace AudioChord.Collections
 {
     internal class SongCollection
     {

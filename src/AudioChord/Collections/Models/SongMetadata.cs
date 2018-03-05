@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shared.Music.Collections.Models
+namespace AudioChord.Collections.Models
 {
     public class SongMetadata
     {

@@ -1,7 +1,7 @@
 using Xunit;
-using Shared.Music.Collections.Models;
+using AudioChord.Collections.Models;
 
-namespace Shared.Music.Tests
+namespace AudioChord.Tests
 {
     public class PlaylistTests
     {

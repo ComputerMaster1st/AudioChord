@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace Shared.Music.Collections.Models
+namespace AudioChord.Collections.Models
 {
     internal class SongData
     {

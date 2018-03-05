@@ -1,4 +1,4 @@
-﻿namespace Shared.Music
+﻿namespace AudioChord
 {
     public class MusicServiceConfig
     {

@@ -1,5 +1,5 @@
-﻿using Shared.Music.Collections.Models;
-using Shared.Music.Processors;
+﻿using AudioChord.Collections.Models;
+using AudioChord.Processors;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using YoutubeExplode;
 using YoutubeExplode.Models;
 using YoutubeExplode.Models.MediaStreams;
 
-namespace Shared.Music.Processors
+namespace AudioChord.Processors
 {
     /// <summary>
     /// Convert youtube url links to opus audio data
