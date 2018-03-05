@@ -1,8 +1,9 @@
-﻿using MongoDB.Bson;
+﻿using AudioChord.Collections;
+using MongoDB.Bson;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace AudioChord.Collections.Models
+namespace AudioChord
 {
     public class Song
     {
