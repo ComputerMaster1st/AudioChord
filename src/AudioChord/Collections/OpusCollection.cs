@@ -36,10 +36,8 @@ namespace AudioChord.Collections
 
         internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
-            MemoryStream result = new MemoryStream();
-            await collection.DownloadToStreamAsync(opusId, result);
-            result.Position = 0;
-            return result;
+            var output = await collection.OpenDownloadStreamAsync(opusId);
+            return Stream.Synchronized(output);
         }
 
         internal async Task DeleteAsync(ObjectId opusId)
