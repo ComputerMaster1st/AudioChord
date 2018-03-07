@@ -36,7 +36,7 @@ namespace AudioChord.Collections
 
         internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
         {
-            var output = await collection.OpenDownloadStreamAsync(opusId);
+            var output = await collection.OpenDownloadStreamAsync(opusId, new GridFSDownloadOptions() { Seekable = true });
             return Stream.Synchronized(output);
         }
 
