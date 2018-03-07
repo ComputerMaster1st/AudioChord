@@ -1,5 +1,7 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Xunit;
-using AudioChord.Collections.Models;
 
 namespace AudioChord.Tests
 {
@@ -41,12 +43,30 @@ namespace AudioChord.Tests
             await playlist.SaveAsync();
         }
 
-        //[Fact]
-        //public async void Song_GetMetadata()
-        //{
-        //    SongMeta meta = await service.GetSongMetadataAsync(songId1);
-        //    Assert.NotNull(meta);
-        //}
+        [Fact]
+        public async Task Song_ValidateMemoryDisposing()
+        {
+            GC.Collect();
+
+            //test the task
+            await UseMemory();
+
+            //full GC agian
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        private async Task UseMemory()
+        {
+            string songid = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
+            Song song = await service.GetSongAsync(songid);
+
+            using (Stream stream = await song.GetMusicStreamAsync())
+            {
+
+            }
+        }
 
         //[Fact]
         //public async void Song_GetStream()

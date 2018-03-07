@@ -50,7 +50,7 @@ namespace AudioChord.Collections
 
         internal async Task<Stream> OpenOpusStreamAsync(Song song)
         {
-            //retrieve the current song
+            //retrieve the requested song
             SongData songData = await GetSongAsync(song.Id);
 
             //update the last-used timestamp
