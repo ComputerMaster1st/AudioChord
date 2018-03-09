@@ -417,8 +417,7 @@ namespace AudioChord
             if (index < 0 || index + count > buffer.Length) throw new ArgumentOutOfRangeException("index");
             for (int i = 0; i < count; i++)
             {
-                int cnt;
-                byte val = (byte)TryPeekBits(8, out cnt);
+                byte val = (byte)TryPeekBits(8, out int cnt);
                 if (cnt == 0)
                 {
                     return i;

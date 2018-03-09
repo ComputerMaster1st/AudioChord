@@ -57,22 +57,19 @@ namespace AudioChord
         /// NULL and puts the error message into the LastError field
         /// </summary>
         /// <returns>The decoded audio for the next packet in the stream, or NULL</returns>
-        public byte[] DecodeNextPacket()
+        public byte[] RetrieveNextPacket()
         {
             if (_nextDataPacket == null || _nextDataPacket.Length == 0)
-            {
                 _endOfStream = true;
-            }
 
             if (_endOfStream)
-            {
                 return null;
-            }
+
+            byte[] result = _nextDataPacket;
 
             //Search for the next packet in the stream and queue it up
             QueueNextPacket();
-            return _nextDataPacket;
-
+            return result;
         }
 
         /// <summary>
