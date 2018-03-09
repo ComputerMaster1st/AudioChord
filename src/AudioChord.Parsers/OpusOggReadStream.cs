@@ -52,11 +52,11 @@ namespace AudioChord
         public string LastError { get; private set; }
 
         /// <summary>
-        /// Reads the next packet from the Ogg stream and decodes it, returning the decoded PCM buffer.
+        /// Reads the next packet from the Ogg stream and returns it.
         /// If there are no more packets to decode, this returns NULL. If an error occurs, this also returns
         /// NULL and puts the error message into the LastError field
         /// </summary>
-        /// <returns>The decoded audio for the next packet in the stream, or NULL</returns>
+        /// <returns>The next opus audio packet (or frame) in the stream, or NULL</returns>
         public byte[] RetrieveNextPacket()
         {
             if (_nextDataPacket == null || _nextDataPacket.Length == 0)
