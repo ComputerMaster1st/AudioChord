@@ -8,13 +8,14 @@ namespace AudioChord
     /// Provides functionality to decode a basic .opus Ogg file, decoding the audio packets individually and returning them. Tags are also parsed if present.
     /// Note that this currently assumes the input file only has 1 elementary stream; anything more advanced than that will probably not work.
     /// </summary>
-    public class OpusOggReadStream
+    public class OpusOggReadStream : IDisposable
     {
         private Stream _inputStream;
         private byte[] _nextDataPacket;
         private OpusTags _tags;
         private IPacketProvider _packetProvider;
         private bool _endOfStream;
+        private OggContainerReader _reader;
 
         /// <summary>
         /// Builds an Ogg file reader that decodes Opus packets from the given input stream, using a 
@@ -51,6 +52,11 @@ namespace AudioChord
         /// </summary>
         public string LastError { get; private set; }
 
+        public void Dispose()
+        {
+            ((IDisposable)_reader).Dispose();
+        }
+
         /// <summary>
         /// Reads the next packet from the Ogg stream and returns it.
         /// If there are no more packets to decode, this returns NULL. If an error occurs, this also returns
@@ -81,8 +87,8 @@ namespace AudioChord
         {
             try
             {
-                OggContainerReader reader = new OggContainerReader(_inputStream, true);
-                if (!reader.Init())
+                _reader = new OggContainerReader(_inputStream, true);
+                if (!_reader.Init())
                 {
                     LastError = "Could not initialize stream";
                     return false;
@@ -93,14 +99,14 @@ namespace AudioChord
                 //    _lastError = "Could not find elementary stream";
                 //    return false;
                 //}
-                if (reader.StreamSerials.Length == 0)
+                if (_reader.StreamSerials.Length == 0)
                 {
                     LastError = "Initialization failed: No elementary streams found in input file";
                     return false;
                 }
 
-                int streamSerial = reader.StreamSerials[0];
-                _packetProvider = reader.GetStream(streamSerial);
+                int streamSerial = _reader.StreamSerials[0];
+                _packetProvider = _reader.GetStream(streamSerial);
                 QueueNextPacket();
 
                 return true;
