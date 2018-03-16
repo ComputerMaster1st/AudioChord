@@ -127,9 +127,10 @@ namespace AudioChord
         /// </summary>
         /// <param name="url">The youtube video url.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<string> DownloadSongFromYouTubeAsync(string url)
+        public async Task<Song> DownloadSongFromYouTubeAsync(string url)
         {
-            return await songCollection.DownloadFromYouTubeAsync(url);
+            string id = await songCollection.DownloadFromYouTubeAsync(url);
+            return await GetSongAsync(id);
         }
 
         /// <summary>
@@ -140,9 +141,10 @@ namespace AudioChord
         /// <param name="attachmentId">The discord attachment Id.</param>
         /// <param name="autoDownload">Automatically download if non-existent.</param>
         /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<string> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        public async Task<Song> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
-            return await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
+            string id = await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
+            return await GetSongAsync(id);
         }
 
         // ===============
