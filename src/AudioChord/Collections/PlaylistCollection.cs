@@ -26,6 +26,9 @@ namespace AudioChord.Collections
         {
             var result = await collection.FindAsync((f) => f.Id == playlistId);
             Playlist playlist = await result.FirstOrDefaultAsync();
+
+            if (playlist == null) return null;
+
             playlist.collection = this;
             return playlist;
         }
