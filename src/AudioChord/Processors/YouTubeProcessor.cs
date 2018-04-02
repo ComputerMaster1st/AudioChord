@@ -42,16 +42,16 @@ namespace AudioChord.Processors
 
         internal async Task<Stream> ProcessAudioAsync()
         {
-            AudioStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Audio.WithHighestBitrate();
+            MuxedStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Muxed.WithHighestVideoQuality();
             Stream opusStream;
 
 
-            using (MediaStream youtubeAudioStream = await Client.GetMediaStreamAsync(StreamInfo))
+            using (MediaStream youtubeStream = await Client.GetMediaStreamAsync(StreamInfo))
             {
-                MemoryStream output = new MemoryStream();
-                await youtubeAudioStream.CopyToAsync(output);
-                output.Position = 0;
-                opusStream = await encoder.ProcessAsync(output);
+                //MemoryStream output = new MemoryStream();
+                //await youtubeAudioStream.CopyToAsync(output);
+                //output.Position = 0;
+                opusStream = await encoder.ProcessAsync(youtubeStream);
             }
 
             return opusStream;
