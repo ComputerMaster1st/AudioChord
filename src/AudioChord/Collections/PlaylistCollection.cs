@@ -1,6 +1,5 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using AudioChord.Collections.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
