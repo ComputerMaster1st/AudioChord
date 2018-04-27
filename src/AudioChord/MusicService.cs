@@ -5,8 +5,11 @@ using AudioChord.Collections.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Timers;
 using YoutubeExplode;
+using AudioChord.Events;
+using System.Threading;
+using System.Timers;
+using System.Collections.Concurrent;
 
 namespace AudioChord
 {
@@ -14,7 +17,14 @@ namespace AudioChord
     {
         private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
-        private Timer resyncTimer = new Timer();
+        private System.Timers.Timer resyncTimer = new System.Timers.Timer();
+
+        public event EventHandler<ProcessedSongEventArgs> ProcessedSong;
+        public event EventHandler<SongsExistedEventArgs> SongsExisted;
+        private Task QueueProcessor = null;
+        private ConcurrentDictionary<string, ProcessSongRequestInfo> QueuedSongs = new ConcurrentDictionary<string, ProcessSongRequestInfo>();
+
+        private SemaphoreSlim QueueProcessorLock = new SemaphoreSlim(1,1);
 
         public MusicService(MusicServiceConfig config)
         {
@@ -148,6 +158,83 @@ namespace AudioChord
         }
 
         // ===============
+        // ALL PLAYLIST HANDLING METHODS GO BELOW THIS COMMENT!
+        // ===============
+
+        public async Task ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, ObjectId playlistId)
+        {
+            // Get YT playlist from user
+            string youtubePlaylistId = YoutubeClient.ParsePlaylistId(youtubePlaylistUrl);
+            YoutubeClient youtubeClient = new YoutubeClient();
+            YoutubeExplode.Models.Playlist youtubePlaylist = await youtubeClient.GetPlaylistAsync(youtubePlaylistId);
+
+            List<string> existingSongs = new List<string>();
+            
+            // Halt queue until playlist is processed
+            await QueueProcessorLock.WaitAsync();
+
+            // Create & queue up task requests
+            foreach (YoutubeExplode.Models.Video video in youtubePlaylist.Videos)
+            {
+                // Check if song exists
+                Song songData = await GetSongAsync($"YOUTUBE#{video.Id}");
+
+                if (songData != null)
+                {
+                    if (!existingSongs.Contains(songData.Id)) existingSongs.Add(songData.Id);
+                    continue;
+                }
+
+                // \/ If doesn't exist \/
+                ProcessSongRequestInfo info;
+
+                if (!QueuedSongs.TryAdd(video.Id, new ProcessSongRequestInfo($"https://youtu.be/{video.Id}", guildId, textChannelId, playlistId)))
+                {
+                    info = QueuedSongs[video.Id];
+                    if (!info.GuildsRequested.ContainsKey(guildId)) info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
+                }
+            }
+
+            // Fire SongsAlreadyExisted Handler
+            if (existingSongs.Count > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs));
+
+            // Start Processing Song Queue
+            QueueProcessorLock.Release();
+            if (QueueProcessor == null || QueueProcessor.IsCompleted)
+            {
+                if (QueueProcessor.IsCompleted) QueueProcessor.Dispose();
+                QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+            }
+        }
+
+        private async Task ProcessRequestedSongsQueueAsync()
+        {
+            foreach (var infoKeyValue in QueuedSongs)
+            {
+                // Get the lock
+                await QueueProcessorLock.WaitAsync();
+
+                // Process the song
+                Song song = await DownloadSongFromYouTubeAsync(infoKeyValue.Value.VideoId);
+
+                // Save to Playlist
+                foreach (var guildKeyValue in infoKeyValue.Value.GuildsRequested)
+                {
+                    Playlist playlist = await GetPlaylistAsync(guildKeyValue.Value.Item2);
+
+                    playlist.Songs.Add(song.Id);
+                    await playlist.SaveAsync();
+
+                    // Trigger event upon 1 song completing
+                    ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1));
+                }
+                
+                // Release Lock
+                QueueProcessorLock.Release();
+            }
+        }
+
+        // ===============
         // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
         // ===============
 
@@ -175,5 +262,11 @@ namespace AudioChord
             foreach (SongData song in expiredSongs)
                 await songCollection.DeleteSongAsync(song);
         }
+
+        // ===============
+        // ALL EVENT HANDLER METHODS GO BELOW THIS COMMENT!
+        // ===============
+
+
     }
 }
