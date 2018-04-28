@@ -187,7 +187,8 @@ namespace AudioChord
                 }
 
                 // Check if song exists
-                Song songData = await GetSongAsync($"YOUTUBE#{videoId}");
+                videoId = $"YOUTUBE#{videoId}";
+                Song songData = await GetSongAsync(videoId);
 
                 if (songData != null)
                 {
@@ -289,7 +290,7 @@ namespace AudioChord
                         if (song == null)
                         {
                             // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                             continue;
                         }
 
