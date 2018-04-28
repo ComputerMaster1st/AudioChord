@@ -312,6 +312,8 @@ namespace AudioChord
 
         private async Task Resync()
         {
+            await QueueProcessorLock.WaitAsync();
+
             List<SongData> expiredSongs = new List<SongData>();
             List<SongData> songList = await songCollection.GetAllAsync();
 
@@ -335,6 +337,8 @@ namespace AudioChord
 
             foreach (SongData song in expiredSongs)
                 await songCollection.DeleteSongAsync(song);
+
+            QueueProcessorLock.Release();
 
             ExecutedResync.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count));
         }
