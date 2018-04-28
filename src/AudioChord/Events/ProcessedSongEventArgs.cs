@@ -13,17 +13,17 @@ namespace AudioChord.Events
 
         public ulong GuildId { get; }
         public ulong TextChannelId { get; }
-        public int SongQueuePosition { get; }
-        public int SongQueueLength { get; }
+        public int SongsLeftToProcess { get; }
+        public int SongInQueue { get; }
 
-        internal ProcessedSongEventArgs(string songId, string songName, ulong guildId, ulong textChannelId, int songQueuePosition, int songQueueLength)
+        internal ProcessedSongEventArgs(string songId, string songName, ulong guildId, ulong textChannelId, int songsLeftToProcess, int songsInQueue)
         {
             SongId = songId;
             SongName = songName;
             GuildId = guildId;
             TextChannelId = textChannelId;
-            SongQueuePosition = songQueuePosition;
-            SongQueueLength = songQueueLength;
+            SongsLeftToProcess = songsLeftToProcess;
+            SongInQueue = songsInQueue;
         }
     }
 }
