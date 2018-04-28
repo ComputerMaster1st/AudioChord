@@ -193,9 +193,9 @@ namespace AudioChord
                         {
                             guildPlaylist.Songs.Add(songData.Id);
                             await guildPlaylist.SaveAsync();
-                            existingSongs++;
+                            installedSongs++;
                         }
-                        else installedSongs++;
+                        else existingSongs++;
 
                         continue;
                     }
@@ -219,7 +219,7 @@ namespace AudioChord
             }
 
             // Fire SongsAlreadyExisted Handler
-            if (existingSongs > 0 || installedSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, installedSongs, existingSongs, queuedSongs, failedParsingSongs));
+            SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs, installedSongs, queuedSongs, failedParsingSongs));
 
             // Start Processing Song Queue
             if (QueuedSongs.Count > 0)
