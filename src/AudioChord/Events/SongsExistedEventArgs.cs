@@ -1,18 +1,18 @@
-﻿using System.Collections.Generic;
-
-namespace AudioChord
+﻿namespace AudioChord
 {
     public class SongsExistedEventArgs
     {
         public ulong GuildId { get; }
         public ulong TextChannelId { get; }
-        public IEnumerable<string> AlreadyExistingSongs { get; }
+        public int InstalledExistingSongsCount { get; }
+        public int QueuedSongsCount { get; }
 
-        internal SongsExistedEventArgs(ulong guildId, ulong textChannelId, IEnumerable<string> alreadyExistingSongs)
+        internal SongsExistedEventArgs(ulong guildId, ulong textChannelId, int installedExistingSongsCount, int queuedSongsCount)
         {
             GuildId = guildId;
             TextChannelId = textChannelId;
-            AlreadyExistingSongs = alreadyExistingSongs;
+            InstalledExistingSongsCount = installedExistingSongsCount;
+            QueuedSongsCount = queuedSongsCount;
         }
     }
 }

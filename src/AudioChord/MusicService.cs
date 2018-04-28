@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using YoutubeExplode;
 using AudioChord.Events;
 using System.Threading;
-using System.Timers;
 using System.Collections.Concurrent;
 
 namespace AudioChord
@@ -21,10 +20,11 @@ namespace AudioChord
 
         public event EventHandler<ProcessedSongEventArgs> ProcessedSong;
         public event EventHandler<SongsExistedEventArgs> SongsExisted;
+
         private Task QueueProcessor = null;
         private ConcurrentDictionary<string, ProcessSongRequestInfo> QueuedSongs = new ConcurrentDictionary<string, ProcessSongRequestInfo>();
-
         private SemaphoreSlim QueueProcessorLock = new SemaphoreSlim(1,1);
+        private Dictionary<ulong, Tuple<int, int>> QueueGuildStatus = new Dictionary<ulong, Tuple<int, int>>();
 
         public MusicService(MusicServiceConfig config)
         {
@@ -83,12 +83,13 @@ namespace AudioChord
         /// Fetch song metadata with opus stream from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="Song"/> SongStream contains song metadata and opus stream.</returns>
+        /// <returns>A <see cref="Song"/> SongStream contains song metadata and opus stream. Returns null if nothing found.</returns>
         public async Task<Song> GetSongAsync(string songId)
         {
             SongData songData = await songCollection.GetSongAsync(songId);
 
-            return new Song(songData.Id, songData.Metadata, songData.OpusId, songCollection);
+            if (songData != null) return new Song(songData.Id, songData.Metadata, songData.OpusId, songCollection);
+            else return null;
         }
 
         /// <summary>
@@ -167,8 +168,11 @@ namespace AudioChord
             string youtubePlaylistId = YoutubeClient.ParsePlaylistId(youtubePlaylistUrl);
             YoutubeClient youtubeClient = new YoutubeClient();
             YoutubeExplode.Models.Playlist youtubePlaylist = await youtubeClient.GetPlaylistAsync(youtubePlaylistId);
+            Playlist guildPlaylist = await GetPlaylistAsync(playlistId);
 
-            List<string> existingSongs = new List<string>();
+            // Existing & Queued Counters for Guild's Request
+            int existingSongs = 0;
+            int queuedSongs = 0;
             
             // Halt queue until playlist is processed
             await QueueProcessorLock.WaitAsync();
@@ -181,30 +185,53 @@ namespace AudioChord
 
                 if (songData != null)
                 {
-                    if (!existingSongs.Contains(songData.Id)) existingSongs.Add(songData.Id);
+                    // Add song to playlist if not already
+                    if (!guildPlaylist.Songs.Contains(songData.Id))
+                    {
+                        guildPlaylist.Songs.Add(songData.Id);
+                        await guildPlaylist.SaveAsync();
+                    }
+
+                    existingSongs++;
                     continue;
                 }
-
+                
                 // \/ If doesn't exist \/
-                ProcessSongRequestInfo info;
+                ProcessSongRequestInfo info = null;
 
                 if (!QueuedSongs.TryAdd(video.Id, new ProcessSongRequestInfo($"https://youtu.be/{video.Id}", guildId, textChannelId, playlistId)))
                 {
                     info = QueuedSongs[video.Id];
-                    if (!info.GuildsRequested.ContainsKey(guildId)) info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
+
+                    if (!info.GuildsRequested.ContainsKey(guildId))
+                    {
+                        info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
+                        queuedSongs++;
+                    }
                 }
+                else queuedSongs++;
             }
 
             // Fire SongsAlreadyExisted Handler
-            if (existingSongs.Count > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs));
+            if (existingSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs, queuedSongs));
 
             // Start Processing Song Queue
-            QueueProcessorLock.Release();
-            if (QueueProcessor == null || QueueProcessor.IsCompleted)
+            if (QueuedSongs.Count > 0)
             {
-                if (QueueProcessor.IsCompleted) QueueProcessor.Dispose();
-                QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+                if (QueueProcessor == null || QueueProcessor.IsCompleted)
+                {
+                    if (QueueProcessor.IsCompleted) QueueProcessor.Dispose();
+                    QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+                }
+                
+                // Add/Update The Guild's Music Processing Queue Status
+                if (!QueueGuildStatus.ContainsKey(guildId))
+                    QueueGuildStatus.Add(guildId, new Tuple<int, int>(0, queuedSongs));
+                else
+                    QueueGuildStatus[guildId] = new Tuple<int, int>((QueueGuildStatus[guildId].Item1), (QueueGuildStatus[guildId].Item2 + queuedSongs));                
             }
+
+            QueueProcessorLock.Release();
         }
 
         private async Task ProcessRequestedSongsQueueAsync()
@@ -225,8 +252,11 @@ namespace AudioChord
                     playlist.Songs.Add(song.Id);
                     await playlist.SaveAsync();
 
+                    // Update The Guild's Music Processing Queue Status
+                    QueueGuildStatus[guildKeyValue.Key] = new Tuple<int, int>((QueueGuildStatus[guildKeyValue.Key].Item1 + 1), QueueGuildStatus[guildKeyValue.Key].Item2);
+
                     // Trigger event upon 1 song completing
-                    ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1));
+                    ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key].Item1, QueueGuildStatus[guildKeyValue.Key].Item2));
                 }
                 
                 // Release Lock
