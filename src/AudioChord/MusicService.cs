@@ -227,9 +227,10 @@ namespace AudioChord
             // Start Processing Song Queue
             if (QueuedSongs.Count > 0)
             {
-                if (QueueProcessor == null || QueueProcessor.IsCompleted)
-                {
-                    if (QueueProcessor.IsCompleted) QueueProcessor.Dispose();
+                if (QueueProcessor == null)
+                    QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+                else if (QueueProcessor != null && QueueProcessor.IsCompleted) {
+                    QueueProcessor.Dispose();
                     QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
                 }
 
