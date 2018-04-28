@@ -18,6 +18,7 @@ namespace AudioChord
         private SongCollection songCollection;
         private System.Timers.Timer resyncTimer = new System.Timers.Timer();
 
+        public event EventHandler<ResyncEventArgs> ExecutedResync;
         public event EventHandler<ProcessedSongEventArgs> ProcessedSong;
         public event EventHandler<SongsExistedEventArgs> SongsExisted;
 
@@ -273,6 +274,8 @@ namespace AudioChord
             List<SongData> expiredSongs = new List<SongData>();
             List<SongData> songList = await songCollection.GetAllAsync();
 
+            int deletedDesyncedFiles = await songCollection.ResyncDatabaseAsync();
+
             foreach (SongData song in songList)
                 if (song.LastAccessed < DateTime.Now.AddDays(-90))
                     expiredSongs.Add(song);
@@ -291,12 +294,8 @@ namespace AudioChord
 
             foreach (SongData song in expiredSongs)
                 await songCollection.DeleteSongAsync(song);
+
+            ExecutedResync.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count));
         }
-
-        // ===============
-        // ALL EVENT HANDLER METHODS GO BELOW THIS COMMENT!
-        // ===============
-
-
     }
 }

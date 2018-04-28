@@ -5,7 +5,6 @@ using AudioChord.Processors;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using YoutubeExplode;
 
@@ -70,6 +69,29 @@ namespace AudioChord.Collections
         internal async Task<double> GetTotalBytesUsedAsync()
         {
             return await opusCollection.TotalBytesUsedAsync();
+        }
+
+        internal async Task<int> ResyncDatabaseAsync()
+        {
+            int deletedDesyncedFiles = 0;
+
+            List<SongData> songList = await GetAllAsync();
+
+            List<ObjectId> listedOpusIds = new List<ObjectId>();
+            IEnumerable<ObjectId> allOpusIds = await opusCollection.GetAllOpusIdsAsync();
+
+            foreach (SongData data in songList) listedOpusIds.Add(data.OpusId);
+
+            foreach (ObjectId opusId in allOpusIds)
+            {
+                if (!listedOpusIds.Contains(opusId))
+                {
+                    await opusCollection.DeleteAsync(opusId);
+                    deletedDesyncedFiles++;
+                }
+            }
+
+            return deletedDesyncedFiles;
         }
 
         // ==========

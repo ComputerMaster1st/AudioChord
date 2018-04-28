@@ -47,5 +47,16 @@ namespace AudioChord.Collections
 
             return totalBytes;
         }
+
+        internal async Task<IEnumerable<ObjectId>> GetAllOpusIdsAsync()
+        {
+            List<ObjectId> opusIds = new List<ObjectId>();
+            var result = await collection.FindAsync(FilterDefinition<GridFSFileInfo>.Empty);
+            List<GridFSFileInfo> fileList = await result.ToListAsync();
+
+            foreach (GridFSFileInfo fileInfo in fileList) opusIds.Add(fileInfo.Id);
+
+            return opusIds;
+        }
     }
 }
