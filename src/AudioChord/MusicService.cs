@@ -236,7 +236,7 @@ namespace AudioChord
 
                 // Add/Update The Guild's Music Processing Queue Status
                 if (!QueueGuildStatus.ContainsKey(guildId))
-                    QueueGuildStatus.Add(guildId, 0);
+                    QueueGuildStatus.Add(guildId, queuedSongs);
                 else
                     QueueGuildStatus[guildId] = (QueueGuildStatus[guildId] + queuedSongs);
             }
