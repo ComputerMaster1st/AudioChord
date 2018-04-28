@@ -75,23 +75,6 @@ namespace AudioChord.Collections
         // ==========
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
-
-        private async Task<string> DuplicateCheckAsync(Stream stream)
-        {
-            byte[] hashByte = MD5.Create().ComputeHash(stream);
-            stream.Position = 0;
-
-            string hash = BitConverter.ToString(hashByte).Replace("-", string.Empty);
-            ObjectId opusId = await opusCollection.MatchMD5Async(hash);
-
-            if (opusId == ObjectId.Empty) return null;
-
-            var result = await collection.FindAsync((f) => f.OpusId == opusId);
-            SongData data = await result.FirstOrDefaultAsync();
-
-            if (data == null) return null;
-            return data.Id;
-        }
         
         internal async Task<string> DownloadFromYouTubeAsync(string url)
         {
@@ -106,9 +89,6 @@ namespace AudioChord.Collections
 
             YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
             Stream opusStream = await processor.ProcessAudioAsync();
-            string dupCheck = await DuplicateCheckAsync(opusStream);
-
-            if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
 
             string songId = "YOUTUBE#" + processor.VideoId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
@@ -123,9 +103,6 @@ namespace AudioChord.Collections
         {
             DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
             Stream opusStream = await processor.ProcessAudioAsync();
-            string dupCheck = await DuplicateCheckAsync(opusStream);
-
-            if (!string.IsNullOrEmpty(dupCheck)) return dupCheck;
 
             string songId = "DISCORD#" + attachmentId;
             ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
