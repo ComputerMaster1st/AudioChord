@@ -25,7 +25,7 @@ namespace AudioChord
         private Task QueueProcessor = null;
         private ConcurrentDictionary<string, ProcessSongRequestInfo> QueuedSongs = new ConcurrentDictionary<string, ProcessSongRequestInfo>();
         private SemaphoreSlim QueueProcessorLock = new SemaphoreSlim(1,1);
-        private ConcurrentDictionary<ulong, int> QueueGuildStatus = new ConcurrentDictionary<ulong, int>();
+        private Dictionary<ulong, int> QueueGuildStatus = new Dictionary<ulong, int>();
 
         public MusicService(MusicServiceConfig config)
         {
@@ -285,15 +285,11 @@ namespace AudioChord
                     {
                         // Update The Guild's Music Processing Queue Status
                         QueueGuildStatus[guildKeyValue.Key]--;
-                        int remaining = QueueGuildStatus[guildKeyValue.Key];
-
-                        // Remove QueueGuildStatus if completed
-                        if (remaining == 0) QueueGuildStatus.TryRemove(guildKeyValue.Key, out remaining);
-
+                        
                         if (song == null)
                         {
                             // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, remaining, QueuedSongs.Count));
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                         }
                         else
                         {
@@ -302,8 +298,11 @@ namespace AudioChord
                             await playlist.SaveAsync();
 
                             // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, remaining, QueuedSongs.Count));
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                         }
+
+                        // Remove QueueGuildStatus if completed
+                        if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
                     }
                 }
                 
