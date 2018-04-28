@@ -163,63 +163,63 @@ namespace AudioChord
         // ALL PLAYLIST HANDLING METHODS GO BELOW THIS COMMENT!
         // ===============
 
-        /// <summary>
-        /// Download a playlist of YT songs to database. (Note: Exceptions are to be expected.)
-        /// </summary>
-        public async Task ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, ObjectId playlistId)
+        public async Task ProcessYTPlaylistAsync(List<string> youtubeUrls, ulong guildId, ulong textChannelId, ObjectId playlistId)
         {
-            // Get YT playlist from user
-            string youtubePlaylistId = YoutubeClient.ParsePlaylistId(youtubePlaylistUrl);
-            YoutubeClient youtubeClient = new YoutubeClient();
-            YoutubeExplode.Models.Playlist youtubePlaylist = await youtubeClient.GetPlaylistAsync(youtubePlaylistId);
             Playlist guildPlaylist = await GetPlaylistAsync(playlistId);
 
             // Existing & Queued Counters for Guild's Request
             int installedSongs = 0;
             int existingSongs = 0;
             int queuedSongs = 0;
-            
+            int failedParsingSongs = 0;
+
             // Halt queue until playlist is processed
             await QueueProcessorLock.WaitAsync();
 
-            // Create & queue up task requests
-            foreach (YoutubeExplode.Models.Video video in youtubePlaylist.Videos)
+            // Create & queue up queue requests
+            foreach (string url in youtubeUrls)
             {
-                // Check if song exists
-                Song songData = await GetSongAsync($"YOUTUBE#{video.Id}");
-
-                if (songData != null)
+                try
                 {
-                    // Add song to playlist if not already
-                    if (!guildPlaylist.Songs.Contains(songData.Id))
+                    string videoId = YoutubeClient.ParseVideoId(url);
+
+                    // Check if song exists
+                    Song songData = await GetSongAsync($"YOUTUBE#{videoId}");
+
+                    if (songData != null)
                     {
-                        guildPlaylist.Songs.Add(songData.Id);
-                        await guildPlaylist.SaveAsync();
-                        existingSongs++;
+                        // Add song to playlist if not already
+                        if (!guildPlaylist.Songs.Contains(songData.Id))
+                        {
+                            guildPlaylist.Songs.Add(songData.Id);
+                            await guildPlaylist.SaveAsync();
+                            existingSongs++;
+                        }
+                        else installedSongs++;
+
+                        continue;
                     }
-                    else installedSongs++;
 
-                    continue;
-                }
-                
-                // \/ If doesn't exist \/
-                ProcessSongRequestInfo info = null;
+                    // \/ If doesn't exist \/
+                    ProcessSongRequestInfo info = null;
 
-                if (!QueuedSongs.TryAdd(video.Id, new ProcessSongRequestInfo($"https://youtu.be/{video.Id}", guildId, textChannelId, playlistId)))
-                {
-                    info = QueuedSongs[video.Id];
-
-                    if (!info.GuildsRequested.ContainsKey(guildId))
+                    if (!QueuedSongs.TryAdd(videoId, new ProcessSongRequestInfo(url, guildId, textChannelId, playlistId)))
                     {
-                        info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
-                        queuedSongs++;
+                        info = QueuedSongs[videoId];
+
+                        if (!info.GuildsRequested.ContainsKey(guildId))
+                        {
+                            info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
+                            queuedSongs++;
+                        }
                     }
+                    else queuedSongs++;
                 }
-                else queuedSongs++;
+                catch { failedParsingSongs++; }
             }
 
             // Fire SongsAlreadyExisted Handler
-            if (existingSongs > 0 || installedSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, installedSongs, existingSongs, queuedSongs));
+            if (existingSongs > 0 || installedSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, installedSongs, existingSongs, queuedSongs, failedParsingSongs));
 
             // Start Processing Song Queue
             if (QueuedSongs.Count > 0)
@@ -229,15 +229,33 @@ namespace AudioChord
                     if (QueueProcessor.IsCompleted) QueueProcessor.Dispose();
                     QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
                 }
-                
+
                 // Add/Update The Guild's Music Processing Queue Status
                 if (!QueueGuildStatus.ContainsKey(guildId))
                     QueueGuildStatus.Add(guildId, new Tuple<int, int>(0, queuedSongs));
                 else
-                    QueueGuildStatus[guildId] = new Tuple<int, int>((QueueGuildStatus[guildId].Item1), (QueueGuildStatus[guildId].Item2 + queuedSongs));                
+                    QueueGuildStatus[guildId] = new Tuple<int, int>((QueueGuildStatus[guildId].Item1), (QueueGuildStatus[guildId].Item2 + queuedSongs));
             }
 
             QueueProcessorLock.Release();
+        }
+
+        /// <summary>
+        /// Download a playlist of YT songs to database. (Note: Exceptions are to be expected.)
+        /// </summary>
+        public async Task ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, ObjectId playlistId)
+        {
+            // Get YT playlist from user
+            string youtubePlaylistId = YoutubeClient.ParsePlaylistId(youtubePlaylistUrl);
+            YoutubeClient youtubeClient = new YoutubeClient();
+            YoutubeExplode.Models.Playlist youtubePlaylist = await youtubeClient.GetPlaylistAsync(youtubePlaylistId);
+            List<string> youtubeUrls = new List<string>();
+
+            // Create a list of all urls to process
+            foreach (YoutubeExplode.Models.Video video in youtubePlaylist.Videos) youtubeUrls.Add($"https://youtu.be/{video.Id}");
+
+            // Begin playlist processing
+            await ProcessYTPlaylistAsync(youtubeUrls, guildId, textChannelId, playlistId);
         }
 
         private async Task ProcessRequestedSongsQueueAsync()
