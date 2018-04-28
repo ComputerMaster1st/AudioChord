@@ -166,10 +166,8 @@ namespace AudioChord
         /// <summary>
         /// Download a list of YT songs to database.
         /// </summary>
-        public async Task ProcessYTPlaylistAsync(List<string> youtubeUrls, ulong guildId, ulong textChannelId, ObjectId playlistId)
+        public async Task ProcessYTPlaylistAsync(List<string> youtubeUrls, ulong guildId, ulong textChannelId, Playlist playlist)
         {
-            Playlist guildPlaylist = await GetPlaylistAsync(playlistId);
-
             // Existing & Queued Counters for Guild's Request
             int installedSongs = 0;
             int existingSongs = 0;
@@ -194,10 +192,10 @@ namespace AudioChord
                 if (songData != null)
                 {
                     // Add song to playlist if not already
-                    if (!guildPlaylist.Songs.Contains(songData.Id))
+                    if (!playlist.Songs.Contains(songData.Id))
                     {
-                        guildPlaylist.Songs.Add(songData.Id);
-                        await guildPlaylist.SaveAsync();
+                        playlist.Songs.Add(songData.Id);
+                        await playlist.SaveAsync();
                         installedSongs++;
                     }
                     else existingSongs++;
@@ -208,13 +206,13 @@ namespace AudioChord
                 // \/ If doesn't exist \/
                 ProcessSongRequestInfo info = null;
 
-                if (!QueuedSongs.TryAdd(videoId, new ProcessSongRequestInfo(url, guildId, textChannelId, playlistId)))
+                if (!QueuedSongs.TryAdd(videoId, new ProcessSongRequestInfo(url, guildId, textChannelId, playlist)))
                 {
                     info = QueuedSongs[videoId];
 
                     if (!info.GuildsRequested.ContainsKey(guildId))
                     {
-                        info.GuildsRequested.Add(guildId, new Tuple<ulong, ObjectId>(textChannelId, playlistId));
+                        info.GuildsRequested.Add(guildId, new Tuple<ulong, Playlist>(textChannelId, playlist));
                         queuedSongs++;
                     }
                 }
@@ -246,7 +244,7 @@ namespace AudioChord
         /// <summary>
         /// Download a playlist of YT songs to database.
         /// </summary>
-        public async Task<bool> ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, ObjectId playlistId)
+        public async Task<bool> ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, Playlist playlist)
         {
             // Get YT playlist from user
             if (!YoutubeClient.TryParsePlaylistId(youtubePlaylistUrl, out string youtubePlaylistId)) return false;
@@ -259,7 +257,7 @@ namespace AudioChord
             foreach (YoutubeExplode.Models.Video video in youtubePlaylist.Videos) youtubeUrls.Add($"https://youtu.be/{video.Id}");
 
             // Begin playlist processing
-            await ProcessYTPlaylistAsync(youtubeUrls, guildId, textChannelId, playlistId);
+            await ProcessYTPlaylistAsync(youtubeUrls, guildId, textChannelId, playlist);
             return true;
         }
 
@@ -292,7 +290,7 @@ namespace AudioChord
                             continue;
                         }
 
-                        Playlist playlist = await GetPlaylistAsync(guildKeyValue.Value.Item2);
+                        Playlist playlist = guildKeyValue.Value.Item2;
                         playlist.Songs.Add(song.Id);
                         await playlist.SaveAsync();
                         
