@@ -163,6 +163,9 @@ namespace AudioChord
         // ALL PLAYLIST HANDLING METHODS GO BELOW THIS COMMENT!
         // ===============
 
+        /// <summary>
+        /// Download a playlist of YT songs to database. (Note: Exceptions are to be expected.)
+        /// </summary>
         public async Task ProcessYTPlaylistAsync(string youtubePlaylistUrl, ulong guildId, ulong textChannelId, ObjectId playlistId)
         {
             // Get YT playlist from user
@@ -172,6 +175,7 @@ namespace AudioChord
             Playlist guildPlaylist = await GetPlaylistAsync(playlistId);
 
             // Existing & Queued Counters for Guild's Request
+            int installedSongs = 0;
             int existingSongs = 0;
             int queuedSongs = 0;
             
@@ -191,9 +195,10 @@ namespace AudioChord
                     {
                         guildPlaylist.Songs.Add(songData.Id);
                         await guildPlaylist.SaveAsync();
+                        existingSongs++;
                     }
+                    else installedSongs++;
 
-                    existingSongs++;
                     continue;
                 }
                 
@@ -214,7 +219,7 @@ namespace AudioChord
             }
 
             // Fire SongsAlreadyExisted Handler
-            if (existingSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs, queuedSongs));
+            if (existingSongs > 0 || installedSongs > 0) SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, installedSongs, existingSongs, queuedSongs));
 
             // Start Processing Song Queue
             if (QueuedSongs.Count > 0)
@@ -242,22 +247,35 @@ namespace AudioChord
                 // Get the lock
                 await QueueProcessorLock.WaitAsync();
 
-                // Process the song
-                Song song = await DownloadSongFromYouTubeAsync(infoKeyValue.Value.VideoId);
+                Song song = null;
 
-                // Save to Playlist
-                foreach (var guildKeyValue in infoKeyValue.Value.GuildsRequested)
+                try
                 {
-                    Playlist playlist = await GetPlaylistAsync(guildKeyValue.Value.Item2);
+                    // Process the song
+                    song = await DownloadSongFromYouTubeAsync(infoKeyValue.Value.VideoId);
+                }
+                finally
+                {
+                    // Save to Playlist
+                    foreach (var guildKeyValue in infoKeyValue.Value.GuildsRequested)
+                    {
+                        // Update The Guild's Music Processing Queue Status
+                        QueueGuildStatus[guildKeyValue.Key] = new Tuple<int, int>((QueueGuildStatus[guildKeyValue.Key].Item1 + 1), QueueGuildStatus[guildKeyValue.Key].Item2);
 
-                    playlist.Songs.Add(song.Id);
-                    await playlist.SaveAsync();
+                        if (song == null)
+                        {
+                            // Trigger event upon 1 song completing
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key].Item1, QueueGuildStatus[guildKeyValue.Key].Item2));
+                            continue;
+                        }
 
-                    // Update The Guild's Music Processing Queue Status
-                    QueueGuildStatus[guildKeyValue.Key] = new Tuple<int, int>((QueueGuildStatus[guildKeyValue.Key].Item1 + 1), QueueGuildStatus[guildKeyValue.Key].Item2);
-
-                    // Trigger event upon 1 song completing
-                    ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key].Item1, QueueGuildStatus[guildKeyValue.Key].Item2));
+                        Playlist playlist = await GetPlaylistAsync(guildKeyValue.Value.Item2);
+                        playlist.Songs.Add(song.Id);
+                        await playlist.SaveAsync();
+                        
+                        // Trigger event upon 1 song completing
+                        ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key].Item1, QueueGuildStatus[guildKeyValue.Key].Item2));
+                    }
                 }
                 
                 // Release Lock

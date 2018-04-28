@@ -5,7 +5,12 @@ namespace AudioChord.Events
     public class ProcessedSongEventArgs : EventArgs
     {
         public string SongId { get; }
+
+        /// <summary>
+        /// This will be null if an error occurs
+        /// </summary>
         public string SongName { get; }
+
         public ulong GuildId { get; }
         public ulong TextChannelId { get; }
         public int SongQueuePosition { get; }
