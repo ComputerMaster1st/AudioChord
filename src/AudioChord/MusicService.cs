@@ -295,7 +295,11 @@ namespace AudioChord
                 {
                     // Process the song
                     song = await DownloadSongFromYouTubeAsync(info.VideoId);
-                    
+                }
+                catch { }
+
+                try
+                {
                     // Save to Playlist
                     foreach (var guildKeyValue in info.GuildsRequested)
                     {
