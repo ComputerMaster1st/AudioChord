@@ -164,6 +164,11 @@ namespace AudioChord
         // ===============
 
         /// <summary>
+        /// Show how many songs are in the process queue.
+        /// </summary>
+        public int CurrentQueueLength { get { return QueuedSongs.Count; } }
+
+        /// <summary>
         /// Download a list of YT songs to database.
         /// </summary>
         public async Task ProcessYTPlaylistAsync(List<string> youtubeUrls, ulong guildId, ulong textChannelId, Playlist playlist)
