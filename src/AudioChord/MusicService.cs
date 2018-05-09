@@ -166,7 +166,19 @@ namespace AudioChord
         /// <summary>
         /// Show how many songs are in the process queue.
         /// </summary>
-        public int CurrentQueueLength { get { return QueuedSongs.Count; } }
+        public int CurrentQueueLength {
+            get {
+                return QueuedSongs.Count;
+            }
+        }
+
+        /// <summary>
+        /// Show how many songs from the guild are in the process queue.
+        /// </summary>
+        public int CurrentGuildQueueLength(ulong guildId)
+        {
+            return (QueueGuildStatus.ContainsKey(guildId)) ? QueueGuildStatus[guildId] : 0;
+        }
 
         /// <summary>
         /// Download a list of YT songs to database.
