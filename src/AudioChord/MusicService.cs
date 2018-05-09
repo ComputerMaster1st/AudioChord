@@ -295,33 +295,33 @@ namespace AudioChord
                 {
                     // Process the song
                     song = await DownloadSongFromYouTubeAsync(info.VideoId);
+                    
+                    // Save to Playlist
+                    foreach (var guildKeyValue in info.GuildsRequested)
+                    {
+                        // Update The Guild's Music Processing Queue Status
+                        QueueGuildStatus[guildKeyValue.Key]--;
+
+                        if (song == null)
+                        {
+                            // Trigger event upon 1 song completing
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                        }
+                        else
+                        {
+                            Playlist playlist = guildKeyValue.Value.Item2;
+                            playlist.Songs.Add(song.Id);
+                            await playlist.SaveAsync();
+
+                            // Trigger event upon 1 song completing
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                        }
+
+                        // Remove QueueGuildStatus if completed
+                        if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
+                    }
                 }
                 catch { }
-
-                // Save to Playlist
-                foreach (var guildKeyValue in info.GuildsRequested)
-                {
-                    // Update The Guild's Music Processing Queue Status
-                    QueueGuildStatus[guildKeyValue.Key]--;
-
-                    if (song == null)
-                    {
-                        // Trigger event upon 1 song completing
-                        ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                    }
-                    else
-                    {
-                        Playlist playlist = guildKeyValue.Value.Item2;
-                        playlist.Songs.Add(song.Id);
-                        await playlist.SaveAsync();
-
-                        // Trigger event upon 1 song completing
-                        ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                    }
-
-                    // Remove QueueGuildStatus if completed
-                    if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
-                }
 
                 // Release Lock
                 QueueProcessorLock.Release();
