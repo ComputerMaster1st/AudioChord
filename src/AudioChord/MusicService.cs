@@ -297,11 +297,11 @@ namespace AudioChord
                     song = await DownloadSongFromYouTubeAsync(info.VideoId);
                 }
                 catch { }
-
-                try
+                
+                // Save to Playlist
+                foreach (var guildKeyValue in info.GuildsRequested)
                 {
-                    // Save to Playlist
-                    foreach (var guildKeyValue in info.GuildsRequested)
+                    try
                     {
                         // Update The Guild's Music Processing Queue Status
                         QueueGuildStatus[guildKeyValue.Key]--;
@@ -324,8 +324,8 @@ namespace AudioChord
                         // Remove QueueGuildStatus if completed
                         if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
                     }
+                    catch { }
                 }
-                catch { }
 
                 // Release Lock
                 QueueProcessorLock.Release();
