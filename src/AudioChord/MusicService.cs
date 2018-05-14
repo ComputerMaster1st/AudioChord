@@ -246,7 +246,7 @@ namespace AudioChord
             {
                 if (QueueProcessor == null)
                     QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
-                else if (QueueProcessor != null && QueueProcessor.IsCompleted)
+                else if (QueueProcessor != null && QueueProcessor.Status != TaskStatus.WaitingForActivation)
                 {
                     QueueProcessor.Dispose();
                     QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
@@ -295,40 +295,42 @@ namespace AudioChord
                 {
                     // Process the song
                     song = await DownloadSongFromYouTubeAsync(info.VideoId);
+
+                    // Save to Playlist
+                    foreach (var guildKeyValue in info.GuildsRequested)
+                    {
+                        try
+                        {
+                            // Update The Guild's Music Processing Queue Status
+                            QueueGuildStatus[guildKeyValue.Key]--;
+
+                            if (song == null)
+                            {
+                                // Trigger event upon 1 song completing
+                                ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                            }
+                            else
+                            {
+                                Playlist playlist = guildKeyValue.Value.Item2;
+                                playlist.Songs.Add(song.Id);
+                                await playlist.SaveAsync();
+
+                                // Trigger event upon 1 song completing
+                                ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                            }
+
+                            // Remove QueueGuildStatus if completed
+                            if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
+                        }
+                        catch { }
+                    }
                 }
                 catch { }
-                
-                // Save to Playlist
-                foreach (var guildKeyValue in info.GuildsRequested)
+                finally
                 {
-                    try
-                    {
-                        // Update The Guild's Music Processing Queue Status
-                        QueueGuildStatus[guildKeyValue.Key]--;
-
-                        if (song == null)
-                        {
-                            // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                        }
-                        else
-                        {
-                            Playlist playlist = guildKeyValue.Value.Item2;
-                            playlist.Songs.Add(song.Id);
-                            await playlist.SaveAsync();
-
-                            // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                        }
-
-                        // Remove QueueGuildStatus if completed
-                        if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
-                    }
-                    catch { }
+                    // Release Lock
+                    QueueProcessorLock.Release();
                 }
-
-                // Release Lock
-                QueueProcessorLock.Release();
             }
         }
 
