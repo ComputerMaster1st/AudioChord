@@ -291,46 +291,40 @@ namespace AudioChord
                 string requestId = infoKeyValue.Key;
                 QueuedSongs.TryRemove(infoKeyValue.Key, out ProcessSongRequestInfo info);
 
-                try
-                {
-                    // Process the song
-                    song = await DownloadSongFromYouTubeAsync(info.VideoId);
+                // Process the song
+                song = await DownloadSongFromYouTubeAsync(info.VideoId);
 
-                    // Save to Playlist
-                    foreach (var guildKeyValue in info.GuildsRequested)
+                // Save to Playlist
+                foreach (var guildKeyValue in info.GuildsRequested)
+                {
+                    try
                     {
-                        try
+                        // Update The Guild's Music Processing Queue Status
+                        QueueGuildStatus[guildKeyValue.Key]--;
+
+                        if (song == null)
                         {
-                            // Update The Guild's Music Processing Queue Status
-                            QueueGuildStatus[guildKeyValue.Key]--;
-
-                            if (song == null)
-                            {
-                                // Trigger event upon 1 song completing
-                                ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                            }
-                            else
-                            {
-                                Playlist playlist = guildKeyValue.Value.Item2;
-                                playlist.Songs.Add(song.Id);
-                                await playlist.SaveAsync();
-
-                                // Trigger event upon 1 song completing
-                                ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
-                            }
-
-                            // Remove QueueGuildStatus if completed
-                            if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
+                            // Trigger event upon 1 song completing
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                         }
-                        catch { }
+                        else
+                        {
+                            Playlist playlist = guildKeyValue.Value.Item2;
+                            playlist.Songs.Add(song.Id);
+                            await playlist.SaveAsync();
+
+                            // Trigger event upon 1 song completing
+                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                        }
+
+                        // Remove QueueGuildStatus if completed
+                        if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
                     }
+                    catch { }
                 }
-                catch { }
-                finally
-                {
-                    // Release Lock
-                    QueueProcessorLock.Release();
-                }
+
+                // Release Lock
+                QueueProcessorLock.Release();
             }
         }
 
@@ -351,20 +345,21 @@ namespace AudioChord
                 if (song.LastAccessed < DateTime.Now.AddDays(-90))
                     expiredSongs.Add(song);
 
-            if (expiredSongs.Count < 1) return;
+            if (expiredSongs.Count > 0)
+            {
+                List<Playlist> playlists = await playlistCollection.GetAllAsync();
 
-            List<Playlist> playlists = await playlistCollection.GetAllAsync();
+                foreach (Playlist playlist in playlists)
+                    foreach (SongData song in expiredSongs)
+                        if (playlist.Songs.Contains(song.Id))
+                        {
+                            playlist.Songs.Remove(song.Id);
+                            await playlist.SaveAsync();
+                        }
 
-            foreach (Playlist playlist in playlists)
                 foreach (SongData song in expiredSongs)
-                    if (playlist.Songs.Contains(song.Id))
-                    {
-                        playlist.Songs.Remove(song.Id);
-                        await playlist.SaveAsync();
-                    }
-
-            foreach (SongData song in expiredSongs)
-                await songCollection.DeleteSongAsync(song);
+                    await songCollection.DeleteSongAsync(song);
+            }
 
             QueueProcessorLock.Release();
 
