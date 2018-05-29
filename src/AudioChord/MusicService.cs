@@ -1,14 +1,14 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver;
-using AudioChord.Collections;
+﻿using AudioChord.Collections;
 using AudioChord.Collections.Models;
+using AudioChord.Events;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using YoutubeExplode;
-using AudioChord.Events;
-using System.Threading;
-using System.Collections.Concurrent;
 
 namespace AudioChord
 {
@@ -366,7 +366,8 @@ namespace AudioChord
 
             QueueProcessorLock.Release();
 
-            ExecutedResync.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count));
+            //only invoke the eventhandler if somebody is subscribed to the event
+            ExecutedResync?.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count));
         }
     }
 }
