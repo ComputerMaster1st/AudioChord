@@ -29,9 +29,6 @@ namespace AudioChord
 
         public MusicService(MusicServiceConfig config)
         {
-            // This will tell NETCore 2.1 to use older httpclient. Newer version has SSL issues
-            AppContext.SetSwitch("System.Net.Http.UseSocketsHttpHandler", false);
-
             //Use the builder to allow to connect to database without authentication
             MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder
             {
