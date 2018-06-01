@@ -343,6 +343,7 @@ namespace AudioChord
             List<SongData> songList = await songCollection.GetAllAsync();
             int resyncedPlaylists = 0;
             int deletedDesyncedFiles = await songCollection.ResyncDatabaseAsync();
+            DateTime startedAt = DateTime.Now;
 
             foreach (SongData song in songList)
                 if (song.LastAccessed < DateTime.Now.AddDays(-90))
@@ -377,7 +378,7 @@ namespace AudioChord
             QueueProcessorLock.Release();
 
             //only invoke the eventhandler if somebody is subscribed to the event
-            ExecutedResync?.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count, resyncedPlaylists));
+            ExecutedResync?.Invoke(this, new ResyncEventArgs(startedAt, deletedDesyncedFiles, expiredSongs.Count, resyncedPlaylists));
         }
     }
 }
