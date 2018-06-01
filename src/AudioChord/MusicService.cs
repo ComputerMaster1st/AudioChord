@@ -341,7 +341,7 @@ namespace AudioChord
 
             List<SongData> expiredSongs = new List<SongData>();
             List<SongData> songList = await songCollection.GetAllAsync();
-
+            int resyncedPlaylists = 0;
             int deletedDesyncedFiles = await songCollection.ResyncDatabaseAsync();
 
             foreach (SongData song in songList)
@@ -353,12 +353,22 @@ namespace AudioChord
                 List<Playlist> playlists = await playlistCollection.GetAllAsync();
 
                 foreach (Playlist playlist in playlists)
+                {
+                    int removedSongs = 0;
+
                     foreach (SongData song in expiredSongs)
                         if (playlist.Songs.Contains(song.Id))
                         {
-                            playlist.Songs.Remove(song.Id);
-                            await playlist.SaveAsync();
+                            removedSongs++;
+                            playlist.Songs.Remove(song.Id);                            
                         }
+
+                    if (removedSongs > 0)
+                    {
+                        await playlistCollection.UpdateAsync(playlist);
+                        resyncedPlaylists++;
+                    }
+                }
 
                 foreach (SongData song in expiredSongs)
                     await songCollection.DeleteSongAsync(song);
@@ -367,7 +377,7 @@ namespace AudioChord
             QueueProcessorLock.Release();
 
             //only invoke the eventhandler if somebody is subscribed to the event
-            ExecutedResync?.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count));
+            ExecutedResync?.Invoke(this, new ResyncEventArgs(deletedDesyncedFiles, expiredSongs.Count, resyncedPlaylists));
         }
     }
 }
