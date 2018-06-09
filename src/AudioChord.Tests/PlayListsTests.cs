@@ -28,8 +28,8 @@ namespace AudioChord.Tests
         {
             Playlist test = await service.CreatePlaylist();
             Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            string songId = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
-            playlist.Songs.Add(songId);
+            Song song = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
+            playlist.Songs.Add(song.Id);
             await playlist.SaveAsync();
         }
 
@@ -38,8 +38,8 @@ namespace AudioChord.Tests
         {
             Playlist test = await service.CreatePlaylist();
             Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            string songId = await service.DownloadSongFromDiscordAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
-            playlist.Songs.Add(songId);
+            Song song = await service.DownloadSongFromDiscordAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
+            playlist.Songs.Add(song.Id);
             await playlist.SaveAsync();
         }
 
@@ -59,8 +59,7 @@ namespace AudioChord.Tests
 
         private async Task UseMemory()
         {
-            string songid = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
-            Song song = await service.GetSongAsync(songid);
+            Song song = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
 
             using (Stream stream = await song.GetMusicStreamAsync())
             {
