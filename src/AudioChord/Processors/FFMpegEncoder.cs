@@ -13,7 +13,7 @@ namespace AudioChord.Processors
             return new ProcessStartInfo()
             {
                 FileName = "ffmpeg",
-                Arguments = $"-i {filePath} -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
+                Arguments = $"-i {filePath} -hide_banner -v quiet -ar 48k -codec:a libopus -b:a 128k -ac 2 -f opus pipe:1",
                 UseShellExecute = false,
                 RedirectStandardInput = redirectInput,
                 RedirectStandardOutput = true
