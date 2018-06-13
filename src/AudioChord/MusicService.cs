@@ -295,7 +295,13 @@ namespace AudioChord
                 QueuedSongs.TryRemove(infoKeyValue.Key, out ProcessSongRequestInfo info);
 
                 // Process the song
-                song = await DownloadSongFromYouTubeAsync(info.VideoId);
+                try {
+                    song = await DownloadSongFromYouTubeAsync(info.VideoId);
+                }
+                catch 
+                { 
+                    song = null;
+                }
 
                 // Save to Playlist
                 foreach (var guildKeyValue in info.GuildsRequested)
