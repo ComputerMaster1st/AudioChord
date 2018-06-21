@@ -121,6 +121,21 @@ namespace AudioChord
             return await songCollection.GetTotalBytesUsedAsync();
         }
 
+        /// <summary>
+        /// Manually restart the global queue processor in case of stalling.
+        /// </summary>
+        public QueueProcessorStatus RestartQueueProcessorAsync()
+        {
+            if (QueueProcessor == null || QueuedSongs.Count < 1) 
+                return QueueProcessorStatus.Idle;
+            else if (QueueProcessor != null && QueueProcessor.Status == TaskStatus.WaitingForActivation)
+                return QueueProcessorStatus.Running;
+            
+            QueueProcessor.Dispose();
+            QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+            return QueueProcessorStatus.Restarted;
+        }
+
         // ===============
         // ALL PROCESSOR BASED METHODS GO BELOW THIS COMMENT!
         // ===============
@@ -242,7 +257,7 @@ namespace AudioChord
             if (installedSongs > 0) await playlist.SaveAsync();
 
             // Fire SongsAlreadyExisted Handler
-            SongsExisted.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs, installedSongs, queuedSongs, failedParsingSongs));
+            SongsExisted?.Invoke(this, new SongsExistedEventArgs(guildId, textChannelId, existingSongs, installedSongs, queuedSongs, failedParsingSongs));
 
             // Start Processing Song Queue
             if (QueuedSongs.Count > 0)
@@ -283,6 +298,10 @@ namespace AudioChord
             return true;
         }
 
+        // ===============
+        // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
+        // ===============
+
         private async Task ProcessRequestedSongsQueueAsync()
         {
             foreach (var infoKeyValue in QueuedSongs)
@@ -314,7 +333,7 @@ namespace AudioChord
                         if (song == null)
                         {
                             // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                            ProcessedSong?.Invoke(this, new ProcessedSongEventArgs(requestId, null, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                         }
                         else
                         {
@@ -323,7 +342,7 @@ namespace AudioChord
                             await playlist.SaveAsync();
 
                             // Trigger event upon 1 song completing
-                            ProcessedSong.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
+                            ProcessedSong?.Invoke(this, new ProcessedSongEventArgs(song.Id, song.Metadata.Name, guildKeyValue.Key, guildKeyValue.Value.Item1, QueueGuildStatus[guildKeyValue.Key], QueuedSongs.Count));
                         }
 
                         // Remove QueueGuildStatus if completed
@@ -336,10 +355,6 @@ namespace AudioChord
                 QueueProcessorLock.Release();
             }
         }
-
-        // ===============
-        // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
-        // ===============
 
         private async Task Resync()
         {
