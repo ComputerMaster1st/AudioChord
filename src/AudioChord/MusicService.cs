@@ -132,7 +132,7 @@ namespace AudioChord
                 return QueueProcessorStatus.Running;
             
             QueueProcessor.Dispose();
-            QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+            QueueProcessor = Task.Factory.StartNew(ProcessRequestedSongsQueueAsync, TaskCreationOptions.LongRunning);
             return QueueProcessorStatus.Restarted;
         }
 
@@ -263,11 +263,11 @@ namespace AudioChord
             if (QueuedSongs.Count > 0)
             {
                 if (QueueProcessor == null)
-                    QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+                    QueueProcessor = Task.Factory.StartNew(ProcessRequestedSongsQueueAsync, TaskCreationOptions.LongRunning);
                 else if (QueueProcessor != null && QueueProcessor.Status != TaskStatus.WaitingForActivation)
                 {
                     QueueProcessor.Dispose();
-                    QueueProcessor = Task.Run(ProcessRequestedSongsQueueAsync);
+                    QueueProcessor = Task.Factory.StartNew(ProcessRequestedSongsQueueAsync, TaskCreationOptions.LongRunning);
                 }
 
                 // Add/Update The Guild's Music Processing Queue Status
