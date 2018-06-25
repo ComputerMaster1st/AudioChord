@@ -16,7 +16,7 @@ namespace AudioChord.Collections
             collection = new GridFSBucket(database, new GridFSBucketOptions()
             {
                 BucketName = "OpusData",
-                ChunkSizeBytes = 2097152
+                ChunkSizeBytes = 4194304
             });
         }
 
