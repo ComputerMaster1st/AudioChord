@@ -8,10 +8,14 @@ namespace AudioChord
 {
     public class Playlist
     {
-        [BsonId] public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
-        public List<string> Songs { get; private set; } = new List<string>();
+        [BsonId]
+        public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
+        //public List<string> Songs { get; private set; } = new List<string>();
 
-        [BsonIgnore] internal PlaylistCollection collection;
+        public List<ISong> Songs { get; private set; }
+
+        [BsonIgnore]
+        internal PlaylistCollection collection;
 
         internal Playlist(PlaylistCollection collection)
         {

@@ -1,30 +1,36 @@
-﻿using MongoDB.Bson;
-using MongoDB.Driver;
-using AudioChord.Collections.Models;
+﻿using AudioChord.Collections.Models;
 using AudioChord.Processors;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using YoutubeExplode;
 
 namespace AudioChord.Collections
 {
+    /// <summary>
+    /// Interface between the MongoDB database and the songs
+    /// </summary>
     internal class SongCollection
     {
         private IMongoCollection<SongData> collection;
         private OpusCollection opusCollection;
 
+        private readonly Func<DatabaseSong, Task<Stream>> retrieveSongStreamFunction;
+
         internal SongCollection(IMongoDatabase database)
         {
             collection = database.GetCollection<SongData>(typeof(SongData).Name);
+
+            retrieveSongStreamFunction = OpenOpusStreamAsync;
+
             opusCollection = new OpusCollection(database);
         }
 
-        internal async Task<SongData> GetSongAsync(string songId)
+        internal async Task<ISong> GetSongAsync(string songId)
         {
-            var result = await collection.FindAsync((f) => f.Id == songId);
-            SongData song = await result.FirstOrDefaultAsync();
+            SongData song = await FindSongAsync(songId);
 
             if (song == null) return null;
             else if (song.LastAccessed < DateTime.Now.AddDays(-90))
@@ -33,7 +39,13 @@ namespace AudioChord.Collections
                 return null;
             }
 
-            return song;
+            return new DatabaseSong(song.Id, song.Metadata, retrieveSongStreamFunction);
+        }
+
+        private async Task<SongData> FindSongAsync(string Id)
+        {
+            var result = await collection.FindAsync((f) => f.Id == Id);
+            return await result.FirstOrDefaultAsync();
         }
 
         internal async Task UpdateSongAsync(SongData song)
@@ -47,92 +59,105 @@ namespace AudioChord.Collections
             await opusCollection.DeleteAsync(song.OpusId);
         }
 
-        internal async Task<Stream> OpenOpusStreamAsync(Song song)
+        internal async Task<IEnumerable<ISong>> GetAllAsync()
+        {
+            return (await collection.FindAsync(FilterDefinition<SongData>.Empty))
+                .ToList()
+                .ConvertAll(new Converter<SongData, ISong>(
+                    (songData) =>
+                    {
+                        return new DatabaseSong(songData.Id, songData.Metadata, retrieveSongStreamFunction);
+                    }));
+        }
+
+        internal Task<double> GetTotalBytesUsedAsync() => opusCollection.TotalBytesUsedAsync();
+
+        //internal async Task<int> ResyncDatabaseAsync()
+        //{
+        //    int deletedDesyncedFiles = 0;
+
+        //    List<SongData> songList = await GetAllAsync();
+
+        //    List<ObjectId> listedOpusIds = new List<ObjectId>();
+        //    IEnumerable<ObjectId> allOpusIds = await opusCollection.GetAllOpusIdsAsync();
+
+        //    foreach (SongData data in songList) listedOpusIds.Add(data.OpusId);
+
+        //    foreach (ObjectId opusId in allOpusIds)
+        //    {
+        //        if (!listedOpusIds.Contains(opusId))
+        //        {
+        //            await opusCollection.DeleteAsync(opusId);
+        //            deletedDesyncedFiles++;
+        //        }
+        //    }
+
+        //    return deletedDesyncedFiles;
+        //}
+
+        /// <summary>
+        /// Open a stream for the song stored in the database
+        /// </summary>
+        /// <param name="song">The song to open a stream for</param>
+        /// <returns>A stream with opus data to send to discord</returns>
+        private async Task<Stream> OpenOpusStreamAsync(DatabaseSong song)
         {
             //retrieve the requested song
-            SongData songData = await GetSongAsync(song.Id);
+            SongData songData = await FindSongAsync(song.Id);
 
             //update the last-used timestamp
             songData.LastAccessed = DateTime.Now;
             await UpdateSongAsync(songData);
 
             //give the stream back
-            return await opusCollection.OpenOpusStreamAsync(song.opusFileId);
+            return await opusCollection.OpenOpusStreamAsync(songData.OpusId);
         }
 
-        internal async Task<List<SongData>> GetAllAsync()
+        /// <summary>
+        /// Store a song in the database
+        /// </summary>
+        /// <param name="song">The song to store in the database</param>
+        /// <returns>a <see cref="DatabaseSong"/>that is the exact representation of the original song, but stored in the database</returns>
+        private async Task<DatabaseSong> StoreSongAsync(ISong song)
         {
-            var result = await collection.FindAsync(FilterDefinition<SongData>.Empty);
-            return await result.ToListAsync();
-        }
+            if (song is DatabaseSong)
+                //the song has already been stored in the database
+                return (DatabaseSong)song;
 
-        internal async Task<double> GetTotalBytesUsedAsync()
-        {
-            return await opusCollection.TotalBytesUsedAsync();
-        }
+            ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{song.Id}.opus", await song.GetMusicStreamAsync());
+            SongData songData = new SongData(song.Id, opusId, song.Metadata);
+            await UpdateSongAsync(songData);
 
-        internal async Task<int> ResyncDatabaseAsync()
-        {
-            int deletedDesyncedFiles = 0;
-
-            List<SongData> songList = await GetAllAsync();
-
-            List<ObjectId> listedOpusIds = new List<ObjectId>();
-            IEnumerable<ObjectId> allOpusIds = await opusCollection.GetAllOpusIdsAsync();
-
-            foreach (SongData data in songList) listedOpusIds.Add(data.OpusId);
-
-            foreach (ObjectId opusId in allOpusIds)
-            {
-                if (!listedOpusIds.Contains(opusId))
-                {
-                    await opusCollection.DeleteAsync(opusId);
-                    deletedDesyncedFiles++;
-                }
-            }
-
-            return deletedDesyncedFiles;
+            //replace the song with the song from the database
+            return new DatabaseSong(song.Id, song.Metadata, retrieveSongStreamFunction);
         }
 
         // ==========
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
         
-        internal async Task<string> DownloadFromYouTubeAsync(string url)
+        internal async Task<ISong> DownloadFromYouTubeAsync(Uri videoLocation)
         {
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentNullException("No url has been provided!");
+            YouTubeProcessor processor = new YouTubeProcessor();
+            ISong opusSong = await processor.ExtractSongAsync(videoLocation);
 
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
-                throw new ArgumentException("Video Url could not be parsed!");
-
-            SongData songData = await GetSongAsync("YOUTUBE#" + videoId);
-            if (songData != null) return songData.Id;
-
-            YouTubeProcessor processor = await YouTubeProcessor.RetrieveAsync(videoId);
-            Stream opusStream = await processor.ProcessAudioAsync();
-
-            string songId = "YOUTUBE#" + processor.VideoId;
-            ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
-            songData = new SongData(songId, opusId, processor.Metadata);
-
-            await UpdateSongAsync(songData);
-
-            return songId;
+            return await StoreSongAsync(opusSong);
         }
 
-        internal async Task<string> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        internal async Task<ISong> DownloadFromYouTubeAsync(string videoId)
         {
-            DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader);
-            Stream opusStream = await processor.ProcessAudioAsync();
+            YouTubeProcessor processor = new YouTubeProcessor();
+            ISong opusSong = await processor.ExtractSongAsync(videoId);
 
-            string songId = "DISCORD#" + attachmentId;
-            ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{songId}.opus", opusStream);
-            SongData songData = new SongData(songId, opusId, processor.Metadata);
+            return await StoreSongAsync(opusSong);
+        }
 
-            await UpdateSongAsync(songData);
+        internal async Task<ISong> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
+        {
+            DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader, attachmentId);
+            Song opusSong = await processor.ProcessAudioAsync();
 
-            return songId;
+            return await StoreSongAsync(opusSong);
         }
     }
 }

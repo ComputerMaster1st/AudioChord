@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using AudioChord.Collections.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -15,16 +14,21 @@ namespace AudioChord.Processors
     {
         private WebClient client = new WebClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
+
         private string filename;
+        private ulong attachmentId;
+
+        public static string ProcessorPrefix { get; } = "DISCORD#";
 
         public SongMetadata Metadata { get; private set; }
 
-        internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader)
+        internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader, ulong attachmentId)
         {
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentNullException("The url given is either null or empty!");
 
             DiscordProcessor processor = new DiscordProcessor();
+            processor.attachmentId = attachmentId;
 
             await processor.GetMetadataAsync(url, uploader);
 
@@ -87,9 +91,9 @@ namespace AudioChord.Processors
             throw new ArgumentException("Unable to probe file.");
         }
 
-        internal async Task<Stream> ProcessAudioAsync()
+        internal async Task<Song> ProcessAudioAsync()
         {
-            return await encoder.ProcessAsync(filename);
+            return new Song(ProcessorPrefix + attachmentId, Metadata, await encoder.ProcessAsync(filename));
         }
     }
 }
