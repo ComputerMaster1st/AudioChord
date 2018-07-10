@@ -21,6 +21,7 @@ namespace AudioChord
         public event EventHandler<ResyncEventArgs> ExecutedResync;
         public event EventHandler<ProcessedSongEventArgs> ProcessedSong;
         public event EventHandler<SongsExistedEventArgs> SongsExisted;
+        public event EventHandler<SongProcessingCompletedEventArgs> SongProcessingCompleted;
 
         private Task QueueProcessor = null;
         private ConcurrentDictionary<string, ProcessSongRequestInfo> QueuedSongs = new ConcurrentDictionary<string, ProcessSongRequestInfo>();
@@ -132,8 +133,30 @@ namespace AudioChord
                 return QueueProcessorStatus.Running;
             
             QueueProcessor.Dispose();
+            if (QueueProcessorLock.CurrentCount < 1) QueueProcessorLock.Release();
             QueueProcessor = Task.Factory.StartNew(ProcessRequestedSongsQueueAsync, TaskCreationOptions.LongRunning);
             return QueueProcessorStatus.Restarted;
+        }
+
+        /// <summary>
+        /// Cancel song processing for specified guild.
+        /// </summary>
+        public async Task CancelGuildMusicProcessingAsync(ulong guildId) {
+            await QueueProcessorLock.WaitAsync();
+
+            foreach (var infoKeyValue in QueuedSongs)
+            {
+                if (infoKeyValue.Value.GuildsRequested.ContainsKey(guildId))
+                    infoKeyValue.Value.GuildsRequested.Remove(guildId);
+                
+                if (infoKeyValue.Value.GuildsRequested.Count < 1)
+                {
+                    QueueGuildStatus.Remove(guildId);
+                    QueuedSongs.TryRemove(infoKeyValue.Key, out ProcessSongRequestInfo info);
+                }
+            }
+
+            QueueProcessorLock.Release();
         }
 
         // ===============
@@ -354,6 +377,8 @@ namespace AudioChord
                 // Release Lock
                 QueueProcessorLock.Release();
             }
+
+            SongProcessingCompleted?.Invoke(this, new SongProcessingCompletedEventArgs());
         }
 
         private async Task Resync()
