@@ -136,6 +136,17 @@ namespace AudioChord
                 return QueueProcessorStatus.Running;
             
             QueueProcessor.Dispose();
+            QueueGuildStatus.Clear();
+
+            foreach (var songInfo in QueuedSongs)
+            {
+                ProcessSongRequestInfo requestInfo = songInfo.Value;
+                
+                foreach (var guildInfo in requestInfo.GuildsRequested)
+                    if (QueueGuildStatus.ContainsKey(guildInfo.Key)) QueueGuildStatus[guildInfo.Key]++;
+                    else QueueGuildStatus.Add(guildInfo.Key, 1);
+            }
+
             if (QueueProcessorLock.CurrentCount < 1) QueueProcessorLock.Release();
             QueueProcessor = Task.Factory.StartNew(ProcessRequestedSongsQueueAsync, TaskCreationOptions.LongRunning);
             return QueueProcessorStatus.Restarted;
@@ -297,8 +308,10 @@ namespace AudioChord
                 }
 
                 // Add/Update The Guild's Music Processing Queue Status
-                if (!QueueGuildStatus.TryAdd(guildId, queuedSongs))
+                if (QueueGuildStatus.ContainsKey(guildId))
                     QueueGuildStatus[guildId] = (QueueGuildStatus[guildId] + queuedSongs);
+                else
+                    QueueGuildStatus.Add(guildId, queuedSongs);
             }
 
             QueueProcessorLock.Release();
@@ -372,7 +385,7 @@ namespace AudioChord
                         }
 
                         // Remove QueueGuildStatus if completed
-                        if (QueueGuildStatus[guildKeyValue.Key] == 0) QueueGuildStatus.Remove(guildKeyValue.Key);
+                        if (QueueGuildStatus.ContainsKey(guildKeyValue.Key) && QueueGuildStatus[guildKeyValue.Key] < 1) QueueGuildStatus.Remove(guildKeyValue.Key);
                     }
                     catch { }
                 }
