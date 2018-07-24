@@ -49,12 +49,15 @@ namespace AudioChord
             playlistCollection = new PlaylistCollection(database);
             songCollection = new SongCollection(database);
 
-            resyncTimer.Interval = TimeSpan.FromHours(12).TotalMilliseconds;
-            resyncTimer.AutoReset = true;
-            resyncTimer.Elapsed += async (obj, args) => await Resync();
-            resyncTimer.Enabled = true;
+            if (config.EnableResync)
+            {
+                resyncTimer.Interval = TimeSpan.FromHours(12).TotalMilliseconds;
+                resyncTimer.AutoReset = true;
+                resyncTimer.Elapsed += async (obj, args) => await Resync();
+                resyncTimer.Enabled = true;
 
-            resyncTimer.Start();
+                resyncTimer.Start();
+            }
         }
 
         /// <summary>
