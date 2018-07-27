@@ -13,7 +13,7 @@ namespace AudioChord
         private SongCollection songCollection;
         private MusicService musicService;
 
-        private ConcurrentQueue<Task<ISong>> backLog = new ConcurrentQueue<Task<ISong>>();
+        private ConcurrentQueue<StartableTask<ISong>> backLog = new ConcurrentQueue<StartableTask<ISong>>();
 
         //use 2 tasks for now. this can be changed later on
         private Task[] processors = new Task[2];
@@ -29,14 +29,13 @@ namespace AudioChord
                 {
                     while(true)
                     {
-                        if(!backLog.TryDequeue(out Task<ISong> work))
+                        if(!backLog.TryDequeue(out StartableTask<ISong> work))
                             //try agian after a while (dont wanna overload the lock)
                             await Task.Delay(250);
                         else
                         {
-                            //start processing the songs
-                            work.Start();
-                            await work;
+                            //process the song
+                            await work.Start();
                         }
                     }
                 }, TaskCreationOptions.LongRunning);
@@ -58,16 +57,12 @@ namespace AudioChord
                 if (result is null)
                 {
                     //song does not exist, add a placeholder that gives back the actual song when done
-
-                    Task<ISong> work = new Task<ISong>(() =>
+                    StartableTask<ISong> work = new StartableTask<ISong>(() =>
                     {
-                        return songCollection.DownloadFromYouTubeAsync(id)
-                            .GetAwaiter()
-                            .GetResult();
-                        //start the work for the next upcoming tasks
+                        return songCollection.DownloadFromYouTubeAsync(id);
                     });
 
-                    playlist.Songs.Add(work);
+                    playlist.Songs.Add(work.Work);
                     backLog.Enqueue(work);
                 }
                 else
