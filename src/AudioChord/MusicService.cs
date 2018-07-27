@@ -20,6 +20,7 @@ namespace AudioChord
         public YoutubeProcessorWrapper Youtube { get; private set; }
         public DiscordProcessorWrapper Discord { get; private set; }
 
+
         public MusicService(MusicServiceConfig config)
         {
             // This will tell NETCore 2.1 to use older httpclient. Newer version has SSL issues
@@ -88,12 +89,12 @@ namespace AudioChord
         /// Get total bytes count in database.
         /// </summary>
         /// <returns>A double containing total bytes used.</returns>
+
         public Task<double> GetTotalBytesUsedAsync() => songCollection.GetTotalBytesUsedAsync();
 
         // ===============
         // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
         // ===============
-
         //private async Task Resync()
         //{
         //    await Youtube.QueueProcessorLock.WaitAsync();
@@ -139,5 +140,6 @@ namespace AudioChord
         //    //only invoke the eventhandler if somebody is subscribed to the event
         //    ExecutedResync?.Invoke(this, new ResyncEventArgs(startedAt, deletedDesyncedFiles, expiredSongs.Count, resyncedPlaylists));
         //}
+
     }
 }
