@@ -348,6 +348,11 @@ namespace AudioChord
                 // Get the lock
                 await QueueProcessorLock.WaitAsync();
 
+                if (QueuedSongs.Count < 1) {
+                    QueueProcessorLock.Release();
+                    break;
+                }
+
                 Song song = null;
                 string requestId = infoKeyValue.Key;
                 QueuedSongs.TryRemove(infoKeyValue.Key, out ProcessSongRequestInfo info);
