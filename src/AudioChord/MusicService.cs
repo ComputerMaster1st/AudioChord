@@ -379,6 +379,7 @@ namespace AudioChord
                     catch { }
                 }
 
+                QueueProcessorSongList.RemoveAt(0);
                 QueueProcessorLock.Release();
             }
 
