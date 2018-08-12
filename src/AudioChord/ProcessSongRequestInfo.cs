@@ -6,11 +6,13 @@ namespace AudioChord
     internal class ProcessSongRequestInfo
     {
         internal string VideoId { get; }
+        internal string VideoUrl { get; }
         internal Dictionary<ulong, Tuple<ulong, Playlist>> GuildsRequested { get; } = new Dictionary<ulong, Tuple<ulong, Playlist>>();
 
-        internal ProcessSongRequestInfo(string videoId, ulong guildId, ulong textChannelId, Playlist playlist)
+        internal ProcessSongRequestInfo(string videoId, string videoUrl, ulong guildId, ulong textChannelId, Playlist playlist)
         {
             VideoId = videoId;
+            VideoUrl = videoUrl;
             GuildsRequested.Add(guildId, new Tuple<ulong, Playlist>(textChannelId, playlist));
         }
     }
