@@ -6,12 +6,12 @@ namespace AudioChord
 {
     public class DatabaseSong : ISong
     {
-        public string Id { get; private set; }
+        public SongId Id { get; private set; }
         public SongMetadata Metadata { get; private set; }
 
-        private readonly Func<DatabaseSong, System.Threading.Tasks.Task<Stream>> StreamRetriever;
+        private readonly Func<DatabaseSong, Task<Stream>> StreamRetriever;
 
-        internal DatabaseSong(string id, SongMetadata metadata, Func<DatabaseSong, System.Threading.Tasks.Task<Stream>> streamRetrieveFunction)
+        internal DatabaseSong(SongId id, SongMetadata metadata, Func<DatabaseSong, Task<Stream>> streamRetrieveFunction)
         {
             Id = id;
             Metadata = metadata;

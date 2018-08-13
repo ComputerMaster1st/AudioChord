@@ -5,7 +5,7 @@ namespace AudioChord
 {
     public interface ISong
     {
-        string Id { get; }
+        SongId Id { get; }
         SongMetadata Metadata { get; }
         Task<Stream> GetMusicStreamAsync();
     }

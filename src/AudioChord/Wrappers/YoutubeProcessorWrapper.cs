@@ -26,7 +26,14 @@ namespace AudioChord.Wrappers
         /// </summary>
         /// <param name="url">The youtube video url.</param>
         /// <returns>A new <see cref="ISong"/> with the audio of the youtube video</returns>
-        public Task<ISong> DownloadAsync(Uri url) => songCollection.DownloadFromYouTubeAsync(url);
+        /// <exception cref="FormatException">The url given was not a valid youtube url</exception>
+        public Task<ISong> DownloadAsync(Uri url)
+        {
+            if(YoutubeClient.TryParseVideoId(url.ToString(), out string id))
+                return songCollection.DownloadFromYouTubeAsync(id);
+
+            throw new FormatException("Invalid youtube video URL");
+        }
 
         /// <summary>
         /// Capture Youtube Video Id

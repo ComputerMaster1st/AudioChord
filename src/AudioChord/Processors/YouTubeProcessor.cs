@@ -47,35 +47,7 @@ namespace AudioChord.Processors
             {
                 //convert it to a Song class
                 //the processor should be responsible for prefixing the id with the correct type
-                return new Song(ProcessorPrefix + videoId, metadata, await encoder.ProcessAsync(youtubeStream));
-            }
-        }
-
-        /// <summary>
-        /// Convert the youtube video to a <see cref="Song"/>
-        /// </summary>
-        /// <param name="youtubeVideoLocation">The url to the location of the youtube video</param>
-        /// <exception cref="ArgumentException">The url passed to this function is not a url pointing to a youtube video</exception>
-        /// <exception cref="ArgumentNullException">The url passed to this function is null</exception>
-        /// <returns>A new <see cref="Song"/> with metadata of the Youtube video</returns>
-        internal async Task<ISong> ExtractSongAsync(Uri youtubeVideoLocation)
-        {
-            if (youtubeVideoLocation is null)
-                throw new ArgumentNullException("The uri passed to this method is null");
-
-            if (!YoutubeClient.TryParseVideoId(youtubeVideoLocation.ToString(), out string videoId))
-                throw new ArgumentException("The videoId is not correctly formatted");
-
-            //retrieve the metadata of the video
-            SongMetadata metadata = await GetVideoMetadataAsync(videoId);
-
-            //retrieve the actual vdeo and convert it to opus
-            MuxedStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(videoId)).Muxed.WithHighestVideoQuality();
-            using (MediaStream youtubeStream = await Client.GetMediaStreamAsync(StreamInfo))
-            {
-                //convert it to a Song class
-                //the processor should be responsible for prefixing the id with the correct type
-                return new Song(ProcessorPrefix + videoId, metadata, await encoder.ProcessAsync(youtubeStream));
+                return new Song(new SongId(ProcessorPrefix, videoId), metadata, await encoder.ProcessAsync(youtubeStream));
             }
         }
 

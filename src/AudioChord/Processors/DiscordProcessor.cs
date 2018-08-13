@@ -93,7 +93,7 @@ namespace AudioChord.Processors
 
         internal async Task<Song> ProcessAudioAsync()
         {
-            return new Song(ProcessorPrefix + attachmentId, Metadata, await encoder.ProcessAsync(filename));
+            return new Song(new SongId(ProcessorPrefix, attachmentId.ToString()), Metadata, await encoder.ProcessAsync(filename));
         }
     }
 }
