@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using YoutubeExplode;
 
 namespace AudioChord.Collections
 {
@@ -19,14 +18,9 @@ namespace AudioChord.Collections
         private IMongoCollection<SongData> collection;
         private OpusCollection opusCollection;
 
-        private readonly Func<DatabaseSong, Task<Stream>> retrieveSongStreamFunction;
-
         internal SongCollection(IMongoDatabase database)
         {
             collection = database.GetCollection<SongData>(typeof(SongData).Name);
-
-            retrieveSongStreamFunction = OpenOpusStreamAsync;
-
             opusCollection = new OpusCollection(database);
         }
 
@@ -38,9 +32,9 @@ namespace AudioChord.Collections
             SongData song = await FindSongAsync(songId);
 
             if (song is null)
-                return null;
+                throw new ArgumentException($"The song-id '{songId}' was not found in the database");
 
-            return new DatabaseSong(SongId.Parse(song.Id), song.Metadata, retrieveSongStreamFunction);
+            return new DatabaseSong(SongId.Parse(song.Id), song.Metadata, OpenOpusStreamAsync);
         }
 
         private async Task DeleteExpiredSongsAsync()
@@ -86,7 +80,7 @@ namespace AudioChord.Collections
                 .ConvertAll(new Converter<SongData, ISong>(
                     (songData) =>
                     {
-                        return new DatabaseSong(SongId.Parse(songData.Id), songData.Metadata, retrieveSongStreamFunction);
+                        return new DatabaseSong(SongId.Parse(songData.Id), songData.Metadata, OpenOpusStreamAsync);
                     }));
         }
 
@@ -159,7 +153,7 @@ namespace AudioChord.Collections
             await UpdateSongAsync(songData);
 
             //replace the song with the song from the database
-            return new DatabaseSong(song.Id, song.Metadata, retrieveSongStreamFunction);
+            return new DatabaseSong(song.Id, song.Metadata, OpenOpusStreamAsync);
         }
 
         // ==========
