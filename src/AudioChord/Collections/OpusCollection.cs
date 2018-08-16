@@ -34,9 +34,9 @@ namespace AudioChord.Collections
             return Stream.Synchronized(output);
         }
 
-        internal Task DeleteAsync(ISong song)
+        internal Task DeleteAsync(SongId id)
         {
-            return bucket.DeleteAsync(song.Id.ToString());
+            return bucket.DeleteAsync(id.ToString());
         }
 
         internal async Task<double> TotalBytesUsedAsync()

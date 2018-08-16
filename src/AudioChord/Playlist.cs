@@ -10,7 +10,6 @@ namespace AudioChord
     {
         [BsonId]
         public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
-        //public List<string> Songs { get; private set; } = new List<string>();
 
         public List<ISong> Songs { get; private set; }
 

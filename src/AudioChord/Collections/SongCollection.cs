@@ -1,6 +1,5 @@
 ﻿using AudioChord.Collections.Models;
 using AudioChord.Processors;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -24,100 +23,73 @@ namespace AudioChord.Collections
             opusCollection = new OpusCollection(database);
         }
 
-        internal async Task<ISong> GetSongAsync(string songId)
+        internal async Task<ISong> GetSongAsync(SongId id)
         {
             // First cleanup the collection before querying
             await DeleteExpiredSongsAsync();
 
-            SongData song = await FindSongAsync(songId);
+            SongData result = collection
+                .Find(filter => filter.Id == id)
+                .FirstOrDefault() ?? throw new ArgumentException($"The song-id '{id}' was not found in the database");
 
-            if (song is null)
-                throw new ArgumentException($"The song-id '{songId}' was not found in the database");
-
-            return new DatabaseSong(SongId.Parse(song.Id), song.Metadata, OpenOpusStreamAsync);
+            return new DatabaseSong(result.Id, result.Metadata, OpenOpusStreamAsync);
         }
 
         private async Task DeleteExpiredSongsAsync()
         {
-            // First find all the songs that we wan to delete
+            // First find all the songs that we want to delete
             var songs = await (await collection
-                .FindAsync(filter => filter.LastAccessed < DateTime.Now.AddDays(-90)))
+                .FindAsync(filter => filter.LastAccessed < DateTime.Now.AddMonths(-3)))
                 .ToListAsync();
 
             // Delete the metadata information first so that we can't open half-deleted songs
             await collection
-                .DeleteManyAsync(filter => filter.LastAccessed < DateTime.Now.AddDays(-90));
+                .DeleteManyAsync(filter => filter.LastAccessed < DateTime.Now.AddMonths(-3));
 
             // Delete the actual opus data
             foreach (SongData data in songs)
             {
                 // WARNING: This operation is NOT atomic and can result in half-deleted songs if they are stretched over multiple documents in GridFS
                 // TODO: Make an atomic storage system for opus data of songs
-                await opusCollection.DeleteAsync(data.OpusId);
+                await opusCollection.DeleteAsync(data.Id);
             }
         }
 
-        private async Task<SongData> FindSongAsync(string Id)
+        internal Task UpdateExpirationAsync(SongId id)
         {
-            var result = await collection.FindAsync((f) => f.Id == Id);
-            return await result.FirstOrDefaultAsync();
+            SongData result = collection
+                .Find(filter => filter.Id == id)
+                .FirstOrDefault() ?? throw new ArgumentException($"The song-id '{id}' was not found in the database");
+
+            return collection.ReplaceOneAsync(filter => filter.Id == result.Id, result);
         }
 
-        internal Task UpdateSongAsync(SongData song)
+        internal Task DeleteSongAsync(ISong song)
         {
-            return collection.ReplaceOneAsync((f) => f.Id == song.Id, song, new UpdateOptions() { IsUpsert = true });
-        }
-
-        internal Task DeleteSongAsync(SongData song)
-        {
-            return Task.WhenAll(collection.DeleteOneAsync(f => f.Id == song.Id), opusCollection.DeleteAsync(song.OpusId));
+            return Task.WhenAll(collection.DeleteOneAsync(filter => filter.Id == song.Id), opusCollection.DeleteAsync(song.Id));
         }
 
         internal async Task<IEnumerable<ISong>> GetAllAsync()
         {
             return (await collection.FindAsync(FilterDefinition<SongData>.Empty))
                 .ToList()
-                .ConvertAll(new Converter<SongData, ISong>(
-                    (songData) =>
-                    {
-                        return new DatabaseSong(SongId.Parse(songData.Id), songData.Metadata, OpenOpusStreamAsync);
-                    }));
+                .ConvertAll(new Converter<SongData, DatabaseSong>(target => { return new DatabaseSong(target.Id, target.Metadata, OpenOpusStreamAsync); }));
         }
 
         /// <summary>
         /// Check if a song already exists in the database
         /// </summary>
-        /// <param name="location">The source of the song</param>
+        /// <param name="id">The <see cref="SongId"/> to look for</param>
         /// <returns><see langword="true"/> if the song already exists in the database</returns>
-        internal async Task<bool> CheckAlreadyExistsAsync(string id)
+        internal bool CheckAlreadyExists(SongId id)
         {
-            return (await collection.FindAsync(filter => filter.Id == id)).Any();
+            // We are only querying for 1 or 0 documents, it's quicker to use sync (no async overhead)
+            return collection
+                .Find(filter => filter.Id == id)
+                .Any();
         }
 
         internal Task<double> GetTotalBytesUsedAsync() => opusCollection.TotalBytesUsedAsync();
-
-        //internal async Task<int> ResyncDatabaseAsync()
-        //{
-        //    int deletedDesyncedFiles = 0;
-
-        //    List<SongData> songList = await GetAllAsync();
-
-        //    List<ObjectId> listedOpusIds = new List<ObjectId>();
-        //    IEnumerable<ObjectId> allOpusIds = await opusCollection.GetAllOpusIdsAsync();
-
-        //    foreach (SongData data in songList) listedOpusIds.Add(data.OpusId);
-
-        //    foreach (ObjectId opusId in allOpusIds)
-        //    {
-        //        if (!listedOpusIds.Contains(opusId))
-        //        {
-        //            await opusCollection.DeleteAsync(opusId);
-        //            deletedDesyncedFiles++;
-        //        }
-        //    }
-
-        //    return deletedDesyncedFiles;
-        //}
 
         /// <summary>
         /// Open a stream for the song stored in the database
@@ -126,15 +98,11 @@ namespace AudioChord.Collections
         /// <returns>A stream with opus data to send to discord</returns>
         private async Task<Stream> OpenOpusStreamAsync(DatabaseSong song)
         {
-            //retrieve the requested song
-            SongData songData = await FindSongAsync(song.Id.ToString());
+            // Update the last-used timestamp
+            await UpdateExpirationAsync(song.Id);
 
-            //update the last-used timestamp
-            songData.LastAccessed = DateTime.Now;
-            await UpdateSongAsync(songData);
-
-            //give the stream back
-            return await opusCollection.OpenOpusStreamAsync(songData.OpusId);
+            // Give the stream back
+            return await opusCollection.OpenOpusStreamAsync(song);
         }
 
         /// <summary>
@@ -144,13 +112,14 @@ namespace AudioChord.Collections
         /// <returns>a <see cref="DatabaseSong"/>that is the exact representation of the original song, but stored in the database</returns>
         private async Task<DatabaseSong> StoreSongAsync(ISong song)
         {
-            if (song is DatabaseSong)
+            if (song is DatabaseSong databaseSong)
                 //the song has already been stored in the database
-                return (DatabaseSong)song;
+                return databaseSong;
 
-            ObjectId opusId = await opusCollection.StoreOpusStreamAsync($"{song.Id}.opus", await song.GetMusicStreamAsync());
-            SongData songData = new SongData(song.Id.ToString(), opusId, song.Metadata);
-            await UpdateSongAsync(songData);
+            // WARNING: This operation is NOT atomic and can result in GridFS files without SongData (if interrupted)
+            // TODO: Fix desyncing using mongodb transactions if possible
+            await opusCollection.StoreOpusStreamAsync(song);
+            await collection.InsertOneAsync(new SongData(song.Id, song.Metadata));
 
             //replace the song with the song from the database
             return new DatabaseSong(song.Id, song.Metadata, OpenOpusStreamAsync);
@@ -162,9 +131,12 @@ namespace AudioChord.Collections
 
         internal async Task<ISong> DownloadFromYouTubeAsync(string videoId)
         {
+            // Build the corresponding id
+            SongId id = new SongId(YouTubeProcessor.ProcessorPrefix, videoId);
+
             //check if the song is already in the database
-            if (await CheckAlreadyExistsAsync(videoId))
-                return await GetSongAsync(videoId);
+            if (CheckAlreadyExists(id))
+                return await GetSongAsync(id);
 
             YouTubeProcessor processor = new YouTubeProcessor();
             ISong opusSong = await processor.ExtractSongAsync(videoId);

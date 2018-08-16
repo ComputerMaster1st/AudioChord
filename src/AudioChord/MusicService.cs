@@ -69,7 +69,7 @@ namespace AudioChord
         /// <param name="songId">The song Id.</param>
         /// <exception cref="ArgumentException">No song was found with the specified <paramref name="songId"/></exception>
         /// <returns>A <see cref="ISong"/> with metadata and opus stream.</returns>
-        public Task<ISong> GetSongAsync(string songId) => songCollection.GetSongAsync(songId);
+        public Task<ISong> GetSongAsync(SongId id) => songCollection.GetSongAsync(id);
 
         /// <summary>
         /// Get all songs in database.

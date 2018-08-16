@@ -53,7 +53,7 @@ namespace AudioChord
 
             foreach(string id in videoIds)
             {
-                ISong result = await musicService.GetSongAsync(id);
+                ISong result = await musicService.GetSongAsync(new SongId(YouTubeProcessor.ProcessorPrefix, id));
                 if (result is null)
                 {
                     //song does not exist, add a placeholder that gives back the actual song when done
