@@ -15,11 +15,9 @@ namespace AudioChord
     {
         private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
-        //private System.Timers.Timer resyncTimer = new System.Timers.Timer();
 
         public YoutubeProcessorWrapper Youtube { get; private set; }
         public DiscordProcessorWrapper Discord { get; private set; }
-
 
         public MusicService(MusicServiceConfig config)
         {
@@ -45,13 +43,6 @@ namespace AudioChord
             //processor wrappers
             Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));
             Discord = new DiscordProcessorWrapper(songCollection);
-
-            //resyncTimer.Interval = TimeSpan.FromHours(12).TotalMilliseconds;
-            //resyncTimer.AutoReset = true;
-            //resyncTimer.Elapsed += async (obj, args) => await Resync();
-            //resyncTimer.Enabled = true;
-
-            //resyncTimer.Start();
         }
 
         /// <summary>
@@ -76,7 +67,8 @@ namespace AudioChord
         /// Fetch song metadata with opus stream from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="Song"/> SongStream contains song metadata and opus stream. Returns null if nothing found.</returns>
+        /// <exception cref="ArgumentException">No song was found with the specified <paramref name="songId"/></exception>
+        /// <returns>A <see cref="ISong"/> with metadata and opus stream.</returns>
         public Task<ISong> GetSongAsync(string songId) => songCollection.GetSongAsync(songId);
 
         /// <summary>
@@ -89,57 +81,6 @@ namespace AudioChord
         /// Get total bytes count in database.
         /// </summary>
         /// <returns>A double containing total bytes used.</returns>
-
         public Task<double> GetTotalBytesUsedAsync() => songCollection.GetTotalBytesUsedAsync();
-
-        // ===============
-        // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
-        // ===============
-        //private async Task Resync()
-        //{
-        //    await Youtube.QueueProcessorLock.WaitAsync();
-
-        //    List<SongData> expiredSongs = new List<SongData>();
-        //    List<SongData> songList = await songCollection.GetAllAsync();
-        //    int resyncedPlaylists = 0;
-        //    int deletedDesyncedFiles = await songCollection.ResyncDatabaseAsync();
-        //    DateTime startedAt = DateTime.Now;
-
-        //    foreach (SongData song in songList)
-        //        if (song.LastAccessed < DateTime.Now.AddDays(-90))
-        //            expiredSongs.Add(song);
-
-        //    if (expiredSongs.Count > 0)
-        //    {
-        //        List<Playlist> playlists = await playlistCollection.GetAllAsync();
-
-        //        foreach (Playlist playlist in playlists)
-        //        {
-        //            int removedSongs = 0;
-
-        //            foreach (SongData song in expiredSongs)
-        //                if (playlist.Songs.Contains(song.Id))
-        //                {
-        //                    removedSongs++;
-        //                    playlist.Songs.Remove(song.Id);                            
-        //                }
-
-        //            if (removedSongs > 0)
-        //            {
-        //                await playlistCollection.UpdateAsync(playlist);
-        //                resyncedPlaylists++;
-        //            }
-        //        }
-
-        //        foreach (SongData song in expiredSongs)
-        //            await songCollection.DeleteSongAsync(song);
-        //    }
-
-        //    Youtube.QueueProcessorLock.Release();
-
-        //    //only invoke the eventhandler if somebody is subscribed to the event
-        //    ExecutedResync?.Invoke(this, new ResyncEventArgs(startedAt, deletedDesyncedFiles, expiredSongs.Count, resyncedPlaylists));
-        //}
-
     }
 }
