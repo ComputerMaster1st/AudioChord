@@ -43,7 +43,7 @@ namespace AudioChord
             int bangPosition = id.IndexOf('#');
 
             // Passed all constraints, parse the Id
-            return new SongId(id.Substring(0, (bangPosition - 1)), id.Substring(bangPosition));
+            return new SongId(id.Substring(0, bangPosition), id.Substring(bangPosition + 1));
         }
 
         public override string ToString()
