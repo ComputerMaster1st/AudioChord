@@ -287,7 +287,11 @@ namespace AudioChord
                         queuedSongs++;
                     }
                 }
-                else queuedSongs++;
+                else 
+                {
+                    QueueProcessorSongList.Add(new ProcessSongRequestInfo(videoId, url, guildId, textChannelId, playlist));
+                    queuedSongs++;
+                }
             }
 
             if (installedSongs > 0) await playlist.SaveAsync();
@@ -348,6 +352,7 @@ namespace AudioChord
 
                 Song song = null;
                 ProcessSongRequestInfo info = QueueProcessorSongList[0];
+                QueueProcessorSongList.RemoveAt(0);
 
                 try { song = await DownloadSongFromYouTubeAsync(info.VideoUrl); }
                 catch { song = null; }
