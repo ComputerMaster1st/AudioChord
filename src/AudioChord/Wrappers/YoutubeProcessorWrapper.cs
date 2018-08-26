@@ -17,7 +17,7 @@ namespace AudioChord.Wrappers
         }
 
         /// <summary>
-        /// Download a list of YT songs to database.
+        /// Download a list of YT songs to database (without progress).
         /// </summary>
         /// /// <param name="playlistLocation">The url where the playlist is located</param>
         public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) => playlistProcessor.PreProcessPlaylist(playlistLocation, null);
