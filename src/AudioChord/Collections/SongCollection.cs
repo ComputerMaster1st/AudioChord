@@ -17,6 +17,8 @@ namespace AudioChord.Collections
         private IMongoCollection<SongData> collection;
         private OpusCollection opusCollection;
 
+        private DateTime resyncDate = DateTime.Now;
+
         internal SongCollection(IMongoDatabase database)
         {
             collection = database.GetCollection<SongData>(typeof(SongData).Name);
@@ -52,6 +54,28 @@ namespace AudioChord.Collections
                 // WARNING: This operation is NOT atomic and can result in half-deleted songs if they are stretched over multiple documents in GridFS
                 // TODO: Make an atomic storage system for opus data of songs
                 await opusCollection.DeleteAsync(data.Id);
+            }
+        }
+
+        private async Task ResyncAsync()
+        {
+            // First check if it's later than 24 hours since the last resync has passed
+            if (!(DateTime.Now.Subtract(TimeSpan.FromHours(24)) > resyncDate))
+                return;
+
+            // If the amount of documents is more than the amount of GridFS files then there's desync
+            if(opusCollection.SongCount > collection.CountDocuments(FilterDefinition<SongData>.Empty))
+            {
+                List<string> deletionList = new List<string>();
+
+                foreach(string id in await opusCollection.GetAllIdsAsync())
+                {
+                    SongId parsedId = SongId.Parse(id);
+
+                    // delete the GridFS file if no matching SongData document is found
+                    if (!collection.Find(filter => filter.Id == parsedId).Any())
+                        await opusCollection.DeleteAsync(parsedId);
+                }
             }
         }
 

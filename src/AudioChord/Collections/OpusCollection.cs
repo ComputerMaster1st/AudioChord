@@ -11,6 +11,8 @@ namespace AudioChord.Collections
     {
         private GridFSBucket<string> bucket;
 
+        public long SongCount { get => bucket.Find(FilterDefinition<GridFSFileInfo<string>>.Empty).ToList().Count; }
+
         internal OpusCollection(IMongoDatabase database)
         {
             bucket = new GridFSBucket<string>(database, new GridFSBucketOptions()
@@ -49,7 +51,7 @@ namespace AudioChord.Collections
             return totalBytes;
         }
 
-        internal async Task<IEnumerable<string>> GetAllOpusIdsAsync()
+        internal async Task<IEnumerable<string>> GetAllIdsAsync()
         {
             var result = await bucket.FindAsync(FilterDefinition<GridFSFileInfo<string>>.Empty);
             return (await result.ToListAsync())
