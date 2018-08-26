@@ -19,7 +19,15 @@ namespace AudioChord.Wrappers
         /// <summary>
         /// Download a list of YT songs to database.
         /// </summary>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) => playlistProcessor.PreProcessPlaylist(playlistLocation);
+        /// /// <param name="playlistLocation">The url where the playlist is located</param>
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) => playlistProcessor.PreProcessPlaylist(playlistLocation, null);
+
+        /// <summary>
+        /// Download a list of YT songs to database.
+        /// </summary>
+        /// <param name="playlistLocation">The url where the playlist is located</param>
+        /// <param name="progress">Callback for reporting progress on song processing</param>
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongStatus> progress) => playlistProcessor.PreProcessPlaylist(playlistLocation, progress);
 
         /// <summary>
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)

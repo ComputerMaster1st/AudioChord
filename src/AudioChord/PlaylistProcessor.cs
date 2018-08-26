@@ -42,7 +42,7 @@ namespace AudioChord
             }
         }
 
-        public async Task<ResolvingPlaylist> PreProcessPlaylist(Uri playlistLocation)
+        public async Task<ResolvingPlaylist> PreProcessPlaylist(Uri playlistLocation, IProgress<SongStatus> progress)
         {
             YouTubeProcessor processor = new YouTubeProcessor();
 
@@ -59,7 +59,20 @@ namespace AudioChord
                     //song does not exist, add a placeholder that gives back the actual song when done
                     StartableTask<ISong> work = new StartableTask<ISong>(() =>
                     {
-                        return songCollection.DownloadFromYouTubeAsync(id);
+                        Task<ISong> task = songCollection.DownloadFromYouTubeAsync(id);
+
+                        // Add progress reporting when the task completes
+                        task.ContinueWith((previous) =>
+                        {
+                            progress?.Report(SongStatus.Processed);
+                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                        task.ContinueWith((previous) => 
+                        {
+                            progress?.Report(SongStatus.Errorred);
+                        }, TaskContinuationOptions.OnlyOnFaulted);
+
+                        return task;
                     });
 
                     playlist.Songs.Add(work.Work);
@@ -69,6 +82,9 @@ namespace AudioChord
                 {
                     //add the song that was already found in the database
                     playlist.Songs.Add(Task.FromResult(result));
+
+                    // Report that a song already exists
+                    progress?.Report(SongStatus.AlreadyExists);
                 }   
             }
 
