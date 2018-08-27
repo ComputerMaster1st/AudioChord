@@ -351,8 +351,14 @@ namespace AudioChord
                 await QueueProcessorLock.WaitAsync();
 
                 Song song = null;
-                ProcessSongRequestInfo info = QueueProcessorSongList[0];
-                QueueProcessorSongList.RemoveAt(0);
+                ProcessSongRequestInfo info = QueueProcessorSongList.FirstOrDefault();
+
+                if (info == null) {
+                    QueueProcessorLock.Release();
+                    continue;
+                }
+
+                QueueProcessorSongList.Remove(info);
 
                 try { song = await DownloadSongFromYouTubeAsync(info.VideoUrl); }
                 catch { song = null; }
