@@ -21,6 +21,12 @@ namespace AudioChord
 
         public SongId(string source, string sourceId)
         {
+            if (string.IsNullOrWhiteSpace(source))
+                throw new ArgumentException("source cannot be empty");
+
+            if (string.IsNullOrWhiteSpace(source))
+                throw new ArgumentException("id cannot be empty");
+
             //always use upper case for processor ids
             ProcessorId = source.ToUpper();
             SourceId = SourceId;
