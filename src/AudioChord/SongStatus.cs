@@ -4,6 +4,6 @@
     {
         AlreadyExists,
         Processed,
-        Errorred
+        Errored
     }
 }

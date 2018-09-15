@@ -1,10 +1,10 @@
 ﻿using AudioChord.Collections;
 using AudioChord.Processors;
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using MongoDB.Bson;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AudioChord
 {
@@ -53,10 +53,21 @@ namespace AudioChord
 
             foreach(string id in videoIds)
             {
-                ISong result = await musicService.GetSongAsync(new SongId(YouTubeProcessor.ProcessorPrefix, id));
-                if (result is null)
+                // Convert the id to a SongId
+                SongId songId = new SongId(YouTubeProcessor.ProcessorPrefix, id);
+
+                // Check if the song already exists in the database
+                if (songCollection.CheckAlreadyExists(songId))
                 {
-                    //song does not exist, add a placeholder that gives back the actual song when done
+                    // Add the song that was already found in the database
+                    playlist.Songs.Add(musicService.GetSongAsync(songId));
+
+                    // Report that a song already exists
+                    progress?.Report(SongStatus.AlreadyExists);
+                }
+                else
+                {
+                    // Song does not exist, add a placeholder that gives back the actual song when done
                     StartableTask<ISong> work = new StartableTask<ISong>(() =>
                     {
                         Task<ISong> task = songCollection.DownloadFromYouTubeAsync(id);
@@ -67,9 +78,9 @@ namespace AudioChord
                             progress?.Report(SongStatus.Processed);
                         }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
-                        task.ContinueWith((previous) => 
+                        task.ContinueWith((previous) =>
                         {
-                            progress?.Report(SongStatus.Errorred);
+                            progress?.Report(SongStatus.Errored);
                         }, TaskContinuationOptions.OnlyOnFaulted);
 
                         return task;
@@ -77,14 +88,6 @@ namespace AudioChord
 
                     playlist.Songs.Add(work.Work);
                     backLog.Enqueue(work);
-                }
-                else
-                {
-                    //add the song that was already found in the database
-                    playlist.Songs.Add(Task.FromResult(result));
-
-                    // Report that a song already exists
-                    progress?.Report(SongStatus.AlreadyExists);
                 }   
             }
 

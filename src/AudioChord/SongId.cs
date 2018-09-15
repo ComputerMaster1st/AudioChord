@@ -29,7 +29,7 @@ namespace AudioChord
 
             //always use upper case for processor ids
             ProcessorId = source.ToUpper();
-            SourceId = SourceId;
+            SourceId = sourceId;
         }
 
         public static SongId Parse(string id)

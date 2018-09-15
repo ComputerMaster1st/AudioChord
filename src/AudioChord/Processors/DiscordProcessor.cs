@@ -18,7 +18,7 @@ namespace AudioChord.Processors
         private string filename;
         private ulong attachmentId;
 
-        public static string ProcessorPrefix { get; } = "DISCORD#";
+        public static string ProcessorPrefix { get; } = "DISCORD";
 
         public SongMetadata Metadata { get; private set; }
 

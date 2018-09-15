@@ -16,7 +16,7 @@ namespace AudioChord.Processors
         private YoutubeClient Client = new YoutubeClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
 
-        public static string ProcessorPrefix { get; } = "YOUTUBE#";
+        public static string ProcessorPrefix { get; } = "YOUTUBE";
 
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -6,6 +8,8 @@ namespace AudioChord
 {
     public class DatabaseSong : ISong
     {
+        [BsonId]
+        [BsonSerializer(typeof(SongIdSerializer))]
         public SongId Id { get; private set; }
         public SongMetadata Metadata { get; private set; }
 

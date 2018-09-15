@@ -3,6 +3,7 @@ using AudioChord.Events;
 using AudioChord.Wrappers;
 
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 using System;
@@ -13,6 +14,11 @@ namespace AudioChord
 {
     public class MusicService
     {
+        static MusicService()
+        {
+            BsonSerializer.RegisterSerializer(new SongIdSerializer());
+        }
+
         private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
 
