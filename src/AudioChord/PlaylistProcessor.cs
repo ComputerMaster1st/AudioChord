@@ -2,8 +2,8 @@
 using AudioChord.Processors;
 using MongoDB.Bson;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace AudioChord
@@ -12,46 +12,26 @@ namespace AudioChord
     {
         private SongCollection songCollection;
         private MusicService musicService;
+        private WorkScheduler scheduler;
 
-        private ConcurrentQueue<StartableTask<ISong>> backLog = new ConcurrentQueue<StartableTask<ISong>>();
-
-        //use 2 tasks for now. this can be changed later on
-        private Task[] processors = new Task[2];
+        private ConcurrentDictionary<SongId, Task<ISong>> allWork = new ConcurrentDictionary<SongId, Task<ISong>>();
 
         public PlaylistProcessor(SongCollection song, MusicService service)
         {
             songCollection = song;
             musicService = service;
-
-            for(int i = 0; i != processors.Length; i++)
-            {
-                processors[i] = Task.Factory.StartNew(async () =>
-                {
-                    while(true)
-                    {
-                        if(!backLog.TryDequeue(out StartableTask<ISong> work))
-                            //try agian after a while (dont wanna overload the lock)
-                            await Task.Delay(250);
-                        else
-                        {
-                            //process the song
-                            await work.Start();
-                        }
-                    }
-                }, TaskCreationOptions.LongRunning);
-            }
+            scheduler = new WorkScheduler();
         }
 
-        public async Task<ResolvingPlaylist> PreProcessPlaylist(Uri playlistLocation, IProgress<SongStatus> progress)
+        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation, IProgress<SongStatus> progress)
         {
             YouTubeProcessor processor = new YouTubeProcessor();
-
-            // retrieve all the video id's from the playlist
-            List<string> videoIds = await processor.ParsePlaylistAsync(playlistLocation);
-
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
 
-            foreach(string id in videoIds)
+            Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
+
+            //WARNING: Only one thread should be able to verify if songs are in the database
+            foreach(string id in await processor.ParsePlaylistAsync(playlistLocation))
             {
                 // Convert the id to a SongId
                 SongId songId = new SongId(YouTubeProcessor.ProcessorPrefix, id);
@@ -68,31 +48,46 @@ namespace AudioChord
                 else
                 {
                     // Song does not exist, add a placeholder that gives back the actual song when done
-                    StartableTask<ISong> work = new StartableTask<ISong>(() =>
-                    {
-                        Task<ISong> task = songCollection.DownloadFromYouTubeAsync(id);
+                    playlist.Songs.Add(
 
-                        // Add progress reporting when the task completes
-                        task.ContinueWith((previous) =>
+                        // Check if a placeholder already exists
+                        allWork.GetOrAdd(songId, (processingSongId) => 
                         {
-                            progress?.Report(SongStatus.Processed);
-                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                            // Always add progress reporting, there is a possibility that somebody who want's reports attaches later
+                            StartableTask<ISong> work = new StartableTask<ISong>(() =>
+                            { return AddProgressReporting(songCollection.DownloadFromYouTubeAsync(id), progress); });
 
-                        task.ContinueWith((previous) =>
-                        {
-                            progress?.Report(SongStatus.Errored);
-                        }, TaskContinuationOptions.OnlyOnFaulted);
-
-                        return task;
-                    });
-
-                    playlist.Songs.Add(work.Work);
-                    backLog.Enqueue(work);
+                            backlog.Enqueue(work);
+                            return work.Work;
+                        })
+                    );
+                    
                 }   
             }
+
+            // Run the processor on a separate task
+            scheduler.CreateWorker(backlog);
 
             return playlist;
         }
 
+        /// <summary>
+        /// Add progress reporting when the task completes
+        /// </summary>
+        /// <param name="task"></param>
+        private Task<ISong> AddProgressReporting(Task<ISong> task, IProgress<SongStatus> progress)
+        {
+            task.ContinueWith((previous) =>
+            {
+                progress?.Report(SongStatus.Processed);
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+
+            task.ContinueWith((previous) =>
+            {
+                progress?.Report(SongStatus.Errored);
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            return task;
+        }
     }
 }

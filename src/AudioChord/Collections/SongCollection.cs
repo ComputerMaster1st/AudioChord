@@ -17,7 +17,7 @@ namespace AudioChord.Collections
         private IMongoCollection<SongData> collection;
         private OpusCollection opusCollection;
 
-        private DateTime resyncDate = DateTime.Now;
+        private readonly DateTime resyncDate = DateTime.Now;
 
         internal SongCollection(IMongoDatabase database)
         {
@@ -153,6 +153,11 @@ namespace AudioChord.Collections
         // FROM THIS POINT ON, SONGS ARE CREATED VIA PROCESSORS!
         // ==========
 
+        /// <summary>
+        /// Check if the song exists in the database. If not download, store and return the song
+        /// </summary>
+        /// <param name="videoId"></param>
+        /// <returns></returns>
         internal async Task<ISong> DownloadFromYouTubeAsync(string videoId)
         {
             // Build the corresponding id
