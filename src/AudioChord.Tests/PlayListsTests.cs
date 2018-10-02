@@ -17,82 +17,32 @@ namespace AudioChord.Tests
         }
 
         [Fact]
-        public async void Playlist_Create()
+        public async Task Playlist_Create()
         {
             Playlist playlist = await service.CreatePlaylist();
             Assert.NotNull(playlist);
         }
 
         [Fact]
-        public async void Playlist_SaveSongYoutube()
+        public async Task Playlist_SaveSongYoutube()
         {
-            Playlist test = await service.CreatePlaylist();
-            Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            Song song = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
-            playlist.Songs.Add(song.Id);
-            await playlist.SaveAsync();
+            Playlist p = await service.CreatePlaylist();
+            ISong song = await service.Youtube.DownloadAsync(new Uri("https://www.youtube.com/watch?v=744AQ0rhdRk"));
+
+            p.Songs.Add(song);
+
+            await p.SaveAsync();
         }
 
         [Fact]
         public async void Playlist_SaveSongDiscord()
         {
-            Playlist test = await service.CreatePlaylist();
-            Playlist playlist = await service.GetPlaylistAsync(test.Id);
-            Song song = await service.DownloadSongFromDiscordAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
-            playlist.Songs.Add(song.Id);
+            Playlist playlist = await service.CreatePlaylist();
+
+            ISong song = await service.Discord.DownloadAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
+            playlist.Songs.Add(song);
+
             await playlist.SaveAsync();
         }
-
-        [Fact]
-        public async Task Song_ValidateMemoryDisposing()
-        {
-            GC.Collect();
-
-            //test the task
-            await UseMemory();
-
-            //full GC agian
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-        }
-
-        private async Task UseMemory()
-        {
-            Song song = await service.DownloadSongFromYouTubeAsync("https://www.youtube.com/watch?v=z91rnf-UBfM");
-
-            using (Stream stream = await song.GetMusicStreamAsync())
-            {
-
-            }
-        }
-
-        //[Fact]
-        //public async void Song_GetStream()
-        //{
-        //    SongStream stream = await service.GetSongStreamAsync(songId2);
-        //    Assert.NotNull(stream.MusicStream);
-        //}
-
-        //[Fact]
-        //public async void Playlist_DeleteSong()
-        //{
-        //    Playlist playlist = await service.GetPlaylistAsync(playlistId);
-        //    playlist.Songs.Remove(songId1);
-        //    playlist.Songs.Remove(songId2);
-        //    await playlist.SaveAsync();
-        //}
-
-        //[Fact]
-        //public async void Playlist_Delete()
-        //{
-        //    await service.DeletePlaylistAsync(playlistId);
-        //}
-
-        //[Fact]
-        //public async void Playlist_Resync()
-        //{
-        //    await service.Resync();
-        //}
     }
 }
