@@ -23,7 +23,14 @@ namespace AudioChord
                 while (backlog.Count > 0)
                 {
                     if (backlog.TryDequeue(out var work))
-                        await work.Start();
+                    {
+                        try
+                        {
+                            await work.Start();
+                        }
+                        catch (System.Exception)
+                        { }
+                    }  
                 }
             });
             workers.Add(worker);

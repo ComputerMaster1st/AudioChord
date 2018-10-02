@@ -11,6 +11,7 @@ namespace AudioChord
         public string Id;
 
         public List<Task<ISong>> Songs { get; private set; } = new List<Task<ISong>>();
+        public int ExistingSongs = 0;
 
         public ResolvingPlaylist(string id)
         {

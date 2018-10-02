@@ -1,12 +1,11 @@
 ﻿using AudioChord.Collections;
-using AudioChord.Processors;
 using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace AudioChord
+namespace AudioChord.Processors
 {
     internal class PlaylistProcessor
     {
@@ -23,7 +22,7 @@ namespace AudioChord
             scheduler = new WorkScheduler();
         }
 
-        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation, IProgress<SongStatus> progress)
+        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation, IProgress<SongProcessStatus> progress)
         {
             YouTubeProcessor processor = new YouTubeProcessor();
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
@@ -42,8 +41,8 @@ namespace AudioChord
                     // Add the song that was already found in the database
                     playlist.Songs.Add(musicService.GetSongAsync(songId));
 
-                    // Report that a song already exists
-                    progress?.Report(SongStatus.AlreadyExists);
+                    // Increment the count of already existing songs
+                    playlist.ExistingSongs++;
                 }
                 else
                 {
@@ -55,13 +54,12 @@ namespace AudioChord
                         {
                             // Always add progress reporting, there is a possibility that somebody who want's reports attaches later
                             StartableTask<ISong> work = new StartableTask<ISong>(() =>
-                            { return AddProgressReporting(songCollection.DownloadFromYouTubeAsync(id), progress); });
+                            { return AddProgressReporting(songCollection.DownloadFromYouTubeAsync(processingSongId.SourceId), progress, processingSongId); });
 
                             backlog.Enqueue(work);
                             return work.Work;
                         })
                     );
-                    
                 }   
             }
 
@@ -75,16 +73,16 @@ namespace AudioChord
         /// Add progress reporting when the task completes
         /// </summary>
         /// <param name="task"></param>
-        private Task<ISong> AddProgressReporting(Task<ISong> task, IProgress<SongStatus> progress)
+        private Task<ISong> AddProgressReporting(Task<ISong> task, IProgress<SongProcessStatus> progress, SongId id)
         {
             task.ContinueWith((previous) =>
             {
-                progress?.Report(SongStatus.Processed);
+                progress?.Report(SongProcessStatus.AsResult(previous));
             }, TaskContinuationOptions.OnlyOnRanToCompletion);
 
             task.ContinueWith((previous) =>
             {
-                progress?.Report(SongStatus.Errored);
+                progress?.Report(SongProcessStatus.AsError(id, previous.Exception));
             }, TaskContinuationOptions.OnlyOnFaulted);
 
             return task;

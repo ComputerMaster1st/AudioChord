@@ -1,4 +1,5 @@
 ﻿using AudioChord.Collections;
+using AudioChord.Processors;
 using System;
 using System.Threading.Tasks;
 using YoutubeExplode;
@@ -27,7 +28,7 @@ namespace AudioChord.Wrappers
         /// </summary>
         /// <param name="playlistLocation">The url where the playlist is located</param>
         /// <param name="progress">Callback for reporting progress on song processing</param>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongStatus> progress) => playlistProcessor.ProcessPlaylist(playlistLocation, progress);
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress) => playlistProcessor.ProcessPlaylist(playlistLocation, progress);
 
         /// <summary>
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
