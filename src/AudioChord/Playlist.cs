@@ -11,7 +11,7 @@ namespace AudioChord
         [BsonId]
         public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
 
-        public List<ISong> Songs { get; private set; }
+        public List<ISong> Songs { get; private set; } = new List<ISong>();
 
         [BsonIgnore]
         internal PlaylistCollection collection;
