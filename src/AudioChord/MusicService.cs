@@ -78,6 +78,15 @@ namespace AudioChord
         public Task<ISong> GetSongAsync(SongId id) => songCollection.GetSongAsync(id);
 
         /// <summary>
+        /// Try to get the song
+        /// </summary>
+        /// <param name="id">The <see cref="SongId"/> to search for</param>
+        /// <param name="value">the action that will (always) be invoked with the return value</param>
+        /// <returns></returns>
+        public async Task<bool> TryGetSongAsync(SongId id, Action<ISong> value)
+            => await songCollection.TryGetSongAsync(id, (actualSong) => { value(actualSong); });
+
+        /// <summary>
         /// Get all songs in database.
         /// </summary>
         /// <returns>Dictionary of songs in database.</returns>

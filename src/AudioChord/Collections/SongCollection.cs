@@ -37,6 +37,27 @@ namespace AudioChord.Collections
             return new DatabaseSong(result.Id, result.Metadata, OpenOpusStreamAsync);
         }
 
+        internal async Task<bool> TryGetSongAsync(SongId id, Action<ISong> value)
+        {
+            // First cleanup the collection before querying
+            await DeleteExpiredSongsAsync();
+
+            SongData result = collection
+                .Find(filter => filter.Id == id)
+                .FirstOrDefault();
+
+            if(result is null)
+            {
+                value(null);
+                return false;
+            }
+            else
+            {
+                value(new DatabaseSong(result.Id, result.Metadata, OpenOpusStreamAsync));
+                return true;
+            }
+        }
+
         private async Task DeleteExpiredSongsAsync()
         {
             // First find all the songs that we want to delete
