@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+﻿using System;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using System.Collections.Generic;
@@ -9,52 +9,53 @@ namespace AudioChord.Collections
 {
     internal class OpusCollection
     {
-        private GridFSBucket collection;
+        private GridFSBucket<string> bucket;
+
+        public long SongCount { get => bucket.Find(FilterDefinition<GridFSFileInfo<string>>.Empty).ToList().Count; }
 
         internal OpusCollection(IMongoDatabase database)
         {
-            collection = new GridFSBucket(database, new GridFSBucketOptions()
+            bucket = new GridFSBucket<string>(database, new GridFSBucketOptions()
             {
                 BucketName = "OpusData",
-                ChunkSizeBytes = 2097152
+                ChunkSizeBytes = 4194304,
+
+                // We don't use MD5 in our code
+                DisableMD5 = true
             });
         }
 
-        internal async Task<ObjectId> MatchMD5Async(string MD5Hash)
+        internal async Task StoreOpusStreamAsync(ISong song)
         {
-            List<GridFSFileInfo> result = await (await collection.FindAsync(FilterDefinition<GridFSFileInfo>.Empty)).ToListAsync();
-            foreach (GridFSFileInfo fileInfo in result)
-                if (fileInfo.MD5 == MD5Hash)
-                    return fileInfo.Id;
-            return ObjectId.Empty;
+            await bucket.UploadFromStreamAsync(song.Id.ToString(), $"{song.Id}.opus", await song.GetMusicStreamAsync());
         }
 
-        internal async Task<ObjectId> StoreOpusStreamAsync(string Filename, Stream FfmpegStream)
+        internal async Task<Stream> OpenOpusStreamAsync(DatabaseSong song)
         {
-            return await collection.UploadFromStreamAsync(Filename, FfmpegStream);
-        }
-
-        internal async Task<Stream> OpenOpusStreamAsync(ObjectId opusId)
-        {
-            var output = await collection.OpenDownloadStreamAsync(opusId, new GridFSDownloadOptions() { Seekable = true });
+            var output = await bucket.OpenDownloadStreamAsync(song.Id.ToString(), new GridFSDownloadOptions() { Seekable = true });
             return Stream.Synchronized(output);
         }
 
-        internal async Task DeleteAsync(ObjectId opusId)
+        internal Task DeleteAsync(SongId id)
         {
-            await collection.DeleteAsync(opusId);
+            return bucket.DeleteAsync(id.ToString());
         }
 
         internal async Task<double> TotalBytesUsedAsync()
         {
-            var result = await collection.FindAsync(FilterDefinition<GridFSFileInfo>.Empty);
-            List<GridFSFileInfo> fileList = await result.ToListAsync();
             double totalBytes = 0;
 
-            foreach (GridFSFileInfo fileInfo in fileList)
-                totalBytes += fileInfo.Length;
+            var result = await bucket.FindAsync(FilterDefinition<GridFSFileInfo<string>>.Empty);
+            await result.ForEachAsync(song => totalBytes += song.Length);
 
             return totalBytes;
+        }
+
+        internal async Task<IEnumerable<string>> GetAllIdsAsync()
+        {
+            var result = await bucket.FindAsync(FilterDefinition<GridFSFileInfo<string>>.Empty);
+            return (await result.ToListAsync())
+                .ConvertAll(new Converter<GridFSFileInfo<string>, string>(fileInfo => { return fileInfo.Id; }));
         }
     }
 }

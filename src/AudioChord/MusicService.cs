@@ -1,23 +1,35 @@
-﻿using MongoDB.Bson;
+﻿using AudioChord.Collections;
+using AudioChord.Processors;
+using AudioChord.Wrappers;
+
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using AudioChord.Collections;
-using AudioChord.Collections.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Timers;
-using YoutubeExplode;
 
 namespace AudioChord
 {
     public class MusicService
     {
-        private PlaylistCollection playlistCollection;
+        static MusicService()
+        {
+            BsonSerializer.RegisterSerializer(new SongIdSerializer());
+        }
+
         private SongCollection songCollection;
-        private Timer resyncTimer = new Timer();
+
+        public YoutubeProcessorWrapper Youtube { get; private set; }
+        public DiscordProcessorWrapper Discord { get; private set; }
+        public PlaylistCollection Playlist { get; private set; }
 
         public MusicService(MusicServiceConfig config)
         {
+            // This will tell NETCore 2.1 to use older httpclient. Newer version has SSL issues
+            AppContext.SetSwitch("System.Net.Http.UseSocketsHttpHandler", false);
+
             //Use the builder to allow to connect to database without authentication
             MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder
             {
@@ -31,149 +43,41 @@ namespace AudioChord
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
 
-            playlistCollection = new PlaylistCollection(database);
             songCollection = new SongCollection(database);
+            Playlist = new PlaylistCollection(database, songCollection);
 
-            resyncTimer.Interval = TimeSpan.FromHours(24).TotalMilliseconds;
-            resyncTimer.AutoReset = true;
-            resyncTimer.Elapsed += async (obj, args) => await Resync();
-            resyncTimer.Enabled = true;
-
-            resyncTimer.Start();
-        }
-
-        /// <summary>
-        /// Create a new playlist.
-        /// </summary>
-        public async Task<Playlist> CreatePlaylist()
-        {
-            return await playlistCollection.Create();
-        }
-
-        /// <summary>
-        /// Retrieve your playlist from database.
-        /// </summary>
-        /// <param name="playlistId">Place playlist Id to fetch.</param>
-        /// <returns>A <see cref="Playlist"/> Playlist contains list of all available song Ids.</returns>
-        public async Task<Playlist> GetPlaylistAsync(ObjectId playlistId)
-        {
-            return await playlistCollection.GetPlaylistAsync(playlistId);
-        }
-
-        /// <summary>
-        /// Delete the playlist from database.
-        /// </summary>
-        /// <param name="playlistId">The playlist Id to delete.</param>
-        public async Task DeletePlaylistAsync(ObjectId playlistId)
-        {
-            await playlistCollection.DeleteAsync(playlistId);
+            //processor wrappers
+            Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));
+            Discord = new DiscordProcessorWrapper(songCollection);
         }
 
         /// <summary>
         /// Fetch song metadata with opus stream from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
-        /// <returns>A <see cref="Song"/> SongStream contains song metadata and opus stream.</returns>
-        public async Task<Song> GetSongAsync(string songId)
-        {
-            SongData songData = await songCollection.GetSongAsync(songId);
+        /// <exception cref="ArgumentException">No song was found with the specified <paramref name="songId"/></exception>
+        /// <returns>A <see cref="ISong"/> with metadata and opus stream.</returns>
+        public Task<ISong> GetSongAsync(SongId id) => songCollection.GetSongAsync(id);
 
-            return new Song(songData.Id, songData.Metadata, songData.OpusId, songCollection);
-        }
+        /// <summary>
+        /// Try to get the song
+        /// </summary>
+        /// <param name="id">The <see cref="SongId"/> to search for</param>
+        /// <param name="value">the action that will (always) be invoked with the return value</param>
+        /// <returns></returns>
+        public async Task<bool> TryGetSongAsync(SongId id, Action<ISong> value)
+            => await songCollection.TryGetSongAsync(id, (actualSong) => { value(actualSong); });
 
         /// <summary>
         /// Get all songs in database.
         /// </summary>
         /// <returns>Dictionary of songs in database.</returns>
-        public async Task<IEnumerable<Song>> GetAllSongsAsync()
-        {
-            List<Song> songList = new List<Song>();
-            List<SongData> songDataList =  await songCollection.GetAllAsync();
-
-            if (songDataList.Count > 0)
-                foreach (SongData data in songDataList)
-                    songList.Add(new Song(data.Id, data.Metadata, data.OpusId, songCollection));
-
-            return songList;
-        }
+        public Task<IEnumerable<ISong>> GetAllSongsAsync() => songCollection.GetAllAsync();
 
         /// <summary>
         /// Get total bytes count in database.
         /// </summary>
         /// <returns>A double containing total bytes used.</returns>
-        public async Task<double> GetTotalBytesUsedAsync()
-        {
-            return await songCollection.GetTotalBytesUsedAsync();
-        }
-
-        // ===============
-        // ALL PROCESSOR BASED METHODS GO BELOW THIS COMMENT!
-        // ===============
-
-        /// <summary>
-        /// Capture Youtube Video Id
-        /// </summary>
-        /// <param name="url">The youtube video url.</param>
-        /// <returns>Return youtube video id.</returns>
-        public string ParseYoutubeUrl(string url)
-        {
-            if (!YoutubeClient.TryParseVideoId(url, out string videoId))
-                throw new ArgumentException("Video Url could not be parsed!");
-            return videoId;
-        }
-
-        /// <summary>
-        /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
-        /// </summary>
-        /// <param name="url">The youtube video url.</param>
-        /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<Song> DownloadSongFromYouTubeAsync(string url)
-        {
-            string id = await songCollection.DownloadFromYouTubeAsync(url);
-            return await GetSongAsync(id);
-        }
-
-        /// <summary>
-        /// Download song from Discord to database. (Note: Exceptions are to be expected.)
-        /// </summary>
-        /// <param name="url">The discord attachment url.</param>
-        /// <param name="uploader">The discord username.</param>
-        /// <param name="attachmentId">The discord attachment Id.</param>
-        /// <param name="autoDownload">Automatically download if non-existent.</param>
-        /// <returns>Returns ObjectId of newly downloaded song.</returns>
-        public async Task<Song> DownloadSongFromDiscordAsync(string url, string uploader, ulong attachmentId)
-        {
-            string id = await songCollection.DownloadFromDiscordAsync(url, uploader, attachmentId);
-            return await GetSongAsync(id);
-        }
-
-        // ===============
-        // ALL PRIVATE METHODS GO BELOW THIS COMMENT!
-        // ===============
-
-        private async Task Resync()
-        {
-            List<SongData> expiredSongs = new List<SongData>();
-            List<SongData> songList = await songCollection.GetAllAsync();
-
-            foreach (SongData song in songList)
-                if (song.LastAccessed < DateTime.Now.AddDays(-90))
-                    expiredSongs.Add(song);
-
-            if (expiredSongs.Count < 1) return;
-
-            List<Playlist> playlists = await playlistCollection.GetAllAsync();
-
-            foreach (Playlist playlist in playlists)
-                foreach (SongData song in expiredSongs)
-                    if (playlist.Songs.Contains(song.Id))
-                    {
-                        playlist.Songs.Remove(song.Id);
-                        await playlist.SaveAsync();
-                    }
-
-            foreach (SongData song in expiredSongs)
-                await songCollection.DeleteSongAsync(song);
-        }
+        public Task<double> GetTotalBytesUsedAsync() => songCollection.GetTotalBytesUsedAsync();
     }
 }
