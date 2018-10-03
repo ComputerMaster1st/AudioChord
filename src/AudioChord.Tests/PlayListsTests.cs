@@ -42,12 +42,18 @@ namespace AudioChord.Tests
         [Fact]
         public async void Playlist_SaveSongDiscord()
         {
-            //Playlist playlist = new Playlist();
+            Playlist playlist = new Playlist();
 
-            //ISong song = await service.Discord.DownloadAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
-            //playlist.Songs.Add(song);
+            ISong song = await service.Discord.DownloadAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
+            playlist.Songs.Add(song);
 
-            //await playlist.SaveAsync();
+            await service.Playlist.UpdateAsync(playlist);
+
+            Playlist p2 = await service.Playlist.GetPlaylistAsync(playlist.Id);
+
+            Assert.NotNull(p2);
+            Assert.NotNull(p2.Songs);
+            Assert.NotEmpty(p2.Songs);
         }
     }
 }
