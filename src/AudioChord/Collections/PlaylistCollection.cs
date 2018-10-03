@@ -24,7 +24,7 @@ namespace AudioChord.Collections
         /// </summary>
         /// <param name="id">The id of the playlist to look for</param>
         /// <returns>A <see cref="Playlist"/> with songs</returns>
-        /// <exception cref="ArgumentException">There was no playlist with that id found in the database</exception>
+        /// <exception cref="ArgumentException">There was no <see cref="Playlist"/> with that id found in the database</exception>
         public async Task<Playlist> GetPlaylistAsync(ObjectId id)
         {
             var result = (await collection.FindAsync(filter => filter.Id == id))
@@ -33,6 +33,10 @@ namespace AudioChord.Collections
             return await ConvertPlaylistAsync(result);
         }
 
+        /// <summary>
+        /// Return all playlists in the database
+        /// </summary>
+        /// <returns>A list of all <see cref="Playlist"/></returns>
         public async Task<IEnumerable<Playlist>> GetAllAsync()
         {
             List<Playlist> all = new List<Playlist>();
@@ -47,9 +51,18 @@ namespace AudioChord.Collections
             return all;
         }
 
-        public Task UpdateAsync(Playlist playlist) 
+        /// <summary>
+        /// Retrieve your playlist from database.
+        /// </summary>
+        /// <param name="playlistId">Place playlist Id to fetch.</param>
+        /// <returns>A <see cref="Playlist"/>Playlist contains list of all available song Ids.</returns>
+        public Task UpdateAsync(Playlist playlist)
             => collection.ReplaceOneAsync(filter => filter.Id == playlist.Id, playlist.ConvertToDatabaseRepresentation(), new UpdateOptions() { IsUpsert = true });
 
+        /// <summary>
+        /// Delete the playlist from database.
+        /// </summary>
+        /// <param name="playlistId">The playlist Id to delete.</param>
         public Task DeleteAsync(ObjectId id) 
             => collection.DeleteOneAsync(filter => filter.Id == id);
 

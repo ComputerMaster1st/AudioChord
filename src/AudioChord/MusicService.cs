@@ -53,19 +53,6 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Retrieve your playlist from database.
-        /// </summary>
-        /// <param name="playlistId">Place playlist Id to fetch.</param>
-        /// <returns>A <see cref="Playlist"/> Playlist contains list of all available song Ids.</returns>
-        public Task<Playlist> GetPlaylistAsync(ObjectId playlistId) => playlistCollection.GetPlaylistAsync(playlistId);
-
-        /// <summary>
-        /// Delete the playlist from database.
-        /// </summary>
-        /// <param name="playlistId">The playlist Id to delete.</param>
-        public Task DeletePlaylistAsync(ObjectId playlistId) => playlistCollection.DeleteAsync(playlistId);
-
-        /// <summary>
         /// Fetch song metadata with opus stream from database.
         /// </summary>
         /// <param name="songId">The song Id.</param>
