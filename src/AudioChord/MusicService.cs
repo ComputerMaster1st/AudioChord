@@ -19,7 +19,6 @@ namespace AudioChord
             BsonSerializer.RegisterSerializer(new SongIdSerializer());
         }
 
-        private PlaylistCollection playlistCollection;
         private SongCollection songCollection;
 
         public YoutubeProcessorWrapper Youtube { get; private set; }
@@ -44,8 +43,8 @@ namespace AudioChord
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
 
-            playlistCollection = new PlaylistCollection(database, songCollection);
             songCollection = new SongCollection(database);
+            Playlist = new PlaylistCollection(database, songCollection);
 
             //processor wrappers
             Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));

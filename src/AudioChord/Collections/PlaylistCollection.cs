@@ -70,14 +70,12 @@ namespace AudioChord.Collections
         {
             List<ISong> playlist = new List<ISong>();
 
-            await Task.WhenAll(
-                stub.SongIds.Select(async (songId) =>
-                {
-                    ISong tempSong = null;
-                    if (await songRepository.TryGetSongAsync(songId, (song) => { tempSong = song; }))
-                        playlist.Add(tempSong);
-                })
-            );
+            foreach (SongId songId in stub.SongIds)
+            {
+                ISong tempSong = null;
+                if (await songRepository.TryGetSongAsync(songId, (song) => { tempSong = song; }))
+                    playlist.Add(tempSong);
+            }
 
             return new Playlist(stub.Id, playlist);
         }
