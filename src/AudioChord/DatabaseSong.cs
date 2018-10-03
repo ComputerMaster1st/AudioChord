@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace AudioChord
 {
+    /// <summary>
+    /// Song that has been stored in the database
+    /// </summary>
     public class DatabaseSong : ISong
     {
         [BsonId]
@@ -23,9 +26,8 @@ namespace AudioChord
         }
 
         public Task<Stream> GetMusicStreamAsync()
-        {
-            //invoke the reference to the private function "OpenOpusStreamAsync" in songCollection
-            return StreamRetriever(this);
-        }
+            // Invoke the reference to the private function "OpenOpusStreamAsync" in songCollection
+            => StreamRetriever(this);
+        
     }
 }

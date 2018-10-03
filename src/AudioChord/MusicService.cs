@@ -24,6 +24,7 @@ namespace AudioChord
 
         public YoutubeProcessorWrapper Youtube { get; private set; }
         public DiscordProcessorWrapper Discord { get; private set; }
+        public PlaylistCollection Playlist { get; private set; }
 
         public MusicService(MusicServiceConfig config)
         {
@@ -43,18 +44,13 @@ namespace AudioChord
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
 
-            playlistCollection = new PlaylistCollection(database);
+            playlistCollection = new PlaylistCollection(database, songCollection);
             songCollection = new SongCollection(database);
 
             //processor wrappers
             Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));
             Discord = new DiscordProcessorWrapper(songCollection);
         }
-
-        /// <summary>
-        /// Create a new playlist.
-        /// </summary>
-        public Task<Playlist> CreatePlaylist() => playlistCollection.Create();
 
         /// <summary>
         /// Retrieve your playlist from database.
