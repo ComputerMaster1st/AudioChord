@@ -1,26 +1,26 @@
-﻿using AudioChord.Collections;
+﻿using AudioChord.Collections.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AudioChord
 {
-    public class Playlist
+    public class Playlist : PlaylistStub
     {
-        [BsonId] public ObjectId Id { get; private set; } = ObjectId.GenerateNewId();
-        public List<string> Songs { get; private set; } = new List<string>();
+        [BsonIgnore]
+        public List<ISong> Songs { get; private set; }
 
-        [BsonIgnore] internal PlaylistCollection collection;
+        internal Playlist(ObjectId id, List<ISong> songs) : base(id)
+            => Songs = songs;
 
-        internal Playlist(PlaylistCollection collection)
+        public Playlist() : this(ObjectId.GenerateNewId(), new List<ISong>())
+        { }
+
+        internal PlaylistStub ConvertToDatabaseRepresentation()
         {
-            this.collection = collection;
-        }
-
-        public async Task SaveAsync()
-        {
-            await collection.UpdateAsync(this);
+            SongIds = Songs.ConvertAll(new Converter<ISong, SongId>((song) => { return song.Id; }));
+            return this;
         }
     }
 }

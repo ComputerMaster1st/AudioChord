@@ -1,7 +1,6 @@
-﻿using AudioChord.Collections.Models;
-using AudioChord.Processors;
-using System;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Models;
@@ -17,44 +16,62 @@ namespace AudioChord.Processors
         private YoutubeClient Client = new YoutubeClient();
         private FFMpegEncoder encoder = new FFMpegEncoder();
 
-        public string VideoId { get; private set; }
-        public SongMetadata Metadata { get; private set; }
+        public static string ProcessorPrefix { get; } = "YOUTUBE";
 
-        internal static async Task<YouTubeProcessor> RetrieveAsync(string videoId)
+        private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {
-            YouTubeProcessor processor = new YouTubeProcessor();
-
-            await processor.GetVideoMetadataAsync(videoId);
-
-            return processor;
-        }
-
-        private async Task GetVideoMetadataAsync(string youtubeVideoId)
-        {
-            VideoId = youtubeVideoId;
-            Video videoInfo = await Client.GetVideoAsync(VideoId);
+            Video videoInfo = await Client.GetVideoAsync(youtubeVideoId);
 
             if (videoInfo.Duration.TotalMinutes > 15.0)
                 throw new ArgumentOutOfRangeException("Video duration longer than 15 minutes!");
 
-            Metadata = new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
+            return new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
         }
 
-        internal async Task<Stream> ProcessAudioAsync()
+        /// <summary>
+        /// Convert the youtube video to a <see cref="Song"/>
+        /// </summary>
+        /// <exception cref="ArgumentException">The videoId passed to this method is not a valid youtube video id</exception>
+        /// <returns>A new <see cref="Song"/> with metadata of the Youtube video</returns>
+        internal async Task<ISong> ExtractSongAsync(string videoId)
         {
-            MuxedStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(VideoId)).Muxed.WithHighestVideoQuality();
-            Stream opusStream;
+            if (!YoutubeClient.ValidateVideoId(videoId))
+                throw new ArgumentException("The videoId is not correctly formatted");
 
+            //retrieve the metadata of the video
+            SongMetadata metadata = await GetVideoMetadataAsync(videoId);
 
+            //retrieve the actual vdeo and convert it to opus
+            MuxedStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(videoId)).Muxed.WithHighestVideoQuality();
             using (MediaStream youtubeStream = await Client.GetMediaStreamAsync(StreamInfo))
             {
-                //MemoryStream output = new MemoryStream();
-                //await youtubeAudioStream.CopyToAsync(output);
-                //output.Position = 0;
-                opusStream = await encoder.ProcessAsync(youtubeStream);
+                //convert it to a Song class
+                //the processor should be responsible for prefixing the id with the correct type
+                return new Song(new SongId(ProcessorPrefix, videoId), metadata, await encoder.ProcessAsync(youtubeStream));
             }
-
-            return opusStream;
         }
+
+        /// <summary>
+        /// Retrieve all video's out of a youtube playlist
+        /// </summary>
+        /// <param name="playlistLocation">The url to the targeted playlist</param>
+        /// <returns></returns>
+        internal async Task<List<string>> ParsePlaylistAsync(Uri playlistLocation)
+        {
+            if (playlistLocation is null)
+                throw new ArgumentNullException("The uri passed to this method is null");
+
+            if (!YoutubeClient.TryParsePlaylistId(playlistLocation.ToString(), out string playlistId))
+                throw new ArgumentException("Invalid playlist url given");
+
+            YoutubeExplode.Models.Playlist playlist = await Client.GetPlaylistAsync(playlistId);
+
+            //retrieve all the id's and return it as a list
+            return playlist.Videos
+                .ToList()
+                //create tasks out of all the videos
+                .ConvertAll(new Converter<Video, string>((video) => { return video.Id; }));
+        }
+
     }
 }
