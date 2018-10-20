@@ -1,6 +1,7 @@
 ﻿using AudioChord.Collections;
 using AudioChord.Processors;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using YoutubeExplode;
 
@@ -21,14 +22,26 @@ namespace AudioChord.Wrappers
         /// Download a list of YT songs to database (without progress).
         /// </summary>
         /// /// <param name="playlistLocation">The url where the playlist is located</param>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) => playlistProcessor.ProcessPlaylist(playlistLocation, null);
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) 
+            => playlistProcessor.ProcessPlaylist(playlistLocation, null, CancellationToken.None);
 
         /// <summary>
         /// Download a list of YT songs to database.
         /// </summary>
         /// <param name="playlistLocation">The url where the playlist is located</param>
         /// <param name="progress">Callback for reporting progress on song processing</param>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress) => playlistProcessor.ProcessPlaylist(playlistLocation, progress);
+        [Obsolete("Use the overload with CancellationToken instead")]
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress) 
+            => playlistProcessor.ProcessPlaylist(playlistLocation, progress, CancellationToken.None);
+
+        /// <summary>
+        /// Download a list of YT songs to database.
+        /// </summary>
+        /// <param name="playlistLocation">The url where the playlist is located</param>
+        /// <param name="progress">Callback for reporting progress on song processing</param>
+        /// <param name="token">CancellationToken to stop processing of songs in the playlist</param>
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress, CancellationToken token)
+            => playlistProcessor.ProcessPlaylist(playlistLocation, progress, token);
 
         /// <summary>
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)

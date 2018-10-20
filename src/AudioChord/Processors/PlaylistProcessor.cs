@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace AudioChord.Processors
 {
@@ -22,7 +23,7 @@ namespace AudioChord.Processors
             scheduler = new WorkScheduler();
         }
 
-        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation, IProgress<SongProcessStatus> progress)
+        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation, IProgress<SongProcessStatus> progress, CancellationToken token)
         {
             YouTubeProcessor processor = new YouTubeProcessor();
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
@@ -64,7 +65,7 @@ namespace AudioChord.Processors
             }
 
             // Run the processor on a separate task
-            scheduler.CreateWorker(backlog);
+            scheduler.CreateWorker(backlog, token);
 
             return playlist;
         }
