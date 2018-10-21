@@ -28,7 +28,7 @@ namespace AudioChord.Tests
             Playlist p = new Playlist();
             ISong song = await service.Youtube.DownloadAsync(new Uri("https://www.youtube.com/watch?v=744AQ0rhdRk"));
 
-            p.Songs.Add(song);
+            p.Songs.Add(song.Id);
 
             await service.Playlist.UpdateAsync(p);
 
@@ -45,7 +45,7 @@ namespace AudioChord.Tests
             Playlist playlist = new Playlist();
 
             ISong song = await service.Discord.DownloadAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
-            playlist.Songs.Add(song);
+            playlist.Songs.Add(song.Id);
 
             await service.Playlist.UpdateAsync(playlist);
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AudioChord
@@ -7,7 +8,7 @@ namespace AudioChord
     {
         private List<Task> workers = new List<Task>();
 
-        public void CreateWorker(Queue<StartableTask<ISong>> backlog)
+        public void CreateWorker(Queue<StartableTask<ISong>> backlog, CancellationToken cancellationToken)
         {
             if (backlog.Count == 0)
                 // No need to allocate the task
@@ -24,6 +25,8 @@ namespace AudioChord
                 {
                     if (backlog.TryDequeue(out var work))
                     {
+                        // Cancel if we dont want to continue
+                        cancellationToken.ThrowIfCancellationRequested();
                         try
                         {
                             await work.Start();
