@@ -58,6 +58,10 @@ namespace AudioChord.Processors
                             { return AddProgressReporting(songCollection.DownloadFromYouTubeAsync(processingSongId.SourceId), progress, processingSongId); });
 
                             backlog.Enqueue(work);
+
+                            // Remove the task from the dictionary when it's done
+                            work.Work.ContinueWith((task) => { allWork.TryRemove(processingSongId, out _); });
+
                             return work.Work;
                         })
                     );
