@@ -25,6 +25,10 @@ namespace AudioChord
 
         public Task<TResult> Start()
         {
+            // No need to do work when we are cancelled, faulted or completed
+            if (awaiter.Task.IsCompleted)
+                return Work;
+
             //retrieve the work that we need to do
             Task<TResult> task = work.Invoke();
 
@@ -39,5 +43,10 @@ namespace AudioChord
 
             return task;
         }
+
+        /// <summary>
+        /// Attempt to cancel the execution of this work
+        /// </summary>
+        internal bool Cancel() => awaiter.TrySetCanceled();
     }
 }

@@ -21,21 +21,25 @@ namespace AudioChord
             // if it's taking longer than 0.5 secs
             Task worker = Task.Run(async () =>
             {
-                while (backlog.Count > 0)
+                while (backlog.TryDequeue(out var work))
                 {
-                    if (backlog.TryDequeue(out var work))
+                    if (cancellationToken.IsCancellationRequested)
                     {
-                        // Cancel if we dont want to continue
-                        cancellationToken.ThrowIfCancellationRequested();
-                        try
-                        {
-                            await work.Start();
-                        }
-                        catch (System.Exception)
-                        { }
-                    }  
+                        // current work will not be done, itll be cancelled instead
+                        work.Cancel();
+                        // Continue the loop, the remaining work will be marked as cancelled
+                        continue;
+                    }
+
+                    try
+                    {
+                        await work.Start();
+                    }
+                    catch (System.Exception)
+                    { }
                 }
             });
+
             workers.Add(worker);
 
             // Add a continuation that removes the task when completed
