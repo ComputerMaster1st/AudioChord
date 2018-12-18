@@ -1,6 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Description>A music utility library for Discord.Net</Description>
+    <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
+    <PackageTags>Discord.Net, Music, Opus</PackageTags>
+    <Authors>Computermaster1st, Mrspits4ever</Authors>
+    <Company />
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.7.0" />
