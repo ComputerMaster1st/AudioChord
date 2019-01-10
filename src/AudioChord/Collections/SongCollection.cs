@@ -106,6 +106,8 @@ namespace AudioChord.Collections
                 .Find(filter => filter.Id == id)
                 .FirstOrDefault() ?? throw new ArgumentException($"The song-id '{id}' was not found in the database");
 
+            result.LastAccessed = DateTime.Now;
+
             return collection.ReplaceOneAsync(filter => filter.Id == result.Id, result);
         }
 
