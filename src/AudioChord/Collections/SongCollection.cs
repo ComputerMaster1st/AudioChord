@@ -85,7 +85,7 @@ namespace AudioChord.Collections
                 return;
 
             // If the amount of documents is more than the amount of GridFS files then there's desync
-            if(opusCollection.SongCount > collection.Count(FilterDefinition<SongData>.Empty))
+            if(opusCollection.SongCount > await collection.CountDocumentsAsync(FilterDefinition<SongData>.Empty))
             {
                 List<string> deletionList = new List<string>();
 
