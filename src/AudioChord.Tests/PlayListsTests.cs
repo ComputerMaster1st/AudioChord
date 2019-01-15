@@ -40,7 +40,7 @@ namespace AudioChord.Tests
         }
 
         [Fact]
-        public async void Playlist_SaveSongDiscord()
+        public async Task Playlist_SaveSongDiscord()
         {
             Playlist playlist = new Playlist();
 
