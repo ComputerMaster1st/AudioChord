@@ -10,7 +10,7 @@ namespace AudioChord.Tests
 
         public PlaylistTests()
         {
-            service = new MusicService(new MusicServiceConfig()
+            service = new MusicService(new MusicServiceConfiguration()
             {
             });
         }

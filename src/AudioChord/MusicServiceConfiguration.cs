@@ -1,6 +1,6 @@
 ﻿namespace AudioChord
 {
-    public class MusicServiceConfig
+    public class MusicServiceConfiguration
     {
         public string Username { get; set; }
         public string Password { get; set; }

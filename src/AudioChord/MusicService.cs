@@ -25,7 +25,7 @@ namespace AudioChord
         public DiscordProcessorWrapper Discord { get; private set; }
         public PlaylistCollection Playlist { get; private set; }
 
-        public MusicService(MusicServiceConfig config)
+        public MusicService(MusicServiceConfiguration config)
         {
             // This will tell NETCore 2.1 to use older httpclient. Newer version has SSL issues
             AppContext.SetSwitch("System.Net.Http.UseSocketsHttpHandler", false);
