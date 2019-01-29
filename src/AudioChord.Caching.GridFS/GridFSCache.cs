@@ -54,19 +54,18 @@ namespace AudioChord.Caching.GridFS
             }
         }
 
-        public async Task<bool> TryFindCachedSongAsync(SongId id, Action<Stream> result)
+        public async Task<(bool, Stream)> TryFindCachedSongAsync(SongId id)
         {
             // Check if we have the song in the cache
             if (DoesSongIdExist(id))
             {
                 //TODO: Are we gonna clean the cache here?
 
-                result(Stream.Synchronized(await cache.OpenDownloadStreamAsync(id.ToString())));
-                return true;
+                return (true, Stream.Synchronized(await cache.OpenDownloadStreamAsync(id.ToString())));
             }
             else
             {
-                return false;
+                return (false, null);
             }
         }
 

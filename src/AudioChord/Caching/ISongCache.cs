@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 
 namespace AudioChord.Caching
@@ -9,7 +8,7 @@ namespace AudioChord.Caching
     /// </summary>
     public interface ISongCache
     {
-        Task<bool> TryFindCachedSongAsync(SongId id, Action<Stream> result);
+        Task<(bool success, Stream result)> TryFindCachedSongAsync(SongId id);
         Task CacheSongAsync(ISong song);
     }
 }
