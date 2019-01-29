@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AudioChord.Caching.GridFS\AudioChord.Caching.GridFS.csproj" />
     <ProjectReference Include="..\AudioChord.Parsers\AudioChord.Parsers.csproj" />
     <ProjectReference Include="..\AudioChord\AudioChord.csproj" />
   </ItemGroup>
