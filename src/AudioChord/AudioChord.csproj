@@ -7,7 +7,7 @@
     <Authors>Computermaster1st, Mrspits4ever</Authors>
     <Company />
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AudioChord.Parsers" Version="1.0.0" />
