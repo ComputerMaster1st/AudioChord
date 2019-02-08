@@ -2,7 +2,6 @@
 using AudioChord.Processors;
 using AudioChord.Wrappers;
 
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -27,10 +26,7 @@ namespace AudioChord
 
         public MusicService(MusicServiceConfiguration config)
         {
-            // This will tell NETCore 2.1 to use older httpclient. Newer version has SSL issues
-            AppContext.SetSwitch("System.Net.Http.UseSocketsHttpHandler", false);
-
-            //Use the builder to allow to connect to database without authentication
+            // Use the builder to allow to connect to database without authentication
             MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder
             {
                 DatabaseName = config.Database,
@@ -46,7 +42,7 @@ namespace AudioChord
             songCollection = new SongCollection(database);
             Playlist = new PlaylistCollection(database, songCollection);
 
-            //processor wrappers
+            // Processor wrappers
             Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));
             Discord = new DiscordProcessorWrapper(songCollection);
         }
