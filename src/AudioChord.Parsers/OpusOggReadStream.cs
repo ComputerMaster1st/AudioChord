@@ -12,9 +12,8 @@ namespace AudioChord
     {
         private Stream _inputStream;
         private byte[] _nextDataPacket;
-        private OpusTags _tags;
         private IPacketProvider _packetProvider;
-        private bool _endOfStream;
+        private bool _endOfStream = false;
         private OggContainerReader _reader;
 
         /// <summary>
@@ -22,13 +21,10 @@ namespace AudioChord
         /// specified output sample rate and channel count. The given decoder will be used as-is
         /// and return the decoded PCM buffers directly.
         /// </summary>
-        /// <param name="decoder">An Opus decoder. If you are reusing an existing decoder, remember to call Reset() on it before
-        /// processing a new stream. The decoder is optional for cases where you may only be interested in the file tags</param>
         /// <param name="oggFileInput">The input stream for an Ogg formatted .opus file. The stream will be read from immediately</param>
         public OpusOggReadStream(Stream oggFileInput)
         {
             _inputStream = oggFileInput ?? throw new ArgumentNullException("oggFileInput");
-            _endOfStream = false;
             if (!Initialize())
             {
                 _endOfStream = true;
@@ -38,7 +34,7 @@ namespace AudioChord
         /// <summary>
         /// Gets the tags that were parsed from the OpusTags Ogg packet, or NULL if no such packet was found.
         /// </summary>
-        public OpusTags Tags => _tags;
+        public OpusTags Tags { get; private set; }
 
         /// <summary>
         /// Returns true if there is still another data packet to be decoded from the current Ogg stream.
@@ -94,11 +90,6 @@ namespace AudioChord
                     return false;
                 }
 
-                //if (!reader.FindNextStream())
-                //{
-                //    _lastError = "Could not find elementary stream";
-                //    return false;
-                //}
                 if (_reader.StreamSerials.Length == 0)
                 {
                     LastError = "Initialization failed: No elementary streams found in input file";
@@ -137,22 +128,24 @@ namespace AudioChord
                 return;
             }
 
-            byte[] buf = new byte[packet.Length];
-            packet.Read(buf, 0, packet.Length);
+            byte[] buffer = new byte[packet.Length];
+            packet.Read(buffer, 0, packet.Length);
             packet.Done();
 
-            if (buf.Length > 8 && "OpusHead".Equals(Encoding.UTF8.GetString(buf, 0, 8)))
+            if (buffer.Length > 8 && "OpusHead" == Encoding.UTF8.GetString(buffer, 0, 8))
             {
                 QueueNextPacket();
             }
-            else if (buf.Length > 8 && "OpusTags".Equals(Encoding.UTF8.GetString(buf, 0, 8)))
+            else if (buffer.Length > 8 && "OpusTags" == Encoding.UTF8.GetString(buffer, 0, 8))
             {
-                _tags = OpusTags.ParsePacket(buf, buf.Length);
+                if (OpusTags.TryParsePacket(buffer, buffer.Length, out var tags))
+                    Tags = tags;
+
                 QueueNextPacket();
             }
             else
             {
-                _nextDataPacket = buf;
+                _nextDataPacket = buffer;
             }
         }
     }
