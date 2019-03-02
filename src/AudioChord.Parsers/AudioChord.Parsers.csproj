@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <Description>Allows for quick reading of .opus files and sending it to discord.</Description>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
