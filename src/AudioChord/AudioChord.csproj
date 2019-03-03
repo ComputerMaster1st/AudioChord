@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
@@ -13,11 +13,11 @@
     <Authors>CryoDev Development Team</Authors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AudioChord.Parsers" Version="1.0.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.7.2" />
+    <PackageReference Include="AudioChord.Parsers" Version="1.0.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.7.3" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.7.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <!--This package should work with all hotfixes-->
-    <PackageReference Include="YoutubeExplode" Version="4.6.*" />
+    <PackageReference Include="YoutubeExplode" Version="4.6.6" />
   </ItemGroup>
 </Project>

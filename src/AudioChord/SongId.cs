@@ -27,7 +27,7 @@ namespace AudioChord
             if (string.IsNullOrWhiteSpace(source))
                 throw new ArgumentException("id cannot be empty");
 
-            //always use upper case for processor ids
+            // Always use upper case for processor ids
             ProcessorId = source.ToUpper();
             SourceId = sourceId;
         }
@@ -59,17 +59,15 @@ namespace AudioChord
 
         public override bool Equals(object obj)
         {
-            //if its not the same object it fails
+            // If it is not the same object fail
             if(!(obj is SongId id))
                 return false;
 
-            //if both ids are the same its the same object
+            // If both ids are the same its the same object
             return id.ProcessorId == ProcessorId && id.SourceId == SourceId;
         }
 
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(ProcessorId, SourceId);
-        }
+        public override int GetHashCode() 
+            => Tuple.Create(ProcessorId, SourceId).GetHashCode();
     }
 }
