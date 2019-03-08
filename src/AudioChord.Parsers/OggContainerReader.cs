@@ -22,11 +22,9 @@ namespace AudioChord
         Dictionary<int, PacketReader> _packetReaders;
         List<int> _disposedStreamSerials;
         long _nextPageOffset;
-        int _pageCount;
-
         byte[] _readBuffer = new byte[65025];   // up to a full page of data (but no more!)
 
-        long _containerBits, _wasteBits;
+        long _containerBits;
 
         /// <summary>
         /// Gets the list of stream serials found in the container so far.
@@ -57,7 +55,7 @@ namespace AudioChord
         /// <summary>
         /// Initializes the container and finds the first stream.
         /// </summary>
-        /// <returns><c>True</c> if a valid logical stream is found, otherwise <c>False</c>.</returns>
+        /// <returns><see langword="true"/> if a valid logical stream is found, otherwise <see langword="false"/>.</returns>
         public bool Init()
         {
             _stream.TakeLock();
@@ -84,7 +82,7 @@ namespace AudioChord
 
             _nextPageOffset = 0L;
             _containerBits = 0L;
-            _wasteBits = 0L;
+            WasteBits = 0L;
 
             _stream.Dispose();
         }
@@ -108,7 +106,7 @@ namespace AudioChord
         /// <summary>
         /// Finds the next new stream in the container.
         /// </summary>
-        /// <returns><c>True</c> if a new stream was found, otherwise <c>False</c>.</returns>
+        /// <returns><see langword="true"/> if a new stream was found, otherwise <see langword="false"/>.</returns>
         /// <exception cref="InvalidOperationException"><see cref="CanSeek"/> is <c>False</c>.</exception>
         public bool FindNextStream()
         {
@@ -138,10 +136,7 @@ namespace AudioChord
         /// <summary>
         /// Gets the number of pages that have been read in the container.
         /// </summary>
-        public int PagesRead
-        {
-            get { return _pageCount; }
-        }
+        public int PagesRead { get; private set; }
 
         /// <summary>
         /// Retrieves the total number of pages in the container.
@@ -170,7 +165,7 @@ namespace AudioChord
                 }
             }
 
-            return _pageCount;
+            return PagesRead;
         }
 
         /// <summary>
@@ -184,10 +179,7 @@ namespace AudioChord
         /// <summary>
         /// Gets the number of bits in the container that are not associated with a logical stream.
         /// </summary>
-        public long WasteBits
-        {
-            get { return _wasteBits; }
-        }
+        public long WasteBits { get; private set; }
 
 
         // private implmentation bits
@@ -305,7 +297,7 @@ namespace AudioChord
             if (_crc.Test(crc))
             {
                 _containerBits += 8 * (27 + segCnt);
-                ++_pageCount;
+                ++PagesRead;
                 return hdr;
             }
 
@@ -322,7 +314,7 @@ namespace AudioChord
             while ((hdr = ReadPageHeader(startPos)) == null)
             {
                 isResync = true;
-                _wasteBits += 8;
+                WasteBits += 8;
                 _stream.Position = ++startPos;
 
                 var cnt = 0;
@@ -347,7 +339,7 @@ namespace AudioChord
                         Debug.WriteLine("End of stream reached while looking for next page");
                         return null;
                     }
-                    _wasteBits += 8;
+                    WasteBits += 8;
                 } while (++cnt < 65536);    // we will only search through 64KB of data to find the next sync marker.  if it can't be found, we have a badly corrupted stream.
                 if (cnt == 65536)
                 {
@@ -366,13 +358,13 @@ namespace AudioChord
             return hdr;
         }
 
-        bool AddPage(PageHeader hdr)
+        bool AddPage(PageHeader header)
         {
             // get our packet reader (create one if we have to)
             PacketReader packetReader;
-            if (!_packetReaders.TryGetValue(hdr.StreamSerial, out packetReader))
+            if (!_packetReaders.TryGetValue(header.StreamSerial, out packetReader))
             {
-                packetReader = new PacketReader(this, hdr.StreamSerial);
+                packetReader = new PacketReader(this, header.StreamSerial);
             }
 
             // save off the container bits
@@ -380,21 +372,21 @@ namespace AudioChord
             _containerBits = 0;
 
             // get our flags prepped
-            var isContinued = hdr.PacketSizes.Length == 1 && hdr.LastPacketContinues;
-            var isContinuation = (hdr.Flags & PageFlags.ContinuesPacket) == PageFlags.ContinuesPacket;
+            var isContinued = header.PacketSizes.Length == 1 && header.LastPacketContinues;
+            var isContinuation = (header.Flags & PageFlags.ContinuesPacket) == PageFlags.ContinuesPacket;
             var isEOS = false;
-            var isResync = hdr.IsResync;
+            var isResync = header.IsResync;
 
             // add all the packets, making sure to update flags as needed
-            var dataOffset = hdr.DataOffset;
-            var cnt = hdr.PacketSizes.Length;
-            foreach (var size in hdr.PacketSizes)
+            var dataOffset = header.DataOffset;
+            var count = header.PacketSizes.Length;
+            foreach (var size in header.PacketSizes)
             {
                 var packet = new Packet(this, dataOffset, size)
                 {
-                    PageGranulePosition = hdr.GranulePosition,
+                    PageGranulePosition = header.GranulePosition,
                     IsEndOfStream = isEOS,
-                    PageSequenceNumber = hdr.SequenceNumber,
+                    PageSequenceNumber = header.SequenceNumber,
                     IsContinued = isContinued,
                     IsContinuation = isContinuation,
                     IsResync = isResync,
@@ -409,17 +401,17 @@ namespace AudioChord
                 isResync = false;
 
                 // only the last packet in a page can be continued or flagged end of stream
-                if (--cnt == 1)
+                if (--count == 1)
                 {
-                    isContinued = hdr.LastPacketContinues;
-                    isEOS = (hdr.Flags & PageFlags.EndOfStream) == PageFlags.EndOfStream;
+                    isContinued = header.LastPacketContinues;
+                    isEOS = (header.Flags & PageFlags.EndOfStream) == PageFlags.EndOfStream;
                 }
             }
 
             // if the packet reader list doesn't include the serial in question, add it to the list and indicate a new stream to the caller
-            if (!_packetReaders.ContainsKey(hdr.StreamSerial))
+            if (!_packetReaders.ContainsKey(header.StreamSerial))
             {
-                _packetReaders.Add(hdr.StreamSerial, packetReader);
+                _packetReaders.Add(header.StreamSerial, packetReader);
                 return true;
             }
             else
@@ -434,32 +426,32 @@ namespace AudioChord
             while (true)
             {
                 // get our next header
-                var hdr = FindNextPageHeader();
-                if (hdr == null)
+                var header = FindNextPageHeader();
+                if (header is null)
                 {
                     return -1;
                 }
 
                 // if it's in a disposed stream, grab the next page instead
-                if (_disposedStreamSerials.Contains(hdr.StreamSerial)) continue;
+                if (_disposedStreamSerials.Contains(header.StreamSerial)) continue;
 
                 // otherwise, add it
-                if (AddPage(hdr))
+                if (AddPage(header))
                 {
                     var callback = NewStream;
                     if (callback != null)
                     {
-                        var ea = new NewStreamEventArgs(_packetReaders[hdr.StreamSerial]);
+                        var ea = new NewStreamEventArgs(_packetReaders[header.StreamSerial]);
                         callback(this, ea);
                         if (ea.IgnoreStream)
                         {
-                            _packetReaders[hdr.StreamSerial].Dispose();
+                            _packetReaders[header.StreamSerial].Dispose();
                             continue;
                         }
                     }
                 }
 
-                return hdr.StreamSerial;
+                return header.StreamSerial;
             }
         }
 

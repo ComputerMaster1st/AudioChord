@@ -1,19 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    
+    <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
-    <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Authors>Computermaster1st, Mrspits4ever</Authors>
-    <Company />
-    <RepositoryType>git</RepositoryType>
-    <Version>1.0.1</Version>
+    <Version>1.0.7</Version>
+    
+    <!--Type is git by default-->
+    <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
+    <Company>CryoDev Development Team</Company>
+    <Authors>CryoDev Development Team</Authors>
+    
+    <!--Release notes-->
+    <PackageReleaseNotes>Fix bug where the last item in a playlist is not being processed</PackageReleaseNotes>
+    
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AudioChord.Parsers" Version="1.0.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.7.2" />
+    <PackageReference Include="AudioChord.Parsers" Version="1.0.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.7.3" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.7.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="YoutubeExplode" Version="4.6.3" />
+    <!--This package should work with all hotfixes-->
+    <PackageReference Include="YoutubeExplode" Version="4.6.6" />
   </ItemGroup>
 </Project>

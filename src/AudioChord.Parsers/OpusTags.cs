@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AudioChord
 {
@@ -11,40 +9,18 @@ namespace AudioChord
     /// </summary>
     public class OpusTags
     {
-        private string _comment = string.Empty;
-        private IDictionary<string, string> _fields = new Dictionary<string, string>();
+        public string Comment { get; set; } = string.Empty;
+        public IDictionary<string, string> Fields { get; } = new Dictionary<string, string>();
 
-        public OpusTags()
+        internal static bool TryParsePacket(byte[] packet, int packetLength, out OpusTags tags)
         {
-        }
+            tags = null;
 
-        public string Comment
-        {
-            get
-            {
-                return _comment;
-            }
-            set
-            {
-                _comment = value;
-            }
-        }
-
-        public IDictionary<string, string> Fields
-        {
-            get
-            {
-                return _fields;
-            }
-        }
-
-        internal static OpusTags ParsePacket(byte[] packet, int packetLength)
-        {
             if (packetLength < 8)
-                return null;
+                return false;
 
             if (!"OpusTags".Equals(Encoding.UTF8.GetString(packet, 0, 8)))
-                return null;
+                return false;
 
             OpusTags returnVal = new OpusTags();
             int cursor = 8;
@@ -52,7 +28,7 @@ namespace AudioChord
             cursor += 4;
             if (nextFieldLength > 0)
             {
-                returnVal._comment = Encoding.UTF8.GetString(packet, cursor, nextFieldLength);
+                returnVal.Comment = Encoding.UTF8.GetString(packet, cursor, nextFieldLength);
                 cursor += nextFieldLength;
             }
 
@@ -71,12 +47,13 @@ namespace AudioChord
                     {
                         string key = tag.Substring(0, eq);
                         string val = tag.Substring(eq + 1);
-                        returnVal._fields[key] = val;
+                        returnVal.Fields[key] = val;
                     }
                 }
             }
 
-            return returnVal;
+            tags = returnVal;
+            return true;
         }
     }
 }
