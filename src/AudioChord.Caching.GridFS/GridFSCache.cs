@@ -1,6 +1,5 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
-using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,23 +11,16 @@ namespace AudioChord.Caching.GridFS
     /// </summary>
     public class GridFSCache : ISongCache
     {
-        const string BUCKET_NAME = "OpusData";
-
         private GridFSCacheCleaner cleaner;
+        protected IGridFSBucket<string> cache;
 
-        protected GridFSBucket<string> cache;
-
-        public GridFSCache(IMongoDatabase database)
+        /// <summary>
+        /// Create a new Cache using the <paramref name="cache"/> bucket
+        /// </summary>
+        /// <param name="cache"></param>
+        public GridFSCache(IGridFSBucket<string> cache)
         {
-            cache = new GridFSBucket<string>(database, new GridFSBucketOptions()
-            {
-                BucketName = BUCKET_NAME,
-                ChunkSizeBytes = 4194304,
-
-                // We don't use MD5 in our code
-                DisableMD5 = true
-            });
-
+            this.cache = cache;
             cleaner = new GridFSCacheCleaner(cache);
         }
 
@@ -42,7 +34,7 @@ namespace AudioChord.Caching.GridFS
             await cleaner.CleanExpiredCacheEntries();
 
             // We do not need to upload songs to the cache if they already exist
-            if(!DoesSongIdExist(song.Id))
+            if (!DoesSongIdExist(song.Id))
             {
                 await cache
                     .UploadFromStreamAsync(
@@ -59,6 +51,8 @@ namespace AudioChord.Caching.GridFS
             // Check if we have the song in the cache
             if (DoesSongIdExist(id))
             {
+                // Update the timestamp of the cache item
+                cleaner.UpdateCacheTimestamp(id);
                 //TODO: Are we gonna clean the cache here?
 
                 return (true, Stream.Synchronized(await cache.OpenDownloadStreamAsync(id.ToString())));

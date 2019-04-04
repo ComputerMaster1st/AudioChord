@@ -11,7 +11,7 @@ namespace AudioChord.Caching.GridFS
     /// </summary>
     internal class GridFSCacheCleaner
     {
-        private GridFSBucket<string> cache;
+        private IGridFSBucket<string> cache;
 
         protected IMongoCollection<GridFSFileInfo<string>> files;
 
@@ -20,10 +20,10 @@ namespace AudioChord.Caching.GridFS
         /// </summary>
         private const string LAST_ACCESS_DATE_KEY = "lastAccessed";
 
-        public GridFSCacheCleaner(GridFSBucket<string> cache)
+        public GridFSCacheCleaner(IGridFSBucket<string> cache)
         {
             this.cache = cache;
-            files = cache.Database.GetCollection<GridFSFileInfo<string>>($"{cache.Options.BucketName}.files");
+            files = cache.Database.GetCollection<GridFSFileInfo<string>>($"{cache.Options.BucketName}.files", null);
         }
 
         public async Task CleanExpiredCacheEntries()
@@ -37,7 +37,7 @@ namespace AudioChord.Caching.GridFS
                 .Where(filter => filter.Metadata.GetValue(LAST_ACCESS_DATE_KEY, DateTime.Now) < DateTime.Now.AddMonths(-3));
 
             // Delete a maximum of 100 songs per cleanup operation so we don't wait too long for returning a song
-            foreach(GridFSFileInfo<string> info in cache.Find(definition, new GridFSFindOptions<string>() { Limit = 100 }).ToEnumerable())
+            foreach (GridFSFileInfo<string> info in cache.Find(definition, new GridFSFindOptions<string>() { Limit = 100 }).ToEnumerable())
             {
                 await cache.DeleteAsync(info.Id);
             }
@@ -47,13 +47,13 @@ namespace AudioChord.Caching.GridFS
         {
             var fieldDefinition = new StringFieldDefinition<GridFSFileInfo<string>, BsonDocument>($"metadata.{LAST_ACCESS_DATE_KEY}");
 
-            UpdateDefinitionBuilder<GridFSFileInfo<string>> builder = new UpdateDefinitionBuilder<GridFSFileInfo<string>>();
-            var updateCommand = builder.Set(fieldDefinition, GenerateGridFSMetadata());
+            var updateCommand = new UpdateDefinitionBuilder<GridFSFileInfo<string>>()
+                .Set(fieldDefinition, GenerateGridFSMetadata());
 
             files.UpdateOne(filter => filter.Id == id.ToString(), updateCommand);
         }
 
-        public BsonDocument GenerateGridFSMetadata() 
+        public BsonDocument GenerateGridFSMetadata()
             => new BsonDocument(LAST_ACCESS_DATE_KEY, DateTime.UtcNow);
     }
 }
