@@ -13,7 +13,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Fix bug where the last item in a playlist is not being processed</PackageReleaseNotes>
+    <PackageReleaseNotes>Update packages, this includes a fix for YTExplode failures</PackageReleaseNotes>
     
   </PropertyGroup>
   <ItemGroup>
