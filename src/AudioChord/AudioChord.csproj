@@ -5,7 +5,7 @@
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Version>1.0.8</Version>
+    <Version>1.0.9</Version>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
@@ -13,7 +13,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Update packages, this includes a fix for YTExplode failures</PackageReleaseNotes>
+    <PackageReleaseNotes>Update packages, Use the latest YoutubeExplode version</PackageReleaseNotes>
     
   </PropertyGroup>
   <ItemGroup>
@@ -22,6 +22,6 @@
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <!--This package should work with all hotfixes-->
-    <PackageReference Include="YoutubeExplode" Version="4.7.0-alpha" />
+    <PackageReference Include="YoutubeExplode" Version="4.7" />
   </ItemGroup>
 </Project>
