@@ -53,8 +53,8 @@ namespace AudioChord.Caching.GridFS
             {
                 // Update the timestamp of the cache item
                 cleaner.UpdateCacheTimestamp(id);
-                //TODO: Are we gonna clean the cache here?
 
+                // Return the cached Stream
                 return (true, Stream.Synchronized(await cache.OpenDownloadStreamAsync(id.ToString())));
             }
             else
