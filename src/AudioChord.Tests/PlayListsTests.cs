@@ -1,3 +1,6 @@
+using AudioChord.Caching.GridFS;
+using MongoDB.Driver;
+using MongoDB.Driver.GridFS;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -10,8 +13,28 @@ namespace AudioChord.Tests
 
         public PlaylistTests()
         {
+            // Use the builder to allow to connect to database without authentication
+            MongoUrlBuilder connectionStringBuilder = new MongoUrlBuilder
+            {
+                DatabaseName = "sharedmusic",
+                Server = new MongoServerAddress("localhost")
+            };
+
+            MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
+            IMongoDatabase database = client.GetDatabase("sharedmusic");
+
+            const string BUCKET_NAME = "OpusData";
+
             service = new MusicService(new MusicServiceConfiguration()
             {
+                SongCacheFactory = () => new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions()
+                {
+                    BucketName = BUCKET_NAME,
+                    ChunkSizeBytes = 4194304,
+
+                    // We don't use MD5 in our code
+                    DisableMD5 = true
+                }))
             });
         }
 
