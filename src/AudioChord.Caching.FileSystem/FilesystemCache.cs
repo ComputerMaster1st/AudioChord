@@ -13,6 +13,10 @@ namespace AudioChord.Caching.FileSystem
         /// The path to the directory to cache files in.
         /// </summary>
         private readonly string storageLocation;
+        /// <summary>
+        /// Cleaner responsible for cleaning the cache
+        /// </summary>
+        private readonly FileSystemCacheCleaner _cleaner;
 
         /// <summary>
         /// Create a new filesystem cache that uses a folder to store songs
@@ -26,11 +30,15 @@ namespace AudioChord.Caching.FileSystem
                 throw new ArgumentException($"The path '{storagePath}' does not exist or is inaccessible");
 
             storageLocation = storagePath;
+            _cleaner = new FileSystemCacheCleaner(storagePath);
         }
 
         public async Task CacheSongAsync(ISong song)
         {
-            // TODO: Create a Cleaner to clean up expired files
+            // Clean the cache
+            _cleaner.CleanExpiredEntries();
+            
+            
             string fileLocation = Path.Combine(storageLocation, $"{song.Id}.opus");
 
             if (!File.Exists(fileLocation))
