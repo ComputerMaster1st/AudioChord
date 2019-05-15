@@ -35,20 +35,36 @@ namespace AudioChord.Caching.FileSystem
 
             if (!File.Exists(fileLocation))
             {
-                // Open a new file with shared read access, throws an exception if the file already exists
-                using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read))
+                try
                 {
-                    Stream stream = await song.GetMusicStreamAsync();
+                    // Open a new file with shared read access, throws an exception if the file already exists
+                    using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read))
+                    {
+                        Stream stream = await song.GetMusicStreamAsync();
 
-                    // Copy the contents of the music stream to the file
-                    await stream.CopyToAsync(newFile);
+                        // Copy the contents of the music stream to the file
+                        await stream.CopyToAsync(newFile);
+                    }
+                }
+                catch (IOException)
+                {
+                    // If this is thrown then the File already exists. Ignore the exception...
                 }
             }
         }
 
         public Task<(bool success, Stream result)> TryFindCachedSongAsync(SongId id)
         {
-            throw new NotImplementedException();
+            string fileLocation = Path.Combine(storageLocation, $"{id}.opus");
+
+            if (File.Exists(fileLocation))
+            {
+                return Task.FromResult<(bool, Stream)>((true, File.OpenRead(fileLocation)));
+            }
+            else
+            {
+                return Task.FromResult<(bool, Stream)>((false, null));
+            }
         }
     }
 }
