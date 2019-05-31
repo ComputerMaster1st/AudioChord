@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace AudioChord
 {
     internal class WorkScheduler
     {
-        private List<Task> workers = new List<Task>();
+        private readonly List<Task> _workers = new List<Task>();
 
         public void CreateWorker(Queue<StartableTask<ISong>> backlog, CancellationToken cancellationToken)
         {
@@ -19,6 +20,7 @@ namespace AudioChord
 
             // The "longrunning" flag is not needed since the CLR is smart enough to mark a task as longrunning
             // if it's taking longer than 0.5 secs
+            // ReSharper disable once MethodSupportsCancellation
             Task worker = Task.Run(async () =>
             {
                 while (backlog.Count > 0)
@@ -36,18 +38,18 @@ namespace AudioChord
                     {
                         await work.Start();
                     }
-                    catch (System.Exception)
-                    { }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
                 }
             });
 
-            workers.Add(worker);
+            _workers.Add(worker);
 
             // Add a continuation that removes the task when completed
-            worker.ContinueWith((completedTask) =>
-            {
-                workers.Remove(worker);
-            });
+            // ReSharper disable once MethodSupportsCancellation
+            worker.ContinueWith(completedTask => _workers.Remove(worker));
         }
     }
 }
