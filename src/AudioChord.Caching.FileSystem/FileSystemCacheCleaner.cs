@@ -20,25 +20,25 @@ namespace AudioChord.Caching.FileSystem
         /// </summary>
         public void CleanExpiredEntries()
         {
-            if (Directory.Exists(_cleaningFolder))
-            {
-                var info = new DirectoryInfo(_cleaningFolder);
+            if (!Directory.Exists(_cleaningFolder)) 
+                return;
+            
+            DirectoryInfo info = new DirectoryInfo(_cleaningFolder);
                 
-                // What happens if the amount of files is very large? does it take a long time?
-                foreach (FileInfo fileInfo in info.EnumerateFiles("*.opus"))
+            // TODO: What happens if the amount of files is very large? does it take a long time?
+            foreach (FileInfo fileInfo in info.EnumerateFiles("*.opus"))
+            {
+                if (fileInfo.CreationTimeUtc >= DateTime.UtcNow.AddMonths(-3)) 
+                    continue;
+                
+                // Try to delete the file
+                try
                 {
-                    if (fileInfo.CreationTimeUtc < DateTime.UtcNow.AddMonths(-3))
-                    {
-                        // Try to delete the file
-                        try
-                        {
-                            fileInfo.Delete();
-                        }
-                        catch (IOException)
-                        {
-                            // The file is in use, Ignore for now and try to clean it up later
-                        }
-                    }
+                    fileInfo.Delete();
+                }
+                catch (IOException)
+                {
+                    // The file is in use, Ignore for now and try to clean it up later
                 }
             }
         }
