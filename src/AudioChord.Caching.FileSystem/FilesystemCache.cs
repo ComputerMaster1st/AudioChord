@@ -23,12 +23,12 @@ namespace AudioChord.Caching.FileSystem
         /// Create a new filesystem cache that uses a directory to store songs
         /// </summary>
         /// <param name="storagePath">The path of the directory to store songs into</param>
-        /// <exception cref="ArgumentException">The given <paramref name="storagePath"/> does not exist or is not a directory</exception>
+        /// <exception cref="DirectoryNotFoundException">The given <paramref name="storagePath"/> does not exist or is not a directory</exception>
         public FileSystemCache(string storagePath)
         {
             // Check if the path exists
             if (!Directory.Exists(storagePath))
-                throw new ArgumentException($"The path '{storagePath}' does not exist or is inaccessible");
+                throw new DirectoryNotFoundException($"The path '{storagePath}' does not exist or is inaccessible");
 
             _storageLocation = storagePath;
             _cleaner = new FileSystemCacheCleaner(storagePath);
@@ -54,8 +54,12 @@ namespace AudioChord.Caching.FileSystem
                     {
                         Stream stream = await song.GetMusicStreamAsync();
 
-                        // Copy the contents of the music stream to the file
+                        // Copy the contents of the music stream to the file and write to disk
                         await stream.CopyToAsync(newFile);
+                        await newFile.FlushAsync();
+                        
+                        // Update the database
+                        _cleaner.InsertEntry(song.Id);
                     }
                 }
                 catch (IOException)
@@ -74,7 +78,7 @@ namespace AudioChord.Caching.FileSystem
         {
             string fileLocation = Path.Combine(_storageLocation, $"{id}.opus");
 
-            if (!File.Exists(fileLocation)) 
+            if (!File.Exists(fileLocation))
                 return Task.FromResult<(bool, Stream)>((false, default));
             
             try
@@ -82,6 +86,10 @@ namespace AudioChord.Caching.FileSystem
                 // Try to open a FileStream of the cached file
                 // The file cannot be deleted while the stream is open. To allow deletion you need to modify the FileShare options
                 FileStream cachedSongStream = new FileStream(fileLocation, FileMode.Open, FileAccess.Read, FileShare.Read);
+                
+                // Update the timestamp in the database
+                _cleaner.UpdateEntry(id);
+                
                 return Task.FromResult<(bool, Stream)>((true, cachedSongStream));
             }
             catch (FileNotFoundException)
