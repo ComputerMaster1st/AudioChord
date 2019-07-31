@@ -136,14 +136,14 @@ namespace AudioChord.Caching.FileSystem
                 command.CommandText =  @"
                         create table if not exists song_expiry
                         (
-                            filename TEXT not null
+                            filename        TEXT     not null
                                 constraint song_expiry_pk
                                     primary key,
                             expiration_date DATETIME not null
                         );
 
-                        create unique index song_expiry_filename_uindex
-                            on song_expiry (filename);
+                        create unique index if not exists song_expiry_expiration_date_uindex
+                            on song_expiry (expiration_date desc);
                                         ";
                 
                 connection.Open();
