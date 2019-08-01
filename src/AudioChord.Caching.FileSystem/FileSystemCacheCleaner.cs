@@ -142,7 +142,7 @@ namespace AudioChord.Caching.FileSystem
                             expiration_date DATETIME not null
                         );
 
-                        create unique index if not exists song_expiry_expiration_date_uindex
+                        create index if not exists song_expiry_expiration_date_uindex
                             on song_expiry (expiration_date desc);
                                         ";
                 
