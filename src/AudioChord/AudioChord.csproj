@@ -5,15 +5,15 @@
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Version>1.0.9</Version>
+    <Version>1.1.0</Version>
     
     <!--Type is git by default-->
-    <RepositoryUrl>https://github.com/ComputerMaster1st/Shared.Music</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
     <Company>CryoDev Development Team</Company>
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Update packages, Use the latest YoutubeExplode version</PackageReleaseNotes>
+    <PackageReleaseNotes>You can now specify what to use as cache! Check out the AudioChord.Caching.* packages for the options.</PackageReleaseNotes>
     
   </PropertyGroup>
   <ItemGroup>
