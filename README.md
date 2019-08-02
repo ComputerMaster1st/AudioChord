@@ -9,7 +9,7 @@ To be able to push we need to 'pack' a project first. navigate to the project in
 **before packing, check if you incremented the package version in the csproj**
 
 ```
-dotnet nuget pack --configuration Release
+dotnet pack --configuration Release
 ```
 
 The command result will tell you where the package was created, navigate to the containing folder and push the package to a server
