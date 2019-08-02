@@ -2,14 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!--General information-->
+    <Description>AudioChord Cache implementation using the local FileSystem</Description>
+    <PackageTags>FileSystem, Cache, AudioChord</PackageTags>
+    <Version>1.0.0</Version>
+
+    <!--Type is git by default-->
+    <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
+    <Company>CryoDev Development Team</Company>
+    <Authors>CryoDev Development Team</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AudioChord\AudioChord.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="System.Data.SQLite" Version="1.0.111" />
+    <PackageReference Include="AudioChord" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

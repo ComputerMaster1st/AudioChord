@@ -2,14 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!--General information-->
+    <Description>AudioChord Cache implementation using MongoDB's GridFS</Description>
+    <PackageTags>MongoDB, Cache, AudioChord</PackageTags>
+    <Version>1.0.0</Version>
+
+    <!--Type is git by default-->
+    <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
+    <Company>CryoDev Development Team</Company>
+    <Authors>CryoDev Development Team</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AudioChord\AudioChord.csproj" />
+    <PackageReference Include="AudioChord" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
