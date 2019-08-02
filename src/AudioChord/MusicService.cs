@@ -18,11 +18,11 @@ namespace AudioChord
             BsonSerializer.RegisterSerializer(new SongIdSerializer());
         }
 
-        private SongCollection songCollection;
+        private readonly SongCollection _songCollection;
 
-        public YoutubeProcessorWrapper Youtube { get; private set; }
-        public DiscordProcessorWrapper Discord { get; private set; }
-        public PlaylistCollection Playlist { get; private set; }
+        public YoutubeProcessorWrapper Youtube { get; }
+        public DiscordProcessorWrapper Discord { get; }
+        public PlaylistCollection Playlist { get; }
 
         public MusicService(MusicServiceConfiguration config)
         {
@@ -39,41 +39,57 @@ namespace AudioChord
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
 
-            songCollection = new SongCollection(database);
-            Playlist = new PlaylistCollection(database, songCollection);
+            _songCollection = new SongCollection(database, config.SongCacheFactory());
+            
+            Playlist = new PlaylistCollection(database, _songCollection);
 
             // Processor wrappers
-            Youtube = new YoutubeProcessorWrapper(songCollection, new PlaylistProcessor(songCollection, this));
-            Discord = new DiscordProcessorWrapper(songCollection);
+            Youtube = new YoutubeProcessorWrapper(_songCollection, new PlaylistProcessor(_songCollection, this));
+            Discord = new DiscordProcessorWrapper(_songCollection);
         }
 
         /// <summary>
         /// Fetch song metadata with opus stream from database.
         /// </summary>
-        /// <param name="songId">The song Id.</param>
-        /// <exception cref="ArgumentException">No song was found with the specified <paramref name="songId"/></exception>
+        /// <param name="id">The song Id.</param>
+        /// <exception cref="SongNotFoundException">No song was found with the specified <paramref name="id"/></exception>
         /// <returns>A <see cref="ISong"/> with metadata and opus stream.</returns>
-        public Task<ISong> GetSongAsync(SongId id) => songCollection.GetSongAsync(id);
+        public async Task<ISong> GetSongAsync(SongId id)
+        {
+            (bool success, ISong result) = await _songCollection.TryGetSongAsync(id);
+
+            if (!success)
+                throw new SongNotFoundException($"The song-id '{id}' was not found!");
+            
+            return result;
+        }
 
         /// <summary>
         /// Try to get the song
         /// </summary>
         /// <param name="id">The <see cref="SongId"/> to search for</param>
-        /// <param name="value">the action that will (always) be invoked with the return value</param>
         /// <returns></returns>
-        public async Task<bool> TryGetSongAsync(SongId id, Action<ISong> value)
-            => await songCollection.TryGetSongAsync(id, (actualSong) => { value(actualSong); });
+        public Task<(bool, ISong)> TryGetSongAsync(SongId id)
+            => _songCollection.TryGetSongAsync(id);
 
         /// <summary>
         /// Get all songs in database.
         /// </summary>
         /// <returns>Dictionary of songs in database.</returns>
-        public Task<IEnumerable<ISong>> GetAllSongsAsync() => songCollection.GetAllAsync();
+        public Task<IEnumerable<SongMetadata>> EnumerateSongMetadataAsync()
+            => _songCollection.EnumerateMetadataAsync();
+
+        public bool TryGetSongMetadata(SongId id, out SongMetadata metadata)
+        {
+            metadata = _songCollection.TryFindSongMetadata(id);
+            return !(metadata is null);
+        }
 
         /// <summary>
         /// Get total bytes count in database.
         /// </summary>
         /// <returns>A double containing total bytes used.</returns>
-        public Task<double> GetTotalBytesUsedAsync() => songCollection.GetTotalBytesUsedAsync();
+        public Task<double> GetTotalBytesUsedAsync() 
+            => Task.FromResult(0d);
     }
 }
