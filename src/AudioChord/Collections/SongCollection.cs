@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AudioChord.Caching;
+using MongoDB.Driver.Linq;
 
 namespace AudioChord.Collections
 {
@@ -35,6 +36,15 @@ namespace AudioChord.Collections
             return isCached 
                 ? (true, new Song(information.Id, information.Metadata, stream)) 
                 : (false, default);
+        }
+
+        internal IEnumerable<SongId> GetRandomSongs(long amount)
+        {
+            return _collection
+                .AsQueryable()
+                .Sample(amount)
+                .Select(info => info.Id)
+                .AsEnumerable();
         }
 
         /// <summary>

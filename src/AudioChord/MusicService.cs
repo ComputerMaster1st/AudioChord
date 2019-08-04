@@ -73,6 +73,14 @@ namespace AudioChord
             => _songCollection.TryGetSongAsync(id);
 
         /// <summary>
+        /// Return a random list of songs
+        /// </summary>
+        /// <param name="amount">The amount of random songs, defaults to 100</param>
+        /// <returns>A list of SongId's</returns>
+        public IEnumerable<SongId> GetRandomSongs(long amount = 100)
+            => _songCollection.GetRandomSongs(amount);
+
+        /// <summary>
         /// Get all songs in database.
         /// </summary>
         /// <returns>Dictionary of songs in database.</returns>
