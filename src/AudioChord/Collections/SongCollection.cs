@@ -28,7 +28,7 @@ namespace AudioChord.Collections
         internal async Task<(bool, ISong)> TryGetSongAsync(SongId id)
         {
             SongInformation information = _collection
-                .Find(filter => filter.Id == id)
+                .Find(filter => Equals(filter.Id, id))
                 .FirstOrDefault();
 
             (bool isCached, Stream stream) = await _cache.TryFindCachedSongAsync(information.Id);
@@ -56,7 +56,7 @@ namespace AudioChord.Collections
         {
             // We are only querying for 1 or 0 documents, it's quicker to use sync (no async overhead)
             return _collection
-                .Find(filter => filter.Id == id)
+                .Find(filter => Equals(filter.Id, id))
                 .Any();
         }
 
@@ -68,11 +68,11 @@ namespace AudioChord.Collections
         private async Task<ISong> StoreSongAsync(ISong song)
         {
             if (song is DatabaseSong databaseSong)
-                //the song has already been stored in the database
+                // The song has already been stored in the database
                 return databaseSong;
 
             // WARNING: This operation is NOT atomic and can result in GridFS files without SongData (if interrupted)
-            // TODO: Fix desyncing using mongodb transactions if possible
+            // TODO: Fix synchronization issues using mongodb transactions if possible
 
             using (IClientSessionHandle handle = _collection.Database.Client.StartSession())
             {
@@ -93,7 +93,7 @@ namespace AudioChord.Collections
 
             (bool isSuccess, ISong found) = await TryGetSongAsync(song.Id);
 
-            // replace the song with the song from the database
+            // Replace the song with the song from the database
             if (isSuccess)
                 return found;
             
