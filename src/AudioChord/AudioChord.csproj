@@ -5,7 +5,7 @@
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Version>1.2.1</Version>
+    <Version>1.2.2</Version>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -13,7 +13,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Fix nullreference bug in GetSongAsync</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix MongoDB exception while caching songs</PackageReleaseNotes>
     
   </PropertyGroup>
   <ItemGroup>
