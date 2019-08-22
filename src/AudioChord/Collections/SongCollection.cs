@@ -27,10 +27,16 @@ namespace AudioChord.Collections
 
         internal async Task<(bool, ISong)> TryGetSongAsync(SongId id)
         {
-            SongInformation information = _collection
-                .Find(filter => Equals(filter.Id, id))
-                .FirstOrDefault();
+            IFindFluent<SongInformation, SongInformation> metadataQuery = _collection
+                .Find(filter => Equals(filter.Id, id));
 
+            if (!metadataQuery.Any())
+                // We have no metadata for this song!, assume it doesn't exist
+                return (false, default);
+            
+            // Since song id's are meant to be unique we can expect exactly one song
+            SongInformation information = metadataQuery.Single();
+            
             (bool isCached, Stream stream) = await _cache.TryFindCachedSongAsync(information.Id);
 
             return isCached 
