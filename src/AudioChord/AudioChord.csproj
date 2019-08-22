@@ -5,7 +5,7 @@
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -13,7 +13,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>You can now specify what to use as cache! Check out the AudioChord.Caching.* packages for the options.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix nullreference bug in GetSongAsync</PackageReleaseNotes>
     
   </PropertyGroup>
   <ItemGroup>
