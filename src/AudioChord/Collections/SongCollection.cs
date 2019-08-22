@@ -78,24 +78,9 @@ namespace AudioChord.Collections
                 return databaseSong;
 
             // WARNING: This operation is NOT atomic and can result in GridFS files without SongData (if interrupted)
-            // TODO: Fix synchronization issues using mongodb transactions if possible
-
-            using (IClientSessionHandle handle = _collection.Database.Client.StartSession())
-            {
-                handle.StartTransaction();
-                
-                try
-                {
-                    await _cache.CacheSongAsync(song);
-                    await _collection.InsertOneAsync(handle, new SongInformation(song.Id, song.Metadata));
-                    handle.CommitTransaction();
-                }
-                catch (Exception)
-                {
-                    handle.AbortTransaction();
-                    throw;
-                }
-            }
+            // MongoDB transactions only works on clusters, and single node clusters are not recommended for production
+            await _cache.CacheSongAsync(song);
+            await _collection.InsertOneAsync(new SongInformation(song.Id, song.Metadata));
 
             (bool isSuccess, ISong found) = await TryGetSongAsync(song.Id);
 
