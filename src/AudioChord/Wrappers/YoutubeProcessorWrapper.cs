@@ -49,6 +49,7 @@ namespace AudioChord.Wrappers
         /// <param name="url">The youtube video url.</param>
         /// <returns>A new <see cref="ISong"/> with the audio of the youtube video</returns>
         /// <exception cref="FormatException">The url given was not a valid youtube url</exception>
+        /// <exception cref="InvalidOperationException">The processed song was empty</exception>
         public Task<ISong> DownloadAsync(Uri url)
         {
             if(YoutubeClient.TryParseVideoId(url.ToString(), out string id))
@@ -62,7 +63,7 @@ namespace AudioChord.Wrappers
         /// </summary>
         /// <param name="url">The youtube video url.</param>
         /// <param name="videoId">The <paramref name="videoId"/> of the youtube url</param>
-        /// <returns><see langword="true"/>if the capturing was succesfull</returns>
+        /// <returns><see langword="true"/>if the capturing was successful</returns>
         public bool TryParseYoutubeUrl(string url, out string videoId)
         {
             if(YoutubeClient.TryParseVideoId(url, out string id))

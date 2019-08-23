@@ -1,4 +1,4 @@
-using AudioChord.Collections.Models;
+﻿using AudioChord.Collections.Models;
 using AudioChord.Processors;
 using MongoDB.Driver;
 using System;
@@ -74,9 +74,13 @@ namespace AudioChord.Collections
         /// <returns>a <see cref="DatabaseSong"/>that is the exact representation of the original song, but stored in the database</returns>
         private async Task<ISong> StoreSongAsync(ISong song)
         {
+            // The song has already been stored in the database
             if (song is DatabaseSong databaseSong)
-                // The song has already been stored in the database
                 return databaseSong;
+            
+            // Do not save "nothing" to the database
+            if ((await song.GetMusicStreamAsync()).Length <= 0)
+                throw new InvalidOperationException($"Attempted to save song '{song.Id}' to the cache while the stream length was 0!");
 
             // WARNING: This operation is NOT atomic and can result in GridFS files without SongData (if interrupted)
             // MongoDB transactions only works on clusters, and single node clusters are not recommended for production
