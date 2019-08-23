@@ -1,6 +1,6 @@
 using System;
 
-namespace AudioChord.Collections
+namespace AudioChord.Exceptions
 {
     /// <summary>
     /// Thrown when the given song id does not exist

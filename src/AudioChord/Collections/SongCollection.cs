@@ -1,4 +1,4 @@
-﻿using AudioChord.Collections.Models;
+using AudioChord.Collections.Models;
 using AudioChord.Processors;
 using MongoDB.Driver;
 using System;
@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AudioChord.Caching;
+using AudioChord.Exceptions;
 using MongoDB.Driver.Linq;
 
 namespace AudioChord.Collections
