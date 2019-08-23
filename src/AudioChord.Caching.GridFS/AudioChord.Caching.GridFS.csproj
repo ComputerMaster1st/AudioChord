@@ -6,7 +6,12 @@
     <!--General information-->
     <Description>AudioChord Cache implementation using MongoDB's GridFS</Description>
     <PackageTags>MongoDB, Cache, AudioChord</PackageTags>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
+    
+    <!--Release notes-->
+    <PackageReleaseNotes>
+      Upgrade references to GridFS &amp; AudioChord
+    </PackageReleaseNotes>
 
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -15,8 +20,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.8" />
-    <PackageReference Include="AudioChord" Version="1.1.0" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.9.*" />
+    <PackageReference Include="AudioChord" Version="1.2.*" />
   </ItemGroup>
 
 </Project>
