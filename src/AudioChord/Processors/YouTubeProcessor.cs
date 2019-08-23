@@ -13,17 +13,17 @@ namespace AudioChord.Processors
     /// </summary>
     internal class YouTubeProcessor
     {
-        private YoutubeClient Client = new YoutubeClient();
-        private FFMpegEncoder encoder = new FFMpegEncoder();
+        private readonly YoutubeClient _client = new YoutubeClient();
+        private readonly FFmpegEncoder _encoder = new FFmpegEncoder();
 
         public static string ProcessorPrefix { get; } = "YOUTUBE";
 
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {
-            Video videoInfo = await Client.GetVideoAsync(youtubeVideoId);
+            Video videoInfo = await _client.GetVideoAsync(youtubeVideoId);
 
             if (videoInfo.Duration.TotalMinutes > 15.0)
-                throw new ArgumentOutOfRangeException("Video duration longer than 15 minutes!");
+                throw new ArgumentOutOfRangeException(nameof(youtubeVideoId), "Video duration longer than 15 minutes!");
 
             return new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
         }
@@ -41,13 +41,15 @@ namespace AudioChord.Processors
             //retrieve the metadata of the video
             SongMetadata metadata = await GetVideoMetadataAsync(videoId);
 
-            //retrieve the actual vdeo and convert it to opus
-            MuxedStreamInfo StreamInfo = (await Client.GetVideoMediaStreamInfosAsync(videoId)).Muxed.WithHighestVideoQuality();
-            using (MediaStream youtubeStream = await Client.GetMediaStreamAsync(StreamInfo))
+            //retrieve the actual video and convert it to opus
+            MuxedStreamInfo streamInfo =
+                (await _client.GetVideoMediaStreamInfosAsync(videoId)).Muxed.WithHighestVideoQuality();
+            using (MediaStream youtubeStream = await _client.GetMediaStreamAsync(streamInfo))
             {
                 //convert it to a Song class
                 //the processor should be responsible for prefixing the id with the correct type
-                return new Song(new SongId(ProcessorPrefix, videoId), metadata, await encoder.ProcessAsync(youtubeStream));
+                return new Song(new SongId(ProcessorPrefix, videoId), metadata,
+                    await _encoder.ProcessAsync(youtubeStream));
             }
         }
 
@@ -59,19 +61,18 @@ namespace AudioChord.Processors
         internal async Task<List<string>> ParsePlaylistAsync(Uri playlistLocation)
         {
             if (playlistLocation is null)
-                throw new ArgumentNullException("The uri passed to this method is null");
+                throw new ArgumentNullException(nameof(playlistLocation), "The uri passed to this method is null");
 
             if (!YoutubeClient.TryParsePlaylistId(playlistLocation.ToString(), out string playlistId))
                 throw new ArgumentException("Invalid playlist url given");
 
-            YoutubeExplode.Models.Playlist playlist = await Client.GetPlaylistAsync(playlistId);
+            YoutubeExplode.Models.Playlist playlist = await _client.GetPlaylistAsync(playlistId);
 
             //retrieve all the id's and return it as a list
             return playlist.Videos
                 .ToList()
                 //create tasks out of all the videos
-                .ConvertAll(new Converter<Video, string>((video) => { return video.Id; }));
+                .ConvertAll(video => video.Id);
         }
-
     }
 }

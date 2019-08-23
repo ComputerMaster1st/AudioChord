@@ -1,11 +1,8 @@
 ﻿using AudioChord.Collections;
 using AudioChord.Processors;
 using AudioChord.Wrappers;
-
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AudioChord.Exceptions;
@@ -41,7 +38,7 @@ namespace AudioChord
             IMongoDatabase database = client.GetDatabase(config.Database);
 
             _songCollection = new SongCollection(database, config.SongCacheFactory());
-            
+
             Playlist = new PlaylistCollection(database, _songCollection);
 
             // Processor wrappers
@@ -61,7 +58,7 @@ namespace AudioChord
 
             if (!success)
                 throw new SongNotFoundException($"The song-id '{id}' was not found!");
-            
+
             return result;
         }
 
@@ -98,7 +95,7 @@ namespace AudioChord
         /// Get total bytes count in database.
         /// </summary>
         /// <returns>A double containing total bytes used.</returns>
-        public Task<double> GetTotalBytesUsedAsync() 
+        public Task<double> GetTotalBytesUsedAsync()
             => Task.FromResult(0d);
     }
 }

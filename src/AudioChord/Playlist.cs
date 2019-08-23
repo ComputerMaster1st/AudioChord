@@ -8,6 +8,7 @@ namespace AudioChord
     {
         [BsonId]
         public ObjectId Id { get; private set; }
+
         public List<SongId> Songs { get; private set; }
 
         internal Playlist(ObjectId id, List<SongId> songs)

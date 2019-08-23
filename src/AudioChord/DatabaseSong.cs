@@ -1,5 +1,4 @@
-﻿using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,20 +13,20 @@ namespace AudioChord
         [BsonId]
         [BsonSerializer(typeof(SongIdSerializer))]
         public SongId Id { get; private set; }
+
         public SongMetadata Metadata { get; private set; }
 
-        private readonly Func<DatabaseSong, Task<Stream>> StreamRetriever;
+        private readonly Func<DatabaseSong, Task<Stream>> _streamRetriever;
 
         internal DatabaseSong(SongId id, SongMetadata metadata, Func<DatabaseSong, Task<Stream>> streamRetrieveFunction)
         {
             Id = id;
             Metadata = metadata;
-            StreamRetriever = streamRetrieveFunction;
+            _streamRetriever = streamRetrieveFunction;
         }
 
         public Task<Stream> GetMusicStreamAsync()
             // Invoke the reference to the private function "OpenOpusStreamAsync" in songCollection
-            => StreamRetriever(this);
-        
+            => _streamRetriever(this);
     }
 }

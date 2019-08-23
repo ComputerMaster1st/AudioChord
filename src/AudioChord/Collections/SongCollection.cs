@@ -34,14 +34,14 @@ namespace AudioChord.Collections
             if (!metadataQuery.Any())
                 // We have no metadata for this song!, assume it doesn't exist
                 return (false, default);
-            
+
             // Since song id's are meant to be unique we can expect exactly one song
             SongInformation information = metadataQuery.Single();
-            
+
             (bool isCached, Stream stream) = await _cache.TryFindCachedSongAsync(information.Id);
 
-            return isCached 
-                ? (true, new Song(information.Id, information.Metadata, stream)) 
+            return isCached
+                ? (true, new Song(information.Id, information.Metadata, stream))
                 : (false, default);
         }
 
@@ -77,7 +77,7 @@ namespace AudioChord.Collections
             // The song has already been stored in the database
             if (song is DatabaseSong databaseSong)
                 return databaseSong;
-            
+
             // Do not save "nothing" to the database
             if ((await song.GetMusicStreamAsync()).Length <= 0)
                 throw new InvalidOperationException($"Attempted to save song '{song.Id}' to the cache while the stream length was 0!");
@@ -92,7 +92,7 @@ namespace AudioChord.Collections
             // Replace the song with the song from the database
             if (isSuccess)
                 return found;
-            
+
             throw new SongNotFoundException($"Could not find '{song.Id}' in the database");
         }
 
@@ -108,7 +108,7 @@ namespace AudioChord.Collections
         internal SongMetadata TryFindSongMetadata(SongId id)
         {
             return _collection
-                .Find(filter => filter.Id == id)
+                .Find(filter => Equals(filter.Id, id))
                 .ToEnumerable()
                 .Select(information => information.Metadata)
                 .FirstOrDefault();
@@ -132,9 +132,9 @@ namespace AudioChord.Collections
 
             // Check if the song is already cached, the same youtube video can be downloaded twice
             (bool isCached, ISong song) = await TryGetSongAsync(id);
-            if(isCached)
+            if (isCached)
                 return song;
-            
+
             YouTubeProcessor processor = new YouTubeProcessor();
             ISong directlyDownloaded = await processor.ExtractSongAsync(videoId);
 

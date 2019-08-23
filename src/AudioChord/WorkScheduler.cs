@@ -18,17 +18,17 @@ namespace AudioChord
             // Task.Factory.StartNew() has some weird settings according to https://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
             // when using async (NOT while using tasks for parallel code) it's better to use Task.Run
 
-            // The "longrunning" flag is not needed since the CLR is smart enough to mark a task as longrunning
+            // The LongRunning flag is not needed since the CLR is smart enough to mark a task as LongRunning
             // if it's taking longer than 0.5 secs
             // ReSharper disable once MethodSupportsCancellation
             Task worker = Task.Run(async () =>
             {
                 while (backlog.Count > 0)
                 {
-                    var work = backlog.Dequeue();
+                    StartableTask<ISong> work = backlog.Dequeue();
                     if (cancellationToken.IsCancellationRequested)
                     {
-                        // current work will not be done, itll be cancelled instead
+                        // current work will not be done, it'll be cancelled instead
                         work.Cancel();
                         // Continue the loop, the remaining work will be marked as cancelled
                         continue;

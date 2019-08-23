@@ -9,21 +9,21 @@ namespace AudioChord.Wrappers
 {
     public class YoutubeProcessorWrapper
     {
-        private SongCollection songCollection;
-        private PlaylistProcessor playlistProcessor;
+        private readonly SongCollection _songCollection;
+        private readonly PlaylistProcessor _playlistProcessor;
 
         internal YoutubeProcessorWrapper(SongCollection songStorage, PlaylistProcessor processor)
         {
-            songCollection = songStorage;
-            playlistProcessor = processor;
+            _songCollection = songStorage;
+            _playlistProcessor = processor;
         }
 
         /// <summary>
         /// Download a list of YT songs to database (without progress).
         /// </summary>
         /// /// <param name="playlistLocation">The url where the playlist is located</param>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation) 
-            => playlistProcessor.ProcessPlaylist(playlistLocation, null, CancellationToken.None);
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation)
+            => _playlistProcessor.ProcessPlaylist(playlistLocation, null, CancellationToken.None);
 
         /// <summary>
         /// Download a list of YT songs to database.
@@ -31,8 +31,9 @@ namespace AudioChord.Wrappers
         /// <param name="playlistLocation">The url where the playlist is located</param>
         /// <param name="progress">Callback for reporting progress on song processing</param>
         [Obsolete("Use the overload with CancellationToken instead")]
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress) 
-            => playlistProcessor.ProcessPlaylist(playlistLocation, progress, CancellationToken.None);
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation,
+            IProgress<SongProcessStatus> progress)
+            => _playlistProcessor.ProcessPlaylist(playlistLocation, progress, CancellationToken.None);
 
         /// <summary>
         /// Download a list of YT songs to database.
@@ -40,8 +41,9 @@ namespace AudioChord.Wrappers
         /// <param name="playlistLocation">The url where the playlist is located</param>
         /// <param name="progress">Callback for reporting progress on song processing</param>
         /// <param name="token">CancellationToken to stop processing of songs in the playlist</param>
-        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation, IProgress<SongProcessStatus> progress, CancellationToken token)
-            => playlistProcessor.ProcessPlaylist(playlistLocation, progress, token);
+        public Task<ResolvingPlaylist> DownloadPlaylistAsync(Uri playlistLocation,
+            IProgress<SongProcessStatus> progress, CancellationToken token)
+            => _playlistProcessor.ProcessPlaylist(playlistLocation, progress, token);
 
         /// <summary>
         /// Download song from YouTube to database. (Note: Exceptions are to be expected.)
@@ -52,8 +54,8 @@ namespace AudioChord.Wrappers
         /// <exception cref="InvalidOperationException">The processed song was empty</exception>
         public Task<ISong> DownloadAsync(Uri url)
         {
-            if(YoutubeClient.TryParseVideoId(url.ToString(), out string id))
-                return songCollection.DownloadFromYouTubeAsync(id);
+            if (YoutubeClient.TryParseVideoId(url.ToString(), out string id))
+                return _songCollection.DownloadFromYouTubeAsync(id);
 
             throw new FormatException("Invalid youtube video URL");
         }
@@ -66,7 +68,7 @@ namespace AudioChord.Wrappers
         /// <returns><see langword="true"/>if the capturing was successful</returns>
         public bool TryParseYoutubeUrl(string url, out string videoId)
         {
-            if(YoutubeClient.TryParseVideoId(url, out string id))
+            if (YoutubeClient.TryParseVideoId(url, out string id))
             {
                 videoId = id;
                 return true;

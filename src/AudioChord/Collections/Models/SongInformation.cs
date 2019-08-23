@@ -10,6 +10,7 @@ namespace AudioChord.Collections.Models
     {
         [BsonId]
         public SongId Id { get; private set; }
+
         public DateTime LastAccessed { get; set; } = DateTime.Now;
         public SongMetadata Metadata { get; private set; }
 

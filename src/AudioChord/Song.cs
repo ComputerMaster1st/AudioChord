@@ -8,18 +8,16 @@ namespace AudioChord
         public SongId Id { get; private set; }
         public SongMetadata Metadata { get; private set; }
 
-        private Stream songStream;
+        private readonly Stream _songStream;
 
         internal Song(SongId id, SongMetadata metadata, Stream stream)
         {
             Id = id;
             Metadata = metadata;
-            songStream = stream;
+            _songStream = stream;
         }
 
         public Task<Stream> GetMusicStreamAsync()
-        {
-            return Task.FromResult(songStream);
-        }
+            => Task.FromResult(_songStream);
     }
 }

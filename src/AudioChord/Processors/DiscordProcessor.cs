@@ -12,37 +12,34 @@ namespace AudioChord.Processors
     /// </summary>
     internal class DiscordProcessor
     {
-        private WebClient client = new WebClient();
-        private FFMpegEncoder encoder = new FFMpegEncoder();
+        private readonly WebClient _client = new WebClient();
+        private readonly FFmpegEncoder _encoder = new FFmpegEncoder();
 
-        private string filename;
-        private ulong attachmentId;
+        private string _filename;
+        private ulong _attachmentId;
 
-        public static string ProcessorPrefix { get; } = "DISCORD";
+        private const string PROCESSOR_PREFIX = "DISCORD";
 
-        public SongMetadata Metadata { get; private set; }
+        private SongMetadata Metadata { get; set; }
 
         internal static async Task<DiscordProcessor> RetrieveAsync(string url, string uploader, ulong attachmentId)
         {
             if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentNullException("The url given is either null or empty!");
+                throw new ArgumentNullException(nameof(url), "The url given was either null or empty!");
 
-            DiscordProcessor processor = new DiscordProcessor();
-            processor.attachmentId = attachmentId;
-
+            DiscordProcessor processor = new DiscordProcessor {_attachmentId = attachmentId};
             await processor.GetMetadataAsync(url, uploader);
-
             return processor;
         }
 
         private async Task<string> ProbeFileAsync(string filename)
         {
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
-            string json = null;
+            string json;
 
-            using (Process process = new Process()
+            using (Process process = new Process
             {
-                StartInfo = new ProcessStartInfo()
+                StartInfo = new ProcessStartInfo
                 {
                     FileName = "ffprobe",
                     Arguments = $"-i {filename} -hide_banner -show_format -print_format json -v quiet",
@@ -52,14 +49,12 @@ namespace AudioChord.Processors
                 EnableRaisingEvents = true
             })
             {
-                process.Exited += (obj, args) => {
-                    awaitExitSource.SetResult(process.ExitCode);
-                };
+                process.Exited += (obj, args) => { awaitExitSource.SetResult(process.ExitCode); };
 
                 process.Start();
 
                 json = await process.StandardOutput.ReadToEndAsync();
-                int exitCode = await awaitExitSource.Task;
+                await awaitExitSource.Task;
             }
 
             return json;
@@ -67,33 +62,28 @@ namespace AudioChord.Processors
 
         private async Task GetMetadataAsync(string url, string uploader)
         {
-            filename = url.Substring(url.LastIndexOf('/') + 1);
-            string songName = Path.GetFileNameWithoutExtension(filename);
+            _filename = url.Substring(url.LastIndexOf('/') + 1);
+            string songName = Path.GetFileNameWithoutExtension(_filename);
             TimeSpan length;
 
-            await client.DownloadFileTaskAsync(url, filename);
+            await _client.DownloadFileTaskAsync(url, _filename);
 
-            string json = await ProbeFileAsync(filename);
+            string json = await ProbeFileAsync(_filename);
 
             JObject root = JObject.Parse(json);
-            if (root["format"].HasValues)
-            {
-                length = TimeSpan.FromSeconds(root["format"]["duration"].Value<double>());
+            if (!root["format"].HasValues)
+                throw new ArgumentException("Unable to probe file.");
 
-                if (root["format"]["tags"] != null && root["format"]["tags"].HasValues && ((JObject)root["format"]["tags"]).TryGetValue("title", out JToken title))
-                {
-                    songName = title.ToString();
-                }
+            length = TimeSpan.FromSeconds(root["format"]["duration"].Value<double>());
 
-                Metadata = new SongMetadata(songName, length, uploader, url);
-                return;
-            }
-            throw new ArgumentException("Unable to probe file.");
+            if (root["format"]["tags"] != null && root["format"]["tags"].HasValues &&
+                ((JObject) root["format"]["tags"]).TryGetValue("title", out JToken title)) songName = title.ToString();
+
+            Metadata = new SongMetadata(songName, length, uploader, url);
         }
 
         internal async Task<Song> ProcessAudioAsync()
-        {
-            return new Song(new SongId(ProcessorPrefix, attachmentId.ToString()), Metadata, await encoder.ProcessAsync(filename));
-        }
+            => new Song(new SongId(PROCESSOR_PREFIX, _attachmentId.ToString()), Metadata,
+                await _encoder.ProcessAsync(_filename));
     }
 }
