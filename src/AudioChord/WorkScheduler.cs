@@ -58,8 +58,9 @@ namespace AudioChord
                     // ignored
                 }
                 
-                // Push the playlist back to the end of the queue
-                _playlists.Enqueue((playlist, token));
+                if (playlist.Count > 0)
+                    // Push the playlist back to the end of the queue
+                    _playlists.Enqueue((playlist, token));
             }
         }
     }
