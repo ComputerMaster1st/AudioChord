@@ -5,7 +5,9 @@
     <!--General information-->
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
-    <Version>1.2.3</Version>
+    <!--Version information-->
+    <VersionPrefix>1.2.4</VersionPrefix>
+    <VersionSuffix>beta</VersionSuffix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -13,7 +15,8 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Throw exception if the songstream is empty</PackageReleaseNotes>
+    <PackageReleaseNotes>Replaced playlist processor with roundrobin scheduler</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
   </PropertyGroup>
   <ItemGroup>
