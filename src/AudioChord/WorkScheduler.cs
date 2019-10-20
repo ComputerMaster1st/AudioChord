@@ -32,35 +32,42 @@ namespace AudioChord
 
         private async void DoWork()
         {
-            while (_playlists.TryDequeue(out (Queue<StartableTask<ISong>> playlist, CancellationToken token) tuple))
+            while (true)
             {
-                (Queue<StartableTask<ISong>> playlist, CancellationToken token) = tuple;
-
-                if (token.IsCancellationRequested)
+                if (_playlists.TryDequeue(out (Queue<StartableTask<ISong>> playlist, CancellationToken token) tuple))
                 {
-                    // Cancel all the upcoming work
-                    foreach (StartableTask<ISong> work in playlist)
+                    (Queue<StartableTask<ISong>> playlist, CancellationToken token) = tuple;
+
+                    if (token.IsCancellationRequested)
                     {
-                        work.Cancel();
-                    }
+                        // Cancel all the upcoming work
+                        foreach (StartableTask<ISong> work in playlist)
+                        {
+                            work.Cancel();
+                        }
                     
-                    continue;
-                }
+                        continue;
+                    }
 
-                StartableTask<ISong> job = playlist.Dequeue();
+                    StartableTask<ISong> job = playlist.Dequeue();
                 
-                try
-                {
-                    await job.Start();
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
+                    try
+                    {
+                        await job.Start();
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
                 
-                if (playlist.Count > 0)
-                    // Push the playlist back to the end of the queue
-                    _playlists.Enqueue((playlist, token));
+                    if (playlist.Count > 0)
+                        // Push the playlist back to the end of the queue
+                        _playlists.Enqueue((playlist, token));
+                }
+                else
+                {
+                    await Task.Delay(100);
+                }
             }
         }
     }

@@ -7,7 +7,6 @@
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
     <VersionPrefix>1.2.4</VersionPrefix>
-    <VersionSuffix>beta</VersionSuffix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -15,7 +14,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Replaced playlist processor with roundrobin scheduler</PackageReleaseNotes>
+    <PackageReleaseNotes>Bugfix: scheduler waits for new items</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
   </PropertyGroup>
