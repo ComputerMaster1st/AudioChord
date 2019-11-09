@@ -16,21 +16,22 @@ namespace AudioChord.Processors
         private readonly MusicService _musicService;
         private readonly WorkScheduler _scheduler;
 
-        private ExtractorConfiguration _configuration;
-
         private readonly ConcurrentDictionary<string, Task<ISong>> _allWork =
             new ConcurrentDictionary<string, Task<ISong>>();
 
-        public PlaylistProcessor(SongCollection song, ExtractorConfiguration configuration, MusicService service)
+        public PlaylistProcessor(SongCollection song, MusicService service)
         {
             _songCollection = song;
             _musicService = service;
-            _configuration = configuration;
             _scheduler = new WorkScheduler();
         }
 
-        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation,
-            IProgress<SongProcessStatus> progress, CancellationToken token)
+        public async Task<ResolvingPlaylist> ProcessPlaylist(
+                Uri playlistLocation,
+                IProgress<SongProcessStatus> progress, 
+                CancellationToken token,
+                ExtractorConfiguration configuration
+            )
         {
             YouTubeExtractor extractor = new YouTubeExtractor();
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
@@ -63,7 +64,7 @@ namespace AudioChord.Processors
                             // Always add progress reporting, there is a possibility that somebody who wants reports attaches later
                             StartableTask<ISong> work = new StartableTask<ISong>(()
                                 => AddProgressReporting(
-                                        _songCollection.DownloadFromYouTubeAsync(songUrl, _configuration), 
+                                        _songCollection.DownloadFromYouTubeAsync(songUrl, configuration), 
                                         progress,
                                         songId
                                     )
