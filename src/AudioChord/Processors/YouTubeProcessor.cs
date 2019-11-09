@@ -79,7 +79,7 @@ namespace AudioChord.Processors
                 throw new ArgumentNullException(nameof(playlistLocation), "The uri passed to this method is null");
 
             if (!YoutubeClient.TryParsePlaylistId(playlistLocation.ToString(), out string playlistId))
-                throw new ArgumentException("Invalid playlist url given");
+                throw new ArgumentException("Invalid playlist url given", nameof(playlistLocation));
 
             YoutubeExplode.Models.Playlist playlist = await _client.GetPlaylistAsync(playlistId);
 
@@ -87,7 +87,7 @@ namespace AudioChord.Processors
             return playlist.Videos
                 .ToList()
                 //create tasks out of all the videos
-                .ConvertAll(video => video.Id);
+                .ConvertAll(video => video.GetUrl());
         }
     }
 }

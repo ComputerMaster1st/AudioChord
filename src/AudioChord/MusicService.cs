@@ -44,7 +44,11 @@ namespace AudioChord
             // Processor facades
             Youtube = new YoutubeProcessorFacade(
                 _songCollection, 
-                new PlaylistProcessor(_songCollection, this),
+                new PlaylistProcessor(
+                    _songCollection, 
+                    config.ExtractorConfiguration, 
+                    this
+                ),
                 config.ExtractorConfiguration
             );
             

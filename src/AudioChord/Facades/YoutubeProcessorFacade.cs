@@ -56,12 +56,7 @@ namespace AudioChord.Facades
         /// <exception cref="FormatException">The url given was not a valid youtube url</exception>
         /// <exception cref="InvalidOperationException">The processed song was empty</exception>
         public Task<ISong> DownloadAsync(Uri url)
-        {
-            if (YoutubeClient.TryParseVideoId(url.ToString(), out string id))
-                return _songCollection.DownloadFromYouTubeAsync(id);
-
-            throw new FormatException("Invalid youtube video URL");
-        }
+            => _songCollection.DownloadFromYouTubeAsync(url.ToString(), _extractorConfiguration);
 
         /// <summary>
         /// Capture Youtube Video Id

@@ -8,7 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AudioChord.Caching;
 using AudioChord.Exceptions;
+using AudioChord.Extractors;
 using MongoDB.Driver.Linq;
+using YoutubeExplode;
 
 namespace AudioChord.Collections
 {
@@ -123,20 +125,23 @@ namespace AudioChord.Collections
         /// <summary>
         /// Check if the song exists in the database. If not download, store and return the song
         /// </summary>
-        /// <param name="videoId"></param>
-        /// <returns></returns>
-        internal async Task<ISong> DownloadFromYouTubeAsync(string videoId)
+        /// <param name="url">The url to attempt to locate</param>
+        /// <param name="configuration">configuration for the parser</param>
+        /// <returns>A located or downloaded youtube <see cref="ISong"/></returns>
+        internal async Task<ISong> DownloadFromYouTubeAsync(string url, ExtractorConfiguration configuration)
         {
             // Build the corresponding id
-            SongId id = new SongId(YouTubeProcessor.ProcessorPrefix, videoId);
+            string youtubeVideoId = YoutubeClient.ParseVideoId(url);
+            SongId id = new SongId(YouTubeProcessor.ProcessorPrefix, youtubeVideoId);
 
             // Check if the song is already cached, the same youtube video can be downloaded twice
             (bool isCached, ISong song) = await TryGetSongAsync(id);
             if (isCached)
                 return song;
 
-            YouTubeProcessor processor = new YouTubeProcessor();
-            ISong directlyDownloaded = await processor.ExtractSongAsync(videoId);
+            // Not in the cache, extract the audio from the url
+            IAudioExtractor extractor = new YouTubeProcessor();
+            ISong directlyDownloaded = await extractor.ExtractAsync(url, configuration);
 
             // Cache the song so that we do not need to download it again
             return await StoreSongAsync(directlyDownloaded);
