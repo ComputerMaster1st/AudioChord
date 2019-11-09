@@ -32,17 +32,17 @@ namespace AudioChord.Processors
         public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation,
             IProgress<SongProcessStatus> progress, CancellationToken token)
         {
-            YouTubeProcessor processor = new YouTubeProcessor();
+            YouTubeExtractor extractor = new YouTubeExtractor();
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
 
             Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
 
             //WARNING: Only one thread should be able to verify if songs are in the database
-            foreach (string url in await processor.ParsePlaylistAsync(playlistLocation))
+            foreach (string url in await extractor.ParsePlaylistAsync(playlistLocation))
             {
                 string videoId = YoutubeClient.ParseVideoId(url);
                 // Convert the id to a SongId
-                SongId songId = new SongId(YouTubeProcessor.ProcessorPrefix, videoId);
+                SongId songId = new SongId(YouTubeExtractor.ProcessorPrefix, videoId);
 
                 // Check if the song already exists in the database
                 if (_songCollection.CheckAlreadyExists(songId))

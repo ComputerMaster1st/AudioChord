@@ -132,7 +132,7 @@ namespace AudioChord.Collections
         {
             // Build the corresponding id
             string youtubeVideoId = YoutubeClient.ParseVideoId(url);
-            SongId id = new SongId(YouTubeProcessor.ProcessorPrefix, youtubeVideoId);
+            SongId id = new SongId(YouTubeExtractor.ProcessorPrefix, youtubeVideoId);
 
             // Check if the song is already cached, the same youtube video can be downloaded twice
             (bool isCached, ISong song) = await TryGetSongAsync(id);
@@ -140,7 +140,7 @@ namespace AudioChord.Collections
                 return song;
 
             // Not in the cache, extract the audio from the url
-            IAudioExtractor extractor = new YouTubeProcessor();
+            IAudioExtractor extractor = new YouTubeExtractor();
             ISong directlyDownloaded = await extractor.ExtractAsync(url, configuration);
 
             // Cache the song so that we do not need to download it again

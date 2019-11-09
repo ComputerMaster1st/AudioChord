@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AudioChord.Extractors;
+using AudioChord.Processors;
 using YoutubeExplode;
 using YoutubeExplode.Models;
 using YoutubeExplode.Models.MediaStreams;
 
-namespace AudioChord.Processors
+namespace AudioChord.Extractors
 {
     /// <summary>
     /// Extracts audio from youtube videos
     /// </summary>
-    internal class YouTubeProcessor : IAudioExtractor
+    internal class YouTubeExtractor : IAudioExtractor
     {
         private readonly YoutubeClient _client = new YoutubeClient();
         private readonly FFmpegEncoder _encoder = new FFmpegEncoder();
