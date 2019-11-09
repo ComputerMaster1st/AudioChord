@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioChord.Caching.GridFS",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Caching.FileSystem", "AudioChord.Caching.FileSystem\AudioChord.Caching.FileSystem.csproj", "{36C85735-544B-48F8-BF62-F96257DB63F7}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Caching implementations", "Caching implementations", "{B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,5 +47,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6E094757-65B9-411E-B76D-AEB82EA78A68}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{36C85735-544B-48F8-BF62-F96257DB63F7} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
 	EndGlobalSection
 EndGlobal
