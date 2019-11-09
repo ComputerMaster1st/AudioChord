@@ -1,11 +1,11 @@
 ﻿using AudioChord.Collections;
 using AudioChord.Processors;
-using AudioChord.Wrappers;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AudioChord.Exceptions;
+using AudioChord.Facades;
 
 namespace AudioChord
 {
@@ -18,8 +18,8 @@ namespace AudioChord
 
         private readonly SongCollection _songCollection;
 
-        public YoutubeProcessorWrapper Youtube { get; }
-        public DiscordProcessorWrapper Discord { get; }
+        public YoutubeProcessorFacade Youtube { get; }
+        public DiscordProcessorFacade Discord { get; }
         public PlaylistCollection Playlist { get; }
 
         public MusicService(MusicServiceConfiguration config)
@@ -41,9 +41,14 @@ namespace AudioChord
 
             Playlist = new PlaylistCollection(database, _songCollection);
 
-            // Processor wrappers
-            Youtube = new YoutubeProcessorWrapper(_songCollection, new PlaylistProcessor(_songCollection, this));
-            Discord = new DiscordProcessorWrapper(_songCollection);
+            // Processor facades
+            Youtube = new YoutubeProcessorFacade(
+                _songCollection, 
+                new PlaylistProcessor(_songCollection, this),
+                config.ExtractorConfiguration
+            );
+            
+            Discord = new DiscordProcessorFacade(_songCollection);
         }
 
         /// <summary>

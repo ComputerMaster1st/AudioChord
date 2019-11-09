@@ -1,21 +1,24 @@
-﻿using AudioChord.Collections;
-using AudioChord.Processors;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AudioChord.Collections;
+using AudioChord.Extractors;
+using AudioChord.Processors;
 using YoutubeExplode;
 
-namespace AudioChord.Wrappers
+namespace AudioChord.Facades
 {
-    public class YoutubeProcessorWrapper
+    public class YoutubeProcessorFacade
     {
         private readonly SongCollection _songCollection;
         private readonly PlaylistProcessor _playlistProcessor;
+        private readonly ExtractorConfiguration _extractorConfiguration;
 
-        internal YoutubeProcessorWrapper(SongCollection songStorage, PlaylistProcessor processor)
+        internal YoutubeProcessorFacade(SongCollection songStorage, PlaylistProcessor processor, ExtractorConfiguration configuration)
         {
             _songCollection = songStorage;
             _playlistProcessor = processor;
+            _extractorConfiguration = configuration;
         }
 
         /// <summary>
