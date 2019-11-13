@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Threading;
+using AudioChord.Extractors;
+using YoutubeExplode;
 
 namespace AudioChord.Processors
 {
@@ -14,8 +16,8 @@ namespace AudioChord.Processors
         private readonly MusicService _musicService;
         private readonly WorkScheduler _scheduler;
 
-        private readonly ConcurrentDictionary<SongId, Task<ISong>> _allWork =
-            new ConcurrentDictionary<SongId, Task<ISong>>();
+        private readonly ConcurrentDictionary<string, Task<ISong>> _allWork =
+            new ConcurrentDictionary<string, Task<ISong>>();
 
         public PlaylistProcessor(SongCollection song, MusicService service)
         {
@@ -24,19 +26,24 @@ namespace AudioChord.Processors
             _scheduler = new WorkScheduler();
         }
 
-        public async Task<ResolvingPlaylist> ProcessPlaylist(Uri playlistLocation,
-            IProgress<SongProcessStatus> progress, CancellationToken token)
+        public async Task<ResolvingPlaylist> ProcessPlaylist(
+                Uri playlistLocation,
+                IProgress<SongProcessStatus> progress, 
+                CancellationToken token,
+                ExtractorConfiguration configuration
+            )
         {
-            YouTubeProcessor processor = new YouTubeProcessor();
+            YouTubeExtractor extractor = new YouTubeExtractor();
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
 
             Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
 
             //WARNING: Only one thread should be able to verify if songs are in the database
-            foreach (string id in await processor.ParsePlaylistAsync(playlistLocation))
+            foreach (string url in await extractor.ParsePlaylistAsync(playlistLocation))
             {
+                string videoId = YoutubeClient.ParseVideoId(url);
                 // Convert the id to a SongId
-                SongId songId = new SongId(YouTubeProcessor.ProcessorPrefix, id);
+                SongId songId = new SongId(YouTubeExtractor.ProcessorPrefix, videoId);
 
                 // Check if the song already exists in the database
                 if (_songCollection.CheckAlreadyExists(songId))
@@ -52,18 +59,21 @@ namespace AudioChord.Processors
                     // Song does not exist, add a placeholder that gives back the actual song when done
                     playlist.Songs.Add(
                         // Check if a placeholder already exists
-                        _allWork.GetOrAdd(songId, processingSongId =>
+                        _allWork.GetOrAdd(url, songUrl =>
                         {
                             // Always add progress reporting, there is a possibility that somebody who wants reports attaches later
                             StartableTask<ISong> work = new StartableTask<ISong>(()
                                 => AddProgressReporting(
-                                    _songCollection.DownloadFromYouTubeAsync(processingSongId.SourceId), progress,
-                                    processingSongId));
+                                        _songCollection.DownloadFromYouTubeAsync(songUrl, configuration), 
+                                        progress,
+                                        songId
+                                    )
+                                );
 
                             backlog.Enqueue(work);
 
                             // Remove the task from the dictionary when it's done
-                            work.Work.ContinueWith(task => { _allWork.TryRemove(processingSongId, out _); }, token);
+                            work.Work.ContinueWith(task => { _allWork.TryRemove(songUrl, out _); }, token);
 
                             return work.Work;
                         })

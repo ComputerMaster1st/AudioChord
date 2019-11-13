@@ -1,14 +1,14 @@
 ﻿using System;
-using AudioChord.Collections;
 using System.Threading.Tasks;
+using AudioChord.Collections;
 
-namespace AudioChord.Wrappers
+namespace AudioChord.Facades
 {
-    public class DiscordProcessorWrapper
+    public class DiscordProcessorFacade
     {
         private readonly SongCollection _songCollection;
 
-        internal DiscordProcessorWrapper(SongCollection song)
+        internal DiscordProcessorFacade(SongCollection song)
         {
             _songCollection = song;
         }
