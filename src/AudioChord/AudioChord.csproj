@@ -6,7 +6,7 @@
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
-    <VersionPrefix>1.2.4</VersionPrefix>
+    <VersionPrefix>1.3.0</VersionPrefix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -14,7 +14,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Bugfix: scheduler waits for new items</PackageReleaseNotes>
+    <PackageReleaseNotes>Feature: Added the ability to configure extractors</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
   </PropertyGroup>
