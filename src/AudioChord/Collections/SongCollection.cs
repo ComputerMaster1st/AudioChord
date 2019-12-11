@@ -74,7 +74,7 @@ namespace AudioChord.Collections
         /// </summary>
         /// <param name="song">The <see cref="ISong"/> to store in the database</param>
         /// <returns>a <see cref="DatabaseSong"/>that is the exact representation of the original song, but stored in the database</returns>
-        private async Task<ISong> StoreSongAsync(ISong song)
+        public async Task<ISong> StoreSongAsync(ISong song)
         {
             // The song has already been stored in the database
             if (song is DatabaseSong databaseSong)
