@@ -12,29 +12,28 @@ namespace AudioChord.Extractors
     /// <summary>
     /// Extracts audio from youtube videos
     /// </summary>
-    internal class YouTubeExtractor : IAudioExtractor
+    public class YouTubeExtractor : IAudioExtractor
     {
         private readonly YoutubeClient _client = new YoutubeClient();
         private readonly FFmpegEncoder _encoder = new FFmpegEncoder();
 
         public static string ProcessorPrefix { get; } = "YOUTUBE";
-        
+
+        public bool CanExtract(string source)
+            => YoutubeClient.TryParseVideoId(source, out _);
+
+        public bool TryExtractSongId(string url, out SongId id)
+        {
+            bool result = YoutubeClient.TryParseVideoId(url, out string videoId);
+
+            id = result ? new SongId(ProcessorPrefix, videoId) : null;
+            return result;
+        }
+
         public Task<ISong> ExtractAsync(string url, ExtractorConfiguration configuration)
         {
             string id = YoutubeClient.ParseVideoId(url);
-            
             return ExtractSongAsync(id, configuration.MaxSongDuration);
-        }
-
-        /// <summary>
-        /// Convert the youtube video to a <see cref="Song"/>
-        /// </summary>
-        /// <exception cref="ArgumentException">The videoId passed to this method is not a valid youtube video id</exception>
-        /// <returns>A new <see cref="Song"/> with metadata of the Youtube video</returns>
-        [Obsolete("Use the IAudioExtractor processing instead")]
-        internal Task<ISong> ExtractSongAsync(string videoId)
-        {
-            return ExtractSongAsync(videoId, TimeSpan.FromMinutes(15));
         }
 
         private async Task<ISong> ExtractSongAsync(string videoId, TimeSpan maximumDuration)
@@ -64,7 +63,6 @@ namespace AudioChord.Extractors
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {
             Video videoInfo = await _client.GetVideoAsync(youtubeVideoId);
-
             return new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
         }
 
