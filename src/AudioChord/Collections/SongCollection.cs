@@ -1,5 +1,4 @@
 ﻿using AudioChord.Collections.Models;
-using AudioChord.Processors;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -149,10 +148,7 @@ namespace AudioChord.Collections
 
         internal async Task<ISong> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
-            DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader, attachmentId);
-            Song opusSong = await processor.ProcessAudioAsync();
-
-            return await StoreSongAsync(opusSong);
+            throw new NotImplementedException();
         }
     }
 }

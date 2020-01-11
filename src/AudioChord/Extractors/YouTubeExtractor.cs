@@ -63,7 +63,13 @@ namespace AudioChord.Extractors
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {
             Video videoInfo = await _client.GetVideoAsync(youtubeVideoId);
-            return new SongMetadata(videoInfo.Title, videoInfo.Duration, videoInfo.Author, videoInfo.GetShortUrl());
+            return new SongMetadata
+            {
+                Name = videoInfo.Title, 
+                Length = videoInfo.Duration, 
+                Uploader = videoInfo.Author, 
+                Url = videoInfo.GetShortUrl()
+            };
         }
 
         /// <summary>

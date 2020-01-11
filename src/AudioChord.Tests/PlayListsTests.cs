@@ -2,7 +2,14 @@ using AudioChord.Caching.GridFS;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AudioChord.Extractors;
+using AudioChord.Extractors.Discord;
+using Discord;
+using Discord.Net;
+using Discord.Rest;
+using Moq;
 using Xunit;
 
 namespace AudioChord.Tests
@@ -27,14 +34,19 @@ namespace AudioChord.Tests
 
             service = new MusicService(new MusicServiceConfiguration()
             {
-                SongCacheFactory = () => new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions()
+                SongCacheFactory = () => new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions
                 {
                     BucketName = BUCKET_NAME,
                     ChunkSizeBytes = 4194304,
 
                     // We don't use MD5 in our code
                     DisableMD5 = true
-                }))
+                })),
+                
+                Extractors = () => new List<IAudioExtractor>
+                {
+                    new YouTubeExtractor()
+                }
             });
         }
 
