@@ -79,13 +79,12 @@ namespace AudioChord.Extractors.Discord
         /// </summary>
         /// <param name="url">The url to attempt to extract from</param>
         /// <param name="configuration">The configuration that the extractor needs to validate</param>
-        /// <returns></returns>
+        /// <returns>An <see cref="ISong"/> with possible metadata</returns>
         /// <exception cref="ArgumentException">The given url cannot be handled by this extractor</exception>
-        /// <exception cref="InvalidOperationException">Cannot find corresponding user message for attachment url</exception>
-        /// <exception cref="Exception"></exception>
+        /// <exception cref="ArgumentOutOfRangeException">The duration of the extracted song is too long</exception>
+        /// <exception cref="FormatException">Unable to extract the <see cref="SongId"/> from the url</exception>
         public async Task<ISong> ExtractAsync(string url, ExtractorConfiguration configuration)
         {
-            // TODO: Honor the configuration object passed to the extractor
             if(!CanExtract(url))
                 throw new ArgumentException(
                     $"url '{url}' cannot be extracted. This extractor does not know how to handle it",
@@ -93,6 +92,10 @@ namespace AudioChord.Extractors.Discord
                 );
 
             SongMetadata metadata = await _extractor.GetMetadataAsync(url);
+            
+            // Validate the total duration of the song
+            if(metadata.Duration > configuration.MaxSongDuration)
+                throw new ArgumentOutOfRangeException(nameof(url), $"The total duration of this song is longer than the max allowed duration! ~({Math.Round(configuration.MaxSongDuration.TotalMinutes)} minutes)");
 
             using (HttpClient http = new HttpClient())
             using (Stream httpStream = await http.GetStreamAsync(url))
@@ -101,7 +104,7 @@ namespace AudioChord.Extractors.Discord
                 await httpStream.CopyToAsync(memoryStream);
 
                 if(!TryExtractSongId(url, out SongId id))
-                    throw new Exception("Failed to extract an SongId from the Url");
+                    throw new FormatException("Failed to extract a SongId from the given url");
                 
                 return new Song(id, metadata, memoryStream);
             }
