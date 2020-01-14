@@ -13,6 +13,7 @@ using JetBrains.Annotations;
 
 namespace AudioChord
 {
+    [PublicAPI]
     public class MusicService
     {
         static MusicService()
@@ -84,11 +85,10 @@ namespace AudioChord
         /// then the song in the cache is returned
         /// </summary>
         /// <param name="url">The source to download from</param>
-        /// <param name="ignoreCache">Download the sog directly from the source</param>
+        /// <param name="ignoreCache">Download the audio directly from the source, do not store the audio in the cache</param>
         /// <returns>An <see cref="ISong"/> with the song at the given source</returns>
         /// <exception cref="MultipleExtractorCandidatesException"></exception>
-        /// <exception cref="Exception"></exception>
-        [PublicAPI]
+        /// <exception cref="FormatException">Failed to extract an id using the selected extractor</exception>
         public async Task<ISong> DownloadSongAsync(string url, bool ignoreCache = false)
         {
             IList<IAudioExtractor> extractorCandidates = _extractors
@@ -96,23 +96,25 @@ namespace AudioChord
                 .ToList();
 
             if (extractorCandidates.Count > 1)
-                throw new MultipleExtractorCandidatesException($"Multiple extractors found for {url}");
+                throw new MultipleExtractorCandidatesException($"Multiple extractors found for '{url}'");
 
             IAudioExtractor extractor = extractorCandidates
                 .Single();
+
+            if (ignoreCache) 
+                // Immediately attempt to extract audio 
+                return await extractor.ExtractAsync(url, _extractorConfiguration);
             
-            if (!ignoreCache)
-            {
-                if (extractor.TryExtractSongId(url, out SongId id))
-                    // TODO: Make this an proper exception class
-                    throw new Exception("Could not create id from url!");
+            // Attempt to fetch an id from the url and check the cache
+            if (extractor.TryExtractSongId(url, out SongId id))
+                throw new FormatException($"Could not extract an id from '{url}'!");
                     
-                (bool success, ISong song) = await TryGetSongAsync(id);
-                if (success)
-                    return song;
-            }
-            
-            return await extractor.ExtractAsync(url, _extractorConfiguration);
+            (bool success, ISong song) = await TryGetSongAsync(id);
+            if (success)
+                return song;
+
+            // Failed.. Try to extract & cache it
+            return await _songCollection.StoreSongAsync(await extractor.ExtractAsync(url, _extractorConfiguration));
         }
 
         /// <summary>
@@ -120,7 +122,6 @@ namespace AudioChord
         /// </summary>
         /// <param name="id">The <see cref="SongId"/> to search for</param>
         /// <returns>A tuple with the result and the actual object</returns>
-        [PublicAPI]
         public Task<(bool, ISong)> TryGetSongAsync(SongId id)
             => _songCollection.TryGetSongAsync(id);
 
@@ -129,19 +130,22 @@ namespace AudioChord
         /// </summary>
         /// <param name="amount">The amount of random songs, defaults to 100</param>
         /// <returns>A list of SongId's</returns>
-        [PublicAPI]
         public IEnumerable<SongId> GetRandomSongs(long amount = 100)
             => _songCollection.GetRandomSongs(amount);
 
         /// <summary>
-        /// Get all songs in database.
+        /// Get all audio metadata in database.
         /// </summary>
-        /// <returns>Dictionary of songs in database.</returns>
-        [PublicAPI]
+        /// <returns>Enumerable of Audio Metadata in the shape of <see cref="SongMetadata"/>.</returns>
         public Task<IEnumerable<SongMetadata>> EnumerateSongMetadataAsync()
             => _songCollection.EnumerateMetadataAsync();
-
-        [PublicAPI]
+        
+        /// <summary>
+        /// Find a single audio metadata entry
+        /// </summary>
+        /// <param name="id">The <see cref="SongId"/> to look for</param>
+        /// <param name="metadata">The <see cref="SongMetadata"/> that will be returned</param>
+        /// <returns></returns>
         public bool TryGetSongMetadata(SongId id, out SongMetadata metadata)
         {
             metadata = _songCollection.TryFindSongMetadata(id);
