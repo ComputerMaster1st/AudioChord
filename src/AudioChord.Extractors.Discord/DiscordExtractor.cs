@@ -95,7 +95,7 @@ namespace AudioChord.Extractors.Discord
             
             // Validate the total duration of the song
             if(metadata.Duration > configuration.MaxSongDuration)
-                throw new ArgumentOutOfRangeException(nameof(url), $"The total duration of this song is longer than the max allowed duration! ~({Math.Round(configuration.MaxSongDuration.TotalMinutes)} minutes)");
+                throw new ArgumentOutOfRangeException(nameof(url), $"The duration of this song is longer than the maximum allowed duration! (~{Math.Round(configuration.MaxSongDuration.TotalMinutes)} minutes)");
 
             using (HttpClient http = new HttpClient())
             using (Stream httpStream = await http.GetStreamAsync(url))

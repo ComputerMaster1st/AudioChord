@@ -44,8 +44,8 @@ namespace AudioChord.Extractors
             // Retrieve the metadata of the video
             SongMetadata metadata = await GetVideoMetadataAsync(videoId);
 
-            if (metadata.Length > maximumDuration)
-                throw new ArgumentOutOfRangeException(nameof(videoId), "Video duration longer than 15 minutes!");
+            if (metadata.Duration > maximumDuration)
+                throw new ArgumentOutOfRangeException(nameof(videoId), $"The duration of this song is longer than the maximum allowed duration! (~{Math.Round(maximumDuration.TotalMinutes)} minutes)");
 
             // Retrieve the actual video and convert it to opus
             MuxedStreamInfo streamInfo =
