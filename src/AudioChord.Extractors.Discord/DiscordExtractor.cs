@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AudioChord.Processors;
-using Discord;
 using JetBrains.Annotations;
 
 namespace AudioChord.Extractors.Discord
@@ -12,22 +11,20 @@ namespace AudioChord.Extractors.Discord
     [PublicAPI]
     public class DiscordExtractor : IAudioExtractor
     {
-        private readonly IDiscordClient _client;
         private readonly FFprobeMetadataExtractor _extractor;
 
         private const string DISCORD_CDN_HOST = "cdn.discordapp.com";
         private const string PROCESSOR_PREFIX = "DISCORD";
         
-        public DiscordExtractor(IDiscordClient client)
+        public DiscordExtractor()
         {
-            _client = client;
             _extractor = new FFprobeMetadataExtractor();
         }
         
         public bool CanExtract(string url)
         {
             // Example: https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3
-            // Assuming that the first id is a channel id, the second one is an message id.
+            // Assuming that the first id is a channel id, the second one is an attachment id.
             
             if(!Uri.TryCreate(url, UriKind.Absolute, out Uri result))
                 return false;

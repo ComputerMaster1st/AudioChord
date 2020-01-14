@@ -6,10 +6,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AudioChord.Extractors;
 using AudioChord.Extractors.Discord;
-using Discord;
-using Discord.Net;
-using Discord.Rest;
-using Moq;
 using Xunit;
 
 namespace AudioChord.Tests
@@ -32,7 +28,7 @@ namespace AudioChord.Tests
 
             const string BUCKET_NAME = "OpusData";
 
-            service = new MusicService(new MusicServiceConfiguration()
+            service = new MusicService(new MusicServiceConfiguration
             {
                 SongCacheFactory = () => new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions
                 {
@@ -45,7 +41,8 @@ namespace AudioChord.Tests
                 
                 Extractors = () => new List<IAudioExtractor>
                 {
-                    new YouTubeExtractor()
+                    new YouTubeExtractor(),
+                    new DiscordExtractor()
                 }
             });
         }
@@ -68,23 +65,6 @@ namespace AudioChord.Tests
             await service.Playlist.UpdateAsync(p);
 
             Playlist p2 = await service.Playlist.GetPlaylistAsync(p.Id);
-
-            Assert.NotNull(p2);
-            Assert.NotNull(p2.Songs);
-            Assert.NotEmpty(p2.Songs);
-        }
-
-        [Fact]
-        public async Task Playlist_SaveSongDiscord()
-        {
-            Playlist playlist = new Playlist();
-
-            ISong song = await service.Discord.DownloadAsync("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", "ComputerMaster1st#6458", 414561033370468352);
-            playlist.Songs.Add(song.Id);
-
-            await service.Playlist.UpdateAsync(playlist);
-
-            Playlist p2 = await service.Playlist.GetPlaylistAsync(playlist.Id);
 
             Assert.NotNull(p2);
             Assert.NotNull(p2.Songs);
