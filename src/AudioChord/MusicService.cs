@@ -26,7 +26,6 @@ namespace AudioChord
         private readonly ExtractorConfiguration _extractorConfiguration;
 
         public YoutubeProcessorFacade Youtube { get; }
-        public DiscordProcessorFacade Discord { get; }
         public PlaylistCollection Playlist { get; }
 
         public MusicService(MusicServiceConfiguration config)
@@ -57,8 +56,6 @@ namespace AudioChord
                 ),
                 config.ExtractorConfiguration
             );
-            
-            Discord = new DiscordProcessorFacade(_songCollection);
 
             _extractors = config.Extractors();
             _extractorConfiguration = config.ExtractorConfiguration;
