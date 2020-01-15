@@ -65,8 +65,8 @@ namespace AudioChord.Extractors
             Video videoInfo = await _client.GetVideoAsync(youtubeVideoId);
             return new SongMetadata
             {
-                Name = videoInfo.Title, 
-                Length = videoInfo.Duration, 
+                Title = videoInfo.Title, 
+                Duration = videoInfo.Duration, 
                 Uploader = videoInfo.Author, 
                 Url = videoInfo.GetShortUrl()
             };
