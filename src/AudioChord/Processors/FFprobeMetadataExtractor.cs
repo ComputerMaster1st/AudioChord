@@ -21,6 +21,9 @@ namespace AudioChord.Processors
         public async Task<SongMetadata> GetMetadataAsync(string url, SongMetadata existingMetadata)
         {
             JObject root = await ProbeFileAsync(url);
+
+            if (existingMetadata.Url != url)
+                existingMetadata.Url = url;
             
             if (!root["format"].HasValues)
                 throw new ArgumentException("FFprobe gave back unreadable information.");
