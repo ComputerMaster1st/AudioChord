@@ -49,8 +49,9 @@ namespace AudioChord.Caching.FileSystem
             {
                 try
                 {
-                    // Open a new file with shared read access, throws an exception if the file already exists
-                    using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read))
+                    // Open a new file with no shared access, since we are still writing the file
+                    // throws an exception if the file already exists
+                    using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
                     {
                         Stream stream = await song.GetMusicStreamAsync();
 
