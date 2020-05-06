@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AudioChord.Caching.GridFS\AudioChord.Caching.GridFS.csproj" />
-    <ProjectReference Include="..\AudioChord.Extractors.Discord\AudioChord.Extractors.Discord.csproj" />
-    <ProjectReference Include="..\AudioChord\AudioChord.csproj" />
+    <PackageReference Include="AudioChord.Caching.GridFS" Version="1.0.0" />
+    <PackageReference Include="AudioChord.Extractors.Discord" Version="1.0.0" />
+    <PackageReference Include="AudioChord" Version="1.4.1" />
   </ItemGroup>
 
 </Project>
