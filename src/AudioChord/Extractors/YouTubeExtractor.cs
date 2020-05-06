@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AudioChord.Processors;
 using YoutubeExplode;
@@ -50,11 +51,32 @@ namespace AudioChord.Extractors
             if (metadata.Duration > maximumDuration)
                 throw new ArgumentOutOfRangeException(nameof(videoId), $"The duration of this song is longer than the maximum allowed duration! (~{Math.Round(maximumDuration.TotalMinutes)} minutes)");
 
-            // Retrieve the actual video and convert it to opus
-            foreach (AudioOnlyStreamInfo info in (await _client.Videos.Streams.GetManifestAsync(videoId)).GetAudioOnly())
+            const long minimumAudioBitrate = 1024 * 124;
+
+            StreamManifest manifest = await _client.Videos.Streams.GetManifestAsync(videoId);
+
+            // Select the audio stream closest to the target bitrate
+            IEnumerable<IAudioStreamInfo> optimalStreams = manifest
+                .Streams
+                .OfType<IAudioStreamInfo>()
+                // The minimum bitrate is 126 kbps
+                .Where(audioStreams => audioStreams.Bitrate.BitsPerSecond >= minimumAudioBitrate)
+                .OrderBy(audioStreams => audioStreams.Bitrate)
+                .ToArray();
+
+            if (!optimalStreams.Any())
             {
-                // TODO: Implement logic for choosing a stream
-                // This should be based on the encoding type and bitrate
+                // Select the highest bitrate audio stream since we do not have any audio stream that meets or exceeds the previous quality guarantee
+                optimalStreams = manifest
+                    .GetAudio()
+                    .OrderByDescending(audioStreams => audioStreams.Bitrate)
+                    .ToArray();
+            }
+            
+
+            // Retrieve the actual video and convert it to opus
+            foreach (IAudioStreamInfo info in optimalStreams)
+            {
                 using (Stream youtubeStream = await _client.Videos.Streams.GetAsync(info))
                 {
                     // Convert it to a Song class
