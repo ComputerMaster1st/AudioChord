@@ -103,6 +103,9 @@ namespace AudioChord.Extractors.Discord
             {
                 MemoryStream memoryStream = new MemoryStream();
                 await httpStream.CopyToAsync(memoryStream);
+                
+                // Reset the stream back to the beginning
+                memoryStream.Seek(0, SeekOrigin.Begin);
 
                 if(!TryExtractSongId(url, out SongId id))
                     throw new FormatException("Failed to extract a SongId from the given url");
