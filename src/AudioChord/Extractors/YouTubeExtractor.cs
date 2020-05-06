@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 using AudioChord.Processors;
 using YoutubeExplode;
-using YoutubeExplode.Models;
-using YoutubeExplode.Models.MediaStreams;
+using YoutubeExplode.Playlists;
+using YoutubeExplode.Videos;
+using YoutubeExplode.Videos.Streams;
+
+using YtPlaylist = YoutubeExplode.Playlists.Playlist;
 
 namespace AudioChord.Extractors
 {
@@ -20,25 +23,25 @@ namespace AudioChord.Extractors
         public static string ProcessorPrefix { get; } = "YOUTUBE";
 
         public bool CanExtract(string source)
-            => YoutubeClient.TryParseVideoId(source, out _);
+            => !(VideoId.TryParse(source) is null);
 
         public bool TryExtractSongId(string url, out SongId id)
         {
-            bool result = YoutubeClient.TryParseVideoId(url, out string videoId);
+            VideoId? result = VideoId.TryParse(url);
 
-            id = result ? new SongId(ProcessorPrefix, videoId) : null;
-            return result;
+            id = result.HasValue ? new SongId(ProcessorPrefix, result.Value) : null;
+            return result.HasValue;
         }
 
         public Task<ISong> ExtractAsync(string url, ExtractorConfiguration configuration)
         {
-            string id = YoutubeClient.ParseVideoId(url);
+            VideoId id = new VideoId(url);
             return ExtractSongAsync(id, configuration.MaxSongDuration);
         }
 
         private async Task<ISong> ExtractSongAsync(string videoId, TimeSpan maximumDuration)
         {
-            if (!YoutubeClient.ValidateVideoId(videoId))
+            if (VideoId.TryParse(videoId) is null)
                 throw new ArgumentException("The videoId is not correctly formatted");
 
             // Retrieve the metadata of the video
@@ -48,27 +51,31 @@ namespace AudioChord.Extractors
                 throw new ArgumentOutOfRangeException(nameof(videoId), $"The duration of this song is longer than the maximum allowed duration! (~{Math.Round(maximumDuration.TotalMinutes)} minutes)");
 
             // Retrieve the actual video and convert it to opus
-            MuxedStreamInfo streamInfo =
-                (await _client.GetVideoMediaStreamInfosAsync(videoId)).Muxed.WithHighestVideoQuality();
-            
-            using (MediaStream youtubeStream = await _client.GetMediaStreamAsync(streamInfo))
+            foreach (AudioOnlyStreamInfo info in (await _client.Videos.Streams.GetManifestAsync(videoId)).GetAudioOnly())
             {
-                // Convert it to a Song class
-                // The processor should be responsible for prefixing the id with the correct type
-                return new Song(new SongId(ProcessorPrefix, videoId), metadata,
-                    await _encoder.ProcessAsync(youtubeStream));
+                // TODO: Implement logic for choosing a stream
+                // This should be based on the encoding type and bitrate
+                using (Stream youtubeStream = await _client.Videos.Streams.GetAsync(info))
+                {
+                    // Convert it to a Song class
+                    // The processor should be responsible for prefixing the id with the correct type
+                    return new Song(new SongId(ProcessorPrefix, videoId), metadata,
+                        await _encoder.ProcessAsync(youtubeStream));
+                }
             }
+            
+            throw new InvalidOperationException($"The given video at {metadata.Url} does not contain audio!");
         }
         
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
         {
-            Video videoInfo = await _client.GetVideoAsync(youtubeVideoId);
+            Video videoInfo = await _client.Videos.GetAsync(youtubeVideoId);
             return new SongMetadata
             {
                 Title = videoInfo.Title, 
                 Duration = videoInfo.Duration, 
                 Uploader = videoInfo.Author, 
-                Url = videoInfo.GetShortUrl()
+                Url = videoInfo.Url
             };
         }
 
@@ -77,21 +84,17 @@ namespace AudioChord.Extractors
         /// </summary>
         /// <param name="playlistLocation">The url to the targeted playlist</param>
         /// <returns></returns>
-        internal async Task<List<string>> ParsePlaylistAsync(Uri playlistLocation)
+        internal IAsyncEnumerable<Video> ParsePlaylistAsync(Uri playlistLocation)
         {
             if (playlistLocation is null)
                 throw new ArgumentNullException(nameof(playlistLocation), "The uri passed to this method is null");
 
-            if (!YoutubeClient.TryParsePlaylistId(playlistLocation.ToString(), out string playlistId))
+            PlaylistId? playlistId = PlaylistId.TryParse(playlistLocation.ToString());
+            if (playlistId is null)
                 throw new ArgumentException("Invalid playlist url given", nameof(playlistLocation));
 
-            YoutubeExplode.Models.Playlist playlist = await _client.GetPlaylistAsync(playlistId);
-
-            //retrieve all the id's and return it as a list
-            return playlist.Videos
-                .ToList()
-                //create tasks out of all the videos
-                .ConvertAll(video => video.GetUrl());
+            // Retrieve all the videos
+            return _client.Playlists.GetVideosAsync(playlistId.Value);
         }
     }
 }

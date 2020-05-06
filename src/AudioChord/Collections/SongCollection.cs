@@ -130,7 +130,7 @@ namespace AudioChord.Collections
         internal async Task<ISong> DownloadFromYouTubeAsync(string url, ExtractorConfiguration configuration)
         {
             // Build the corresponding id
-            string youtubeVideoId = YoutubeClient.ParseVideoId(url);
+            string youtubeVideoId = YoutubeExplode.Videos.VideoId.TryParse(url);
             SongId id = new SongId(YouTubeExtractor.ProcessorPrefix, youtubeVideoId);
 
             // Check if the song is already cached, the same youtube video can be downloaded twice
