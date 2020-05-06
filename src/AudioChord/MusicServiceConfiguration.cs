@@ -22,7 +22,6 @@ namespace AudioChord
         public string Password { get; set; }
         public string Hostname { get; set; } = "localhost";
 
-
         // ReSharper disable once StringLiteralTypo
         public string Database { get; internal set; } = "sharedmusic";
     }

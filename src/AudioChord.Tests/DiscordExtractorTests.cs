@@ -17,11 +17,13 @@ namespace AudioChord.Tests
             _extractor = new DiscordExtractor();
         }
 
-        [Fact(DisplayName = "Discord Extractor recognizes valid discord attachment Url")]
-        public void DiscordExtractorCanRetrieveId()
+        [Theory]
+        [InlineData("https://media.discordapp.net/attachments/400706177618673666/707708192083410964/MultiGiftSub1.mp3", true)]
+        [InlineData("https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3", true)]
+        public void DiscordExtractorCanRetrieveId(string url, bool expectedResult)
         {
             // Assert
-            Assert.True(_extractor.CanExtract(DISCORD_URL));
+            Assert.True(_extractor.CanExtract(url) == expectedResult);
         }
 
         [Fact(DisplayName = "Discord Extractor generates the correct id from an Url")]

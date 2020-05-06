@@ -14,6 +14,7 @@ namespace AudioChord.Extractors.Discord
         private readonly FFprobeMetadataExtractor _extractor;
 
         private const string DISCORD_CDN_HOST = "cdn.discordapp.com";
+        private const string DISCORD_MEDIA_HOST = "media.discordapp.net";
         private const string PROCESSOR_PREFIX = "DISCORD";
         
         public DiscordExtractor()
@@ -29,7 +30,7 @@ namespace AudioChord.Extractors.Discord
             if(!Uri.TryCreate(url, UriKind.Absolute, out Uri result))
                 return false;
 
-            if (result.Host != DISCORD_CDN_HOST)
+            if (!(result.Host == DISCORD_CDN_HOST || result.Host == DISCORD_MEDIA_HOST))
                 return false;
             
             // We need to sanitize the segments by removing the '/' characters
