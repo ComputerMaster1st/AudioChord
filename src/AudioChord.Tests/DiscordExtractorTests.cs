@@ -10,7 +10,7 @@ namespace AudioChord.Tests
         private const string DISCORD_URL = "https://cdn.discordapp.com/attachments/400706177618673666/414561033370468352/Neptune.mp3";
         private const ulong ATTACHMENT_ID = 414561033370468352;
 
-        private readonly DiscordExtractor _extractor;
+        private readonly IAudioExtractor _extractor;
 
         public DiscordExtractorTests()
         {
