@@ -106,7 +106,7 @@ namespace AudioChord
                 if (!ignoreCache)
                 {
                     // Attempt to fetch an id from the url and check the cache
-                    if (extractorCandidate.TryExtractSongId(url, out SongId id))
+                    if (!extractorCandidate.TryExtractSongId(url, out SongId id))
                         throw new FormatException($"Could not extract an id from '{url}'!");
                     
                     (bool success, ISong song) = await TryGetSongAsync(id);
