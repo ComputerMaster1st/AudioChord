@@ -107,7 +107,9 @@ namespace AudioChord.Extractors.Discord
                 if(!TryExtractSongId(url, out SongId id))
                     throw new FormatException("Failed to extract a SongId from the given url");
                 
-                return new Song(id, metadata, memoryStream);
+                // Encode the song to opus
+                FFmpegEncoder encoder = new FFmpegEncoder();
+                return new Song(id, metadata, await encoder.ProcessAsync(memoryStream));
             }
         }
     }
