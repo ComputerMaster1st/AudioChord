@@ -23,6 +23,7 @@ namespace AudioChord
 
         private readonly SongCollection _songCollection;
         private readonly IReadOnlyCollection<IAudioExtractor> _extractors;
+        private readonly IReadOnlyCollection<IAudioMetadataEnricher> _enrichers;
         private readonly ExtractorConfiguration _extractorConfiguration;
 
         public YoutubeProcessorFacade Youtube { get; }
@@ -58,6 +59,7 @@ namespace AudioChord
             );
 
             _extractors = config.Extractors();
+            _enrichers = config.Enrichers();
             _extractorConfiguration = config.ExtractorConfiguration;
         }
 
@@ -84,7 +86,8 @@ namespace AudioChord
         /// <param name="url">The source to download from</param>
         /// <param name="ignoreCache">Download the audio directly from the source, do not store the audio in the cache</param>
         /// <returns>An <see cref="ISong"/> with the song at the given source</returns>
-        /// <exception cref="MultipleExtractorCandidatesException"></exception>
+        /// <exception cref="NoExtractorCandidatesException">No Extractors found that an handle the given url</exception>
+        /// <exception cref="InvalidOperationException">All possible extractors failed to extract audio</exception>
         /// <exception cref="FormatException">Failed to extract an id using the selected extractor</exception>
         public async Task<ISong> DownloadSongAsync(string url, bool ignoreCache = false)
         {
@@ -92,26 +95,34 @@ namespace AudioChord
                 .Where(extract => extract.CanExtract(url))
                 .ToList();
 
-            if (extractorCandidates.Count > 1)
-                throw new MultipleExtractorCandidatesException($"Multiple extractors found for '{url}'");
+            if (extractorCandidates.Count == 0)
+                throw new NoExtractorCandidatesException($"No extractors found for url '{url}'");
 
-            IAudioExtractor extractor = extractorCandidates
-                .Single();
-
-            if (ignoreCache) 
-                // Immediately attempt to extract audio 
-                return await extractor.ExtractAsync(url, _extractorConfiguration);
-            
-            // Attempt to fetch an id from the url and check the cache
-            if (extractor.TryExtractSongId(url, out SongId id))
-                throw new FormatException($"Could not extract an id from '{url}'!");
+            foreach (IAudioExtractor extractorCandidate in extractorCandidates)
+            {
+                if (!ignoreCache)
+                {
+                    // Attempt to fetch an id from the url and check the cache
+                    if (extractorCandidate.TryExtractSongId(url, out SongId id))
+                        throw new FormatException($"Could not extract an id from '{url}'!");
                     
-            (bool success, ISong song) = await TryGetSongAsync(id);
-            if (success)
-                return song;
+                    (bool success, ISong song) = await TryGetSongAsync(id);
+                    if (success)
+                        return song;
+                }
 
-            // Failed.. Try to extract & cache it
-            return await _songCollection.StoreSongAsync(await extractor.ExtractAsync(url, _extractorConfiguration));
+                // Failed.. Try to extract it
+                ISong extractedSong = await extractorCandidate.ExtractAsync(url, _extractorConfiguration);
+            
+                // Run enrichers over the song to allow them to update the metadata if needed
+                foreach (IAudioMetadataEnricher enricher in _enrichers) 
+                    await enricher.EnrichAsync(extractedSong);
+
+                // And finally cache it
+                return await _songCollection.StoreSongAsync(extractedSong);
+            }
+
+            throw new InvalidOperationException($"All {extractorCandidates.Count} Audio Extractors failed to extract audio");
         }
 
         /// <summary>

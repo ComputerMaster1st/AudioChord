@@ -5,9 +5,9 @@ namespace AudioChord
     /// <summary>
     /// Thrown when multiple extractors are found for the same url
     /// </summary>
-    public class MultipleExtractorCandidatesException : Exception
+    public class NoExtractorCandidatesException : Exception
     {
-        public MultipleExtractorCandidatesException(string message)
+        public NoExtractorCandidatesException(string message)
             : base(message)
         { }
     }

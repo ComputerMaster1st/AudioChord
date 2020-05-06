@@ -2,6 +2,7 @@
 using AudioChord.Extractors;
 using System;
 using System.Collections.Generic;
+using AudioChord.Caching.InMemory;
 using JetBrains.Annotations;
 
 namespace AudioChord
@@ -12,15 +13,17 @@ namespace AudioChord
     [PublicAPI]
     public class MusicServiceConfiguration
     {
-        public Func<ISongCache> SongCacheFactory { get; set; }
-        public Func<IReadOnlyCollection<IAudioExtractor>> Extractors { get; set; }
+        public Func<ISongCache> SongCacheFactory { get; set; } = () => new InMemoryCache();
+        public Func<IReadOnlyCollection<IAudioExtractor>> Extractors { get; set; } = () => new List<IAudioExtractor>();
+        public Func<IReadOnlyCollection<IAudioMetadataEnricher>> Enrichers { get; set; } = () => new List<IAudioMetadataEnricher>();
+        public ExtractorConfiguration ExtractorConfiguration { get; set; } = new ExtractorConfiguration();
 
         public string Username { get; set; }
         public string Password { get; set; }
         public string Hostname { get; set; } = "localhost";
 
+
         // ReSharper disable once StringLiteralTypo
         public string Database { get; internal set; } = "sharedmusic";
-        public ExtractorConfiguration ExtractorConfiguration { get; set; } = new ExtractorConfiguration();
     }
 }
