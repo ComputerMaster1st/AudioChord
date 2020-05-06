@@ -26,7 +26,10 @@ namespace AudioChord
         private readonly IReadOnlyCollection<IAudioMetadataEnricher> _enrichers;
         private readonly ExtractorConfiguration _extractorConfiguration;
 
+        [Obsolete("Use MusicService.DownloadAsync with an url instead")]
         public YoutubeProcessorFacade Youtube { get; }
+        
+        [Obsolete("Playlist support will be removed in a future release")]
         public PlaylistCollection Playlist { get; }
 
         public MusicService(MusicServiceConfiguration config)
