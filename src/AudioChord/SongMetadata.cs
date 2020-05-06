@@ -1,20 +1,39 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace AudioChord
 {
+    [PublicAPI]
     public class SongMetadata
     {
-        public string Name { get; private set; }
-        public TimeSpan Length { get; private set; }
-        public string Uploader { get; private set; }
-        public string Url { get; private set; }
+        /// <summary>
+        /// Title of this song
+        /// </summary>
+        public string Title { get; set; } = "Unknown title";
+        
+        /// <summary>
+        /// Total duration of this song
+        /// </summary>
+        public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+        public string Uploader { get; set; } = "Unknown Uploader";
+        public string Url { get; set; } = "No source given";
 
-        internal SongMetadata(string name, TimeSpan length, string uploader, string url)
+        #region Obsolete Properties
+
+        [Obsolete("Replaced with SongMetadata.Duration")]
+        public TimeSpan Length
         {
-            Name = name;
-            Length = length;
-            Uploader = uploader;
-            Url = url;
+            get => Duration;
+            set => Duration = value;
         }
+        
+        [Obsolete("Replaced with SongMetadata.Title")]
+        public string Name
+        {
+            get => Title;
+            set => Title = value;
+        }
+
+        #endregion
     }
 }

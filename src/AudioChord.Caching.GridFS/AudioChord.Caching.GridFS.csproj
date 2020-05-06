@@ -17,11 +17,25 @@
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
     <Company>CryoDev Development Team</Company>
     <Authors>CryoDev Development Team</Authors>
+    
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.9.*" />
-    <PackageReference Include="AudioChord" Version="1.2.*" />
+    <PackageReference Include="AudioChord" Version="1.4.*" />
   </ItemGroup>
+
+  <!-- Move the packages to a project-wide packages folder to use for locally resolving packages -->
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <PropertyGroup>
+      <SourceRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), source.root))</SourceRoot>
+    </PropertyGroup>
+
+    <Copy
+            SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg"
+            DestinationFolder="$(SourceRoot)\packages\"
+    />
+  </Target>
 
 </Project>

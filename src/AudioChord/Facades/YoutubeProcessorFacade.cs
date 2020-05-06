@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AudioChord.Collections;
 using AudioChord.Extractors;
 using AudioChord.Processors;
-using YoutubeExplode;
+using YoutubeExplode.Videos;
 
 namespace AudioChord.Facades
 {
@@ -82,14 +82,10 @@ namespace AudioChord.Facades
         /// <returns><see langword="true"/>if the capturing was successful</returns>
         public bool TryParseYoutubeUrl(string url, out string videoId)
         {
-            if (YoutubeClient.TryParseVideoId(url, out string id))
-            {
-                videoId = id;
-                return true;
-            }
+            VideoId? result = VideoId.TryParse(url);
 
-            videoId = null;
-            return false;
+            videoId = result.GetValueOrDefault();
+            return result.HasValue;
         }
     }
 }

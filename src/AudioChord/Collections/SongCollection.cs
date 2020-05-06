@@ -1,5 +1,4 @@
 ﻿using AudioChord.Collections.Models;
-using AudioChord.Processors;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -74,7 +73,7 @@ namespace AudioChord.Collections
         /// </summary>
         /// <param name="song">The <see cref="ISong"/> to store in the database</param>
         /// <returns>a <see cref="DatabaseSong"/>that is the exact representation of the original song, but stored in the database</returns>
-        private async Task<ISong> StoreSongAsync(ISong song)
+        public async Task<ISong> StoreSongAsync(ISong song)
         {
             // The song has already been stored in the database
             if (song is DatabaseSong databaseSong)
@@ -131,7 +130,7 @@ namespace AudioChord.Collections
         internal async Task<ISong> DownloadFromYouTubeAsync(string url, ExtractorConfiguration configuration)
         {
             // Build the corresponding id
-            string youtubeVideoId = YoutubeClient.ParseVideoId(url);
+            string youtubeVideoId = YoutubeExplode.Videos.VideoId.TryParse(url);
             SongId id = new SongId(YouTubeExtractor.ProcessorPrefix, youtubeVideoId);
 
             // Check if the song is already cached, the same youtube video can be downloaded twice
@@ -149,10 +148,7 @@ namespace AudioChord.Collections
 
         internal async Task<ISong> DownloadFromDiscordAsync(string url, string uploader, ulong attachmentId)
         {
-            DiscordProcessor processor = await DiscordProcessor.RetrieveAsync(url, uploader, attachmentId);
-            Song opusSong = await processor.ProcessAudioAsync();
-
-            return await StoreSongAsync(opusSong);
+            throw new NotImplementedException();
         }
     }
 }
