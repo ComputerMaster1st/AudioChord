@@ -2,14 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>1.0.1</Version>
+        <Version>1.0.4</Version>
         
         <Description>
             Extractor provider for discord attachment urls
         </Description>
         
         <PackageReleaseNotes>
-            Add Media cdn for parsing attachments
+            Fix: encode discord files to opus
         </PackageReleaseNotes>
         
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

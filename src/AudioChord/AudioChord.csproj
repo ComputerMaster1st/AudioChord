@@ -6,7 +6,7 @@
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
-    <VersionPrefix>1.4.2</VersionPrefix>
+    <VersionPrefix>1.4.4</VersionPrefix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -14,7 +14,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Feature: Added the ability to configure extractors</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix:make FFmpeg encoder public</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
   </PropertyGroup>
