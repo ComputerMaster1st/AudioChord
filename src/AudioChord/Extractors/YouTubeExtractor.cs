@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AudioChord.Processors;
 using YoutubeExplode;
@@ -18,10 +19,20 @@ namespace AudioChord.Extractors
     /// </summary>
     public class YouTubeExtractor : IAudioExtractor
     {
-        private readonly YoutubeClient _client = new YoutubeClient();
+        private readonly YoutubeClient _client;
         private readonly FFmpegEncoder _encoder = new FFmpegEncoder();
 
         public static string ProcessorPrefix { get; } = "YOUTUBE";
+
+        public YouTubeExtractor()
+        {
+            _client = new YoutubeClient();
+        }
+
+        public YouTubeExtractor(HttpClient client)
+        {
+            _client = new YoutubeClient(client);
+        }
 
         public bool CanExtract(string source)
             => !(VideoId.TryParse(source) is null);
