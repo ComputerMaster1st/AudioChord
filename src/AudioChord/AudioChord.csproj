@@ -6,7 +6,7 @@
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
-    <VersionPrefix>1.6.0</VersionPrefix>
+    <VersionPrefix>1.7.0</VersionPrefix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -14,7 +14,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Improve: Allow specifying the HttpClient to use for requests</PackageReleaseNotes>
+    <PackageReleaseNotes>Improve: Add IMetadataProvider for implementing storage providers</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
     <LangVersion>8</LangVersion>
