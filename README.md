@@ -17,7 +17,10 @@ The command result will tell you where the package was created, navigate to the 
 dotnet nuget push {path_to_package} -k {api_key} -s {nuget_package_server}
 ```
 
-### requirements:
-- MongoDB database with GridFS enabled
+### Requirements:
+- MongoDB database
 - FFMpeg 
-- Dotnet Core 2.0
+- Optionally a cache driver (eg AudioChord.Caching.Filesystem)
+- Anything that supports netstandard 2.0
+
+### How to use?
