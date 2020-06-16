@@ -41,7 +41,7 @@ namespace AudioChord.Extractors
         {
             VideoId? result = VideoId.TryParse(url);
 
-            id = result.HasValue ? new SongId(ProcessorPrefix, result.Value) : null;
+            id = (result.HasValue ? new SongId(ProcessorPrefix, result.Value) : null)!;
             return result.HasValue;
         }
 
