@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AudioChord.Exceptions;
 using AudioChord.Extractors;
 using AudioChord.Facades;
+using AudioChord.Metadata;
 using JetBrains.Annotations;
 
 namespace AudioChord
@@ -25,6 +26,7 @@ namespace AudioChord
         private readonly IReadOnlyCollection<IAudioExtractor> _extractors;
         private readonly IReadOnlyCollection<IAudioMetadataEnricher> _enrichers;
         private readonly ExtractorConfiguration _extractorConfiguration;
+        private readonly IMetadataProvider _provider;
 
         [Obsolete("Use MusicService.DownloadAsync with an url instead")]
         public YoutubeProcessorFacade Youtube { get; }
@@ -46,8 +48,9 @@ namespace AudioChord
 
             MongoClient client = new MongoClient(connectionStringBuilder.ToMongoUrl());
             IMongoDatabase database = client.GetDatabase(config.Database);
+            _provider = config.MetadataProviderFactory();
 
-            _songCollection = new SongCollection(database, config.SongCacheFactory());
+            _songCollection = new SongCollection(_provider, config.SongCacheFactory());
 
             Playlist = new PlaylistCollection(database, _songCollection);
 
@@ -72,15 +75,8 @@ namespace AudioChord
         /// <param name="id">The song Id.</param>
         /// <exception cref="SongNotFoundException">No song was found with the specified <paramref name="id"/></exception>
         /// <returns>A <see cref="ISong"/> with metadata and opus stream.</returns>
-        public async Task<ISong> GetSongAsync(SongId id)
-        {
-            (bool success, ISong result) = await _songCollection.TryGetSongAsync(id);
-
-            if (!success)
-                throw new SongNotFoundException($"The song-id '{id}' was not found!");
-
-            return result;
-        }
+        public async Task<ISong?> GetSongAsync(SongId id) 
+            => await _songCollection.TryGetSongAsync(id);
 
         /// <summary>
         /// Try to download the song at given url, if the song is cached and the cache is enabled
@@ -109,8 +105,8 @@ namespace AudioChord
                     if (!extractorCandidate.TryExtractSongId(url, out SongId id))
                         throw new FormatException($"Could not extract an id from '{url}'!");
                     
-                    (bool success, ISong song) = await TryGetSongAsync(id);
-                    if (success)
+                    ISong? song = await GetSongAsync(id);
+                    if (song != null)
                         return song;
                 }
 
@@ -129,19 +125,11 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Try to get the song
-        /// </summary>
-        /// <param name="id">The <see cref="SongId"/> to search for</param>
-        /// <returns>A tuple with the result and the actual object</returns>
-        public Task<(bool, ISong)> TryGetSongAsync(SongId id)
-            => _songCollection.TryGetSongAsync(id);
-
-        /// <summary>
         /// Return a random list of songs
         /// </summary>
         /// <param name="amount">The amount of random songs, defaults to 100</param>
         /// <returns>A list of SongId's</returns>
-        public IEnumerable<SongId> GetRandomSongs(long amount = 100)
+        public Task<IEnumerable<SongId>> GetRandomSongs(long amount = 100)
             => _songCollection.GetRandomSongs(amount);
 
         /// <summary>
@@ -149,19 +137,15 @@ namespace AudioChord
         /// </summary>
         /// <returns>Enumerable of Audio Metadata in the shape of <see cref="SongMetadata"/>.</returns>
         public Task<IEnumerable<SongMetadata>> EnumerateSongMetadataAsync()
-            => _songCollection.EnumerateMetadataAsync();
-        
+            => _provider.GetAllMetadataAsync();
+
         /// <summary>
         /// Find a single audio metadata entry
         /// </summary>
         /// <param name="id">The <see cref="SongId"/> to look for</param>
-        /// <param name="metadata">The <see cref="SongMetadata"/> that will be returned</param>
-        /// <returns></returns>
-        public bool TryGetSongMetadata(SongId id, out SongMetadata metadata)
-        {
-            metadata = _songCollection.TryFindSongMetadata(id);
-            return !(metadata is null);
-        }
+        /// <returns>null if the song metadata does not exist</returns>
+        public Task<SongMetadata?> TryGetSongMetadata(SongId id) 
+            => _provider.GetSongMetadataAsync(id);
 
         /// <summary>
         /// Get total bytes count in database.
