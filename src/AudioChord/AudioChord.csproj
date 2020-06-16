@@ -17,6 +17,9 @@
     <PackageReleaseNotes>Improve: Allow specifying the HttpClient to use for requests</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
+    <LangVersion>8</LangVersion>
+    <Nullable>enable</Nullable>
+    
   </PropertyGroup>
   <ItemGroup>
     <!--jetbrains annotations are used to reduce the amount of warnings-->
@@ -36,9 +39,6 @@
       <SourceRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), source.root))</SourceRoot>
     </PropertyGroup>
     
-    <Copy
-            SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg"
-            DestinationFolder="$(SourceRoot)\packages\"
-    />
+    <Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(SourceRoot)\packages\" />
   </Target>
 </Project>
