@@ -58,9 +58,9 @@ namespace AudioChord
             return this;
         }
 
-        public MusicServiceBuilder Configure(Func<MusicServiceConfiguration, MusicServiceConfiguration> callback)
+        public MusicServiceBuilder Configure(Action<MusicServiceConfiguration> callback)
         {
-            _configuration = callback(_configuration);
+            callback(_configuration);
             return this;
         }
 
