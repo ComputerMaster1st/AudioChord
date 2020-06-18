@@ -20,6 +20,7 @@ namespace AudioChord.Tests
             ISong song = await _extractor.ExtractAsync("https://www.youtube.com/watch?v=H7kUQjdZx_E", new ExtractorConfiguration());
             Assert.NotNull(song);
             // Title should not be empty
+            Assert.NotNull(song.Metadata.Id);
             Assert.False(string.IsNullOrWhiteSpace(song.Metadata.Title));
         }
     }
