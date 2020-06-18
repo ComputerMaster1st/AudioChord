@@ -7,7 +7,7 @@ namespace AudioChord
     public class SongMetadata
     {
         public SongId Id { get; set; }
-        
+
         /// <summary>
         /// Title of this song
         /// </summary>
