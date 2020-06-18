@@ -25,7 +25,7 @@
     <PackageReference Include="AudioChord.Caching.GridFS" Version="1.0.0" />
     <PackageReference Include="AudioChord.Metadata.Postgres" Version="0.2.6" />
     <PackageReference Include="AudioChord.Extractors.Discord" Version="1.0.1" />
-    <PackageReference Include="AudioChord" Version="1.7.3" />
+    <PackageReference Include="AudioChord" Version="1.7.5" />
   </ItemGroup>
 
   <ItemGroup>

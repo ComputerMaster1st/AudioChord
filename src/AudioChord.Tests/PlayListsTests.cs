@@ -2,10 +2,10 @@ using AudioChord.Caching.GridFS;
 using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AudioChord.Extractors;
 using AudioChord.Extractors.Discord;
+using AudioChord.Metadata.Postgres;
 using Xunit;
 
 namespace AudioChord.Tests
@@ -28,23 +28,21 @@ namespace AudioChord.Tests
 
             const string BUCKET_NAME = "OpusData";
 
-            service = new MusicService(new MusicServiceConfiguration
-            {
-                SongCacheFactory = () => new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions
+            MusicServiceConfiguration config = new MusicServiceBuilder()
+                .WithPostgresMetadataProvider("")
+                .WithCache(new GridFSCache(new GridFSBucket<string>(database, new GridFSBucketOptions
                 {
                     BucketName = BUCKET_NAME,
                     ChunkSizeBytes = 4194304,
 
                     // We don't use MD5 in our code
                     DisableMD5 = true
-                })),
-                
-                Extractors = () => new List<IAudioExtractor>
-                {
-                    new YouTubeExtractor(),
-                    new DiscordExtractor()
-                }
-            });
+                })))
+                .WithExtractor<YouTubeExtractor>()
+                .WithExtractor<DiscordExtractor>()
+                .Build();
+            
+            service = new MusicService(config);
         }
 
         [Fact]
