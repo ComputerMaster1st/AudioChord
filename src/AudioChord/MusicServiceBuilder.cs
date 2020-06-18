@@ -11,7 +11,9 @@ namespace AudioChord
     public class MusicServiceBuilder
     {
         private MusicServiceConfiguration _configuration = new MusicServiceConfiguration();
+        
         private readonly List<IAudioExtractor> _extractors = new List<IAudioExtractor>();
+        private readonly List<IAudioMetadataEnricher> _enrichers = new List<IAudioMetadataEnricher>();
         
 
         public MusicServiceBuilder WithMetadataProvider(IMetadataProvider provider)
@@ -37,6 +39,24 @@ namespace AudioChord
             _extractors.Add(extractor);
             return this;
         }
+        
+        public MusicServiceBuilder WithEnRicher<TEnRicher>()
+            where TEnRicher : IAudioMetadataEnricher, new()
+        {
+            return WithEnRicher(new TEnRicher());
+        }
+        
+        public MusicServiceBuilder WithEnRicher(IAudioMetadataEnricher enRicher)
+        {
+            _enrichers.Add(enRicher);
+            return this;
+        }
+        
+        public MusicServiceBuilder ConfigureExtractors(Func<ExtractorConfiguration, ExtractorConfiguration> configurator)
+        {
+            _configuration.ExtractorConfiguration = configurator(_configuration.ExtractorConfiguration);
+            return this;
+        }
 
         public MusicServiceBuilder Configure(Func<MusicServiceConfiguration, MusicServiceConfiguration> callback)
         {
@@ -47,6 +67,7 @@ namespace AudioChord
         public MusicServiceConfiguration Build()
         {
             _configuration.Extractors = () => _extractors.AsReadOnly();
+            _configuration.Enrichers = () => _enrichers.AsReadOnly();
             return _configuration;
         }
     }
