@@ -6,7 +6,7 @@
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
-    <VersionPrefix>1.8.0</VersionPrefix>
+    <VersionPrefix>1.9.1</VersionPrefix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
