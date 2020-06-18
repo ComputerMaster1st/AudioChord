@@ -97,7 +97,7 @@ namespace AudioChord.Extractors
                 }
             }
             
-            throw new InvalidOperationException($"The given video at {metadata.Url} does not contain audio!");
+            throw new InvalidOperationException($"The given video at {metadata.Source} does not contain audio!");
         }
         
         private async Task<SongMetadata> GetVideoMetadataAsync(string youtubeVideoId)
@@ -108,7 +108,7 @@ namespace AudioChord.Extractors
                 Title = videoInfo.Title, 
                 Duration = videoInfo.Duration, 
                 Uploader = videoInfo.Author, 
-                Url = videoInfo.Url
+                Source = videoInfo.Url
             };
         }
 

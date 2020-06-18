@@ -22,8 +22,8 @@ namespace AudioChord.Processors
         {
             JObject root = await ProbeFileAsync(url);
 
-            if (existingMetadata.Url != url)
-                existingMetadata.Url = url;
+            if (existingMetadata.Source != url)
+                existingMetadata.Source = url;
             
             if (!root["format"].HasValues)
                 throw new ArgumentException("FFprobe gave back unreadable information.");

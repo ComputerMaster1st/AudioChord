@@ -20,6 +20,6 @@ namespace AudioChord
         
         public string Uploader { get; set; } = "Unknown Uploader";
         
-        public string Url { get; set; } = "No source given";
+        public string Source { get; set; } = "No source given";
     }
 }
