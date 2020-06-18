@@ -14,7 +14,7 @@ namespace AudioChord.Metadata
         /// Retrieve all <see cref="SongMetadata"/> in the storage medium
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<SongMetadata>> GetAllMetadataAsync();
+        IAsyncEnumerable<SongMetadata> GetAllMetadataAsync();
 
         /// <summary>
         /// Retrieve one entry of <see cref="SongMetadata"/> or null

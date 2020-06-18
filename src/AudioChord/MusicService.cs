@@ -136,7 +136,7 @@ namespace AudioChord
         /// Get all audio metadata in database.
         /// </summary>
         /// <returns>Enumerable of Audio Metadata in the shape of <see cref="SongMetadata"/>.</returns>
-        public Task<IEnumerable<SongMetadata>> EnumerateSongMetadataAsync()
+        public IAsyncEnumerable<SongMetadata> EnumerateSongMetadataAsync()
             => _provider.GetAllMetadataAsync();
 
         /// <summary>
