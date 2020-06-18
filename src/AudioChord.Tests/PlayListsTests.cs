@@ -58,7 +58,7 @@ namespace AudioChord.Tests
             Playlist p = new Playlist();
             ISong song = await service.Youtube.DownloadAsync(new Uri("https://www.youtube.com/watch?v=744AQ0rhdRk"));
 
-            p.Songs.Add(song.Id);
+            p.Songs.Add(song.Metadata.Id);
 
             await service.Playlist.UpdateAsync(p);
 

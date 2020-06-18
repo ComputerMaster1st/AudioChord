@@ -34,12 +34,12 @@ namespace AudioChord.Caching.GridFS
             await cleaner.CleanExpiredCacheEntries();
 
             // We do not need to upload songs to the cache if they already exist
-            if (!DoesSongIdExist(song.Id))
+            if (!DoesSongIdExist(song.Metadata.Id))
             {
                 await cache
                     .UploadFromStreamAsync(
-                        id: song.Id.ToString(),
-                        filename: $"{song.Id}.opus",
+                        id: song.Metadata.Id.ToString(),
+                        filename: $"{song.Metadata.Id}.opus",
                         source: await song.GetMusicStreamAsync(),
                         options: new GridFSUploadOptions() { Metadata = cleaner.GenerateGridFSMetadata() }
                     );

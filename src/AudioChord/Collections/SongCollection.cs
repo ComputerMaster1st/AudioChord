@@ -83,17 +83,17 @@ namespace AudioChord.Collections
         {
             // Do not save "nothing" to the database
             if ((await song.GetMusicStreamAsync()).Length <= 0)
-                throw new InvalidOperationException($"Attempted to save song '{song.Id}' to the cache while the stream length was 0!");
+                throw new InvalidOperationException($"Attempted to save song '{song.Metadata.Id}' to the cache while the stream length was 0!");
 
             // WARNING: This operation is NOT atomic and can result in GridFS files without SongData (if interrupted)
             // MongoDB transactions only works on clusters, and single node clusters are not recommended for production
             await _cache.CacheSongAsync(song);
             await _provider.StoreSongMetadataAsync(song);
 
-            ISong? retrieved = await TryGetSongAsync(song.Id);
+            ISong? retrieved = await TryGetSongAsync(song.Metadata.Id);
             
             // Replace the song with the song from the database
-            return retrieved ?? throw new SongNotFoundException($"Could not find '{song.Id}' in the database");
+            return retrieved ?? throw new SongNotFoundException($"Could not find '{song.Metadata.Id}' in the database");
         }
 
         // ==========
