@@ -19,6 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extractor Implementations",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Extractors.Discord", "AudioChord.Extractors.Discord\AudioChord.Extractors.Discord.csproj", "{59269CE2-424C-4EB3-993B-186E518B0DFB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata provider implementations", "Metadata provider implementations", "{8A1C6FD6-96BD-4247-BDAE-6B3F458687F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Metadata.Postgres", "AudioChord.Metadata.Postgres\AudioChord.Metadata.Postgres.csproj", "{35202C57-EA5D-449B-9378-FC388E2DA7EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +53,10 @@ Global
 		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,5 +68,6 @@ Global
 		{36C85735-544B-48F8-BF62-F96257DB63F7} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
 		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
 		{59269CE2-424C-4EB3-993B-186E518B0DFB} = {E5320416-4687-48EF-A6F1-F003510371DC}
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA} = {8A1C6FD6-96BD-4247-BDAE-6B3F458687F8}
 	EndGlobalSection
 EndGlobal

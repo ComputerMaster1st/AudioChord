@@ -44,13 +44,15 @@ namespace AudioChord.Collections
 
         internal async Task<IEnumerable<SongId>> GetRandomSongs(long amount)
         {
+            // If the provider has an implementation for random selections use that
             if (_provider is ISupportsRandomMetadataRetrieval retriever) 
-                return await retriever.GetRandomSongMetadataAsync(amount);
+                return await retriever.GetRandomSongMetadataAsync(amount)
+                    .ToListAsync();
             else
             {
                 // Use a less efficient implementation for retrieving random songs
-                List<SongMetadata> allSongIds = (await _provider.GetAllMetadataAsync())
-                    .ToList();
+                List<SongMetadata> allSongIds = await _provider.GetAllMetadataAsync()
+                    .ToListAsync();
                 
                 // Shuffle all metadata
                 allSongIds.Shuffle(new Random());
@@ -60,8 +62,7 @@ namespace AudioChord.Collections
                     allSongIds.RemoveRange((int)amount - 1, (int)amount);
 
                 return allSongIds
-                    .Select(song => song.Id)
-                    .ToList();
+                    .Select(song => song.Id);
             }
         }
 

@@ -6,7 +6,7 @@
     <Description>A music utility library for Discord.Net</Description>
     <PackageTags>Discord.Net, Music, Opus</PackageTags>
     <!--Version information-->
-    <VersionPrefix>1.7.0</VersionPrefix>
+    <VersionPrefix>1.7.4</VersionPrefix>
     
     <!--Type is git by default-->
     <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
@@ -14,7 +14,7 @@
     <Authors>CryoDev Development Team</Authors>
     
     <!--Release notes-->
-    <PackageReleaseNotes>Improve: Add IMetadataProvider for implementing storage providers</PackageReleaseNotes>
+    <PackageReleaseNotes>Improve: Use IAsyncEnumerable in ISupportRandom</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
     <LangVersion>8</LangVersion>
@@ -24,6 +24,8 @@
   <ItemGroup>
     <!--jetbrains annotations are used to reduce the amount of warnings-->
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3" />
+    
+    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
     
     <PackageReference Include="AudioChord.Parsers" Version="1.0.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.8.0" />
