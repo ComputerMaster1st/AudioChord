@@ -88,13 +88,17 @@ namespace AudioChord.Extractors
             // Retrieve the actual video and convert it to opus
             foreach (IAudioStreamInfo info in optimalStreams)
             {
-                using (Stream youtubeStream = await _client.Videos.Streams.GetAsync(info))
-                {
-                    // Convert it to a Song class
-                    // The processor should be responsible for prefixing the id with the correct type
-                    return new Song(new SongId(ProcessorPrefix, videoId), metadata,
-                        await _encoder.ProcessAsync(youtubeStream));
-                }
+                using Stream youtubeStream = await _client.Videos.Streams.GetAsync(info);
+                
+                // Convert it to a Song class
+                // The processor should be responsible for prefixing the id with the correct type
+                SongId id = new SongId(ProcessorPrefix, videoId);
+                metadata.Id = id;
+                return new Song(
+                    id,
+                    metadata,
+                    await _encoder.ProcessAsync(youtubeStream)
+                );
             }
             
             throw new InvalidOperationException($"The given video at {metadata.Source} does not contain audio!");
