@@ -1,12 +1,13 @@
 ﻿using System;
 using JetBrains.Annotations;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace AudioChord
 {
     [PublicAPI]
     public class SongMetadata
     {
+        public SongId Id { get; set; }
+
         /// <summary>
         /// Title of this song
         /// </summary>
@@ -19,6 +20,6 @@ namespace AudioChord
         
         public string Uploader { get; set; } = "Unknown Uploader";
         
-        public string Url { get; set; } = "No source given";
+        public string Source { get; set; } = "No source given";
     }
 }

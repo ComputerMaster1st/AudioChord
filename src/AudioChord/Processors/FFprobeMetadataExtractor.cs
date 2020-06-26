@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 
 namespace AudioChord.Processors
@@ -8,22 +9,21 @@ namespace AudioChord.Processors
     /// <summary>
     /// Extracts audio metadata from any given url
     /// </summary>
+    [PublicAPI]
     public class FFprobeMetadataExtractor
     {
         /// <summary>
         /// Returns all possible <see cref="SongMetadata"/> found in the stream />
         /// </summary>
         /// <param name="url">The url to probe for audio metadata</param>
+        /// <param name="existingMetadata">The existing data to operate on</param>
         /// <returns>An <see cref="SongMetadata"/>Filled with all known values</returns>
-        public Task<SongMetadata> GetMetadataAsync(string url)
-            => GetMetadataAsync(url, new SongMetadata());
-
         public async Task<SongMetadata> GetMetadataAsync(string url, SongMetadata existingMetadata)
         {
             JObject root = await ProbeFileAsync(url);
 
-            if (existingMetadata.Url != url)
-                existingMetadata.Url = url;
+            if (existingMetadata.Source != url)
+                existingMetadata.Source = url;
             
             if (!root["format"].HasValues)
                 throw new ArgumentException("FFprobe gave back unreadable information.");

@@ -11,6 +11,7 @@ namespace AudioChord
     /// </summary>
     internal class WorkScheduler
     {
+        // ReSharper disable once NotAccessedField.Local
         private readonly Task _worker;
         private readonly ConcurrentQueue<(Queue<StartableTask<ISong>> playlist, CancellationToken token)> _playlists =
             new ConcurrentQueue<(Queue<StartableTask<ISong>> playlist, CancellationToken token)>();
@@ -69,6 +70,7 @@ namespace AudioChord
                     await Task.Delay(100);
                 }
             }
+            // ReSharper disable once FunctionNeverReturns
         }
     }
 }

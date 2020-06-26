@@ -92,7 +92,7 @@ namespace AudioChord.Extractors.Discord
                     nameof(url)
                 );
 
-            SongMetadata metadata = await _extractor.GetMetadataAsync(url);
+            SongMetadata metadata = await _extractor.GetMetadataAsync(url, new SongMetadata());
             
             // Validate the total duration of the song
             if(metadata.Duration > configuration.MaxSongDuration)

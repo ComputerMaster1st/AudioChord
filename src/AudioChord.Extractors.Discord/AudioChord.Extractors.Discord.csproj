@@ -2,21 +2,21 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <Version>1.0.4</Version>
+        <Version>1.0.5</Version>
         
         <Description>
             Extractor provider for discord attachment urls
         </Description>
         
         <PackageReleaseNotes>
-            Fix: encode discord files to opus
+            Fix: Set id on metadata
         </PackageReleaseNotes>
         
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AudioChord" Version="1.4.*" />
+      <PackageReference Include="AudioChord" Version="1.9.*" />
     </ItemGroup>
 
     <!-- Move the packages to a project-wide packages folder to use for locally resolving packages -->

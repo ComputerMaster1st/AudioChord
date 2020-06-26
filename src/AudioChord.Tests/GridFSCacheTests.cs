@@ -71,7 +71,7 @@ namespace AudioChord.Tests
 
                 Mock<ISong> fakeSong = new Mock<ISong>();
                 fakeSong
-                    .Setup(setup => setup.Id)
+                    .Setup(setup => setup.Metadata.Id)
                     .Returns(id);
 
                 fakeSong

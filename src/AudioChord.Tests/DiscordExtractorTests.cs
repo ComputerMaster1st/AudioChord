@@ -46,7 +46,7 @@ namespace AudioChord.Tests
             
             // Assert
             Assert.NotNull(song);
-            Assert.Equal(song.Metadata.Url, DISCORD_URL);
+            Assert.Equal(song.Metadata.Source, DISCORD_URL);
             // TODO: Test if the file is an opus file
         } 
     }

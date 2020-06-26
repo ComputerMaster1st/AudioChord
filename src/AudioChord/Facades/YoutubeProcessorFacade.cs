@@ -4,10 +4,12 @@ using System.Threading.Tasks;
 using AudioChord.Collections;
 using AudioChord.Extractors;
 using AudioChord.Processors;
+using JetBrains.Annotations;
 using YoutubeExplode.Videos;
 
 namespace AudioChord.Facades
 {
+    [PublicAPI]
     public class YoutubeProcessorFacade
     {
         private readonly SongCollection _songCollection;
@@ -47,7 +49,7 @@ namespace AudioChord.Facades
         /// </param>
         public Task<ResolvingPlaylist> DownloadPlaylistAsync(
             Uri playlistLocation,
-            IProgress<SongProcessStatus> progress, 
+            IProgress<SongProcessStatus>? progress, 
             CancellationToken token,
             ExtractorConfiguration configuration = null)
         {

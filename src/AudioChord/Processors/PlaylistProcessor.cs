@@ -29,7 +29,7 @@ namespace AudioChord.Processors
 
         public async Task<ResolvingPlaylist> ProcessPlaylist(
                 Uri playlistLocation,
-                IProgress<SongProcessStatus> progress, 
+                IProgress<SongProcessStatus>? progress, 
                 CancellationToken token,
                 ExtractorConfiguration configuration
             )
@@ -47,7 +47,7 @@ namespace AudioChord.Processors
                 SongId songId = new SongId(YouTubeExtractor.ProcessorPrefix, videoId);
 
                 // Check if the song already exists in the database
-                if (_songCollection.CheckAlreadyExists(songId))
+                if (await _songCollection.CheckAlreadyExistsAsync(songId))
                 {
                     // Add the song that was already found in the database
                     playlist.Songs.Add(_musicService.GetSongAsync(songId));

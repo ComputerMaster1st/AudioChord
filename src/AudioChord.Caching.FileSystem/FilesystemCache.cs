@@ -43,7 +43,7 @@ namespace AudioChord.Caching.FileSystem
             // Clean the cache
             _cleaner.CleanExpiredEntries();
             
-            string fileLocation = Path.Combine(_storageLocation, $"{song.Id}.opus");
+            string fileLocation = Path.Combine(_storageLocation, $"{song.Metadata.Id}.opus");
 
             if (!File.Exists(fileLocation))
             {
@@ -60,7 +60,7 @@ namespace AudioChord.Caching.FileSystem
                         await newFile.FlushAsync();
                         
                         // Update the database
-                        _cleaner.InsertEntry(song.Id);
+                        _cleaner.InsertEntry(song.Metadata.Id);
                     }
                 }
                 catch (IOException)
