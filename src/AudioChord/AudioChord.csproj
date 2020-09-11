@@ -15,7 +15,6 @@
     
     <!--Release notes-->
     <PackageReleaseNotes>Improve: Use IAsyncEnumerable in ISupportRandom</PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
