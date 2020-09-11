@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!--General information-->
+    <Description>AudioChord Cache implementation using the local FileSystem</Description>
+    <PackageTags>FileSystem, Cache, AudioChord</PackageTags>
+    <Version>1.1.3</Version>
+
+    <!--Type is git by default-->
+    <RepositoryUrl>https://github.com/ComputerMaster1st/AudioChord</RepositoryUrl>
+    <Company>CryoDev Development Team</Company>
+    <Authors>CryoDev Development Team</Authors>
+    
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.SQLite" Version="1.0.113.1" />
+    <PackageReference Include="AudioChord" Version="1.9.1" />
+  </ItemGroup>
+
+  <!-- Move the packages to a project-wide packages folder to use for locally resolving packages -->
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <PropertyGroup>
+      <SourceRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), source.root))</SourceRoot>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(OutputPath)..\$(PackageId).$(PackageVersion).nupkg" DestinationFolder="$(SourceRoot)\packages\" />
+  </Target>
+
+</Project>

@@ -9,7 +9,7 @@ To be able to push we need to 'pack' a project first. navigate to the project in
 **before packing, check if you incremented the package version in the csproj**
 
 ```
-dotnet nuget pack --configuration Release
+dotnet pack --configuration Release
 ```
 
 The command result will tell you where the package was created, navigate to the containing folder and push the package to a server
@@ -17,7 +17,10 @@ The command result will tell you where the package was created, navigate to the 
 dotnet nuget push {path_to_package} -k {api_key} -s {nuget_package_server}
 ```
 
-### requirements:
-- MongoDB database with GridFS enabled
+### Requirements:
+- MongoDB database
 - FFMpeg 
-- Dotnet Core 2.0
+- Optionally a cache driver (eg AudioChord.Caching.Filesystem)
+- Anything that supports netstandard 2.0
+
+### How to use?

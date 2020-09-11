@@ -1,53 +1,76 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace AudioChord
 {
+    /// <summary>
+    /// Schedules work round-robin. Every playlists gets a turn.
+    /// </summary>
     internal class WorkScheduler
     {
-        private List<Task> workers = new List<Task>();
+        // ReSharper disable once NotAccessedField.Local
+        private readonly Task _worker;
+        private readonly ConcurrentQueue<(Queue<StartableTask<ISong>> playlist, CancellationToken token)> _playlists =
+            new ConcurrentQueue<(Queue<StartableTask<ISong>> playlist, CancellationToken token)>();
+
+        public WorkScheduler()
+        {
+            _worker = Task.Run(DoWork);
+        }
 
         public void CreateWorker(Queue<StartableTask<ISong>> backlog, CancellationToken cancellationToken)
         {
             if (backlog.Count == 0)
                 // No need to allocate the task
                 return;
+            
+            // Register the work that needs to be done
+            _playlists.Enqueue((backlog, cancellationToken));
+        }
 
-            // Task.Factory.StartNew() has some weird settings according to https://blog.stephencleary.com/2013/08/startnew-is-dangerous.html
-            // when using async (NOT while using tasks for parallel code) it's better to use Task.Run
-
-            // The "longrunning" flag is not needed since the CLR is smart enough to mark a task as longrunning
-            // if it's taking longer than 0.5 secs
-            Task worker = Task.Run(async () =>
+        private async void DoWork()
+        {
+            while (true)
             {
-                while (backlog.Count > 0)
+                if (_playlists.TryDequeue(out (Queue<StartableTask<ISong>> playlist, CancellationToken token) tuple))
                 {
-                    var work = backlog.Dequeue();
-                    if (cancellationToken.IsCancellationRequested)
+                    (Queue<StartableTask<ISong>> playlist, CancellationToken token) = tuple;
+
+                    if (token.IsCancellationRequested)
                     {
-                        // current work will not be done, itll be cancelled instead
-                        work.Cancel();
-                        // Continue the loop, the remaining work will be marked as cancelled
+                        // Cancel all the upcoming work
+                        foreach (StartableTask<ISong> work in playlist)
+                        {
+                            work.Cancel();
+                        }
+                    
                         continue;
                     }
 
+                    StartableTask<ISong> job = playlist.Dequeue();
+                
                     try
                     {
-                        await work.Start();
+                        await job.Start();
                     }
-                    catch (System.Exception)
-                    { }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                
+                    if (playlist.Count > 0)
+                        // Push the playlist back to the end of the queue
+                        _playlists.Enqueue((playlist, token));
                 }
-            });
-
-            workers.Add(worker);
-
-            // Add a continuation that removes the task when completed
-            worker.ContinueWith((completedTask) =>
-            {
-                workers.Remove(worker);
-            });
+                else
+                {
+                    await Task.Delay(100);
+                }
+            }
+            // ReSharper disable once FunctionNeverReturns
         }
     }
 }

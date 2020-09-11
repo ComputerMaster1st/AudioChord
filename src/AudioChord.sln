@@ -1,13 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2036
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioChord", "AudioChord\AudioChord.csproj", "{B74CFC70-C6EB-48F2-8A8E-BD9B4B643049}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioChord.Tests", "AudioChord.Tests\AudioChord.Tests.csproj", "{F1D9A431-F3B0-4CD0-B38D-1046BE0269E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Parsers", "AudioChord.Parsers\AudioChord.Parsers.csproj", "{C6F1BACA-F4AD-48CA-8974-C8B4A9A83C42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AudioChord.Caching.GridFS", "AudioChord.Caching.GridFS\AudioChord.Caching.GridFS.csproj", "{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Caching.FileSystem", "AudioChord.Caching.FileSystem\AudioChord.Caching.FileSystem.csproj", "{36C85735-544B-48F8-BF62-F96257DB63F7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Caching implementations", "Caching implementations", "{B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extractor Implementations", "Extractor Implementations", "{E5320416-4687-48EF-A6F1-F003510371DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Extractors.Discord", "AudioChord.Extractors.Discord\AudioChord.Extractors.Discord.csproj", "{59269CE2-424C-4EB3-993B-186E518B0DFB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata provider implementations", "Metadata provider implementations", "{8A1C6FD6-96BD-4247-BDAE-6B3F458687F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioChord.Metadata.Postgres", "AudioChord.Metadata.Postgres\AudioChord.Metadata.Postgres.csproj", "{35202C57-EA5D-449B-9378-FC388E2DA7EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,15 +35,33 @@ Global
 		{F1D9A431-F3B0-4CD0-B38D-1046BE0269E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1D9A431-F3B0-4CD0-B38D-1046BE0269E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1D9A431-F3B0-4CD0-B38D-1046BE0269E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C6F1BACA-F4AD-48CA-8974-C8B4A9A83C42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C6F1BACA-F4AD-48CA-8974-C8B4A9A83C42}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C6F1BACA-F4AD-48CA-8974-C8B4A9A83C42}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C6F1BACA-F4AD-48CA-8974-C8B4A9A83C42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36C85735-544B-48F8-BF62-F96257DB63F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36C85735-544B-48F8-BF62-F96257DB63F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36C85735-544B-48F8-BF62-F96257DB63F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C85735-544B-48F8-BF62-F96257DB63F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59269CE2-424C-4EB3-993B-186E518B0DFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6E094757-65B9-411E-B76D-AEB82EA78A68}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{36C85735-544B-48F8-BF62-F96257DB63F7} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
+		{F1EC2B7E-6759-41C0-89BD-C1BDE7D7FED2} = {B08D37AF-CD0B-4DAF-B63F-F97BA1EB240C}
+		{59269CE2-424C-4EB3-993B-186E518B0DFB} = {E5320416-4687-48EF-A6F1-F003510371DC}
+		{35202C57-EA5D-449B-9378-FC388E2DA7EA} = {8A1C6FD6-96BD-4247-BDAE-6B3F458687F8}
 	EndGlobalSection
 EndGlobal

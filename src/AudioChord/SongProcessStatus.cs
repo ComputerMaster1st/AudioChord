@@ -12,10 +12,10 @@ namespace AudioChord
             Status = status;
         }
 
-        public static SongProcessError AsError(SongId id, AggregateException exceptions) 
+        public static SongProcessError AsError(SongId id, AggregateException exceptions)
             => new SongProcessError(id, exceptions);
 
-        public static SongProcessResult AsResult(Task<ISong> result) 
+        public static SongProcessResult AsResult(Task<ISong> result)
             => new SongProcessResult(result);
     }
 }
