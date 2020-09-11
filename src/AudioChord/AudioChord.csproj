@@ -26,7 +26,6 @@
     
     <PackageReference Include="System.Linq.Async" Version="4.1.1" />
     
-    <PackageReference Include="AudioChord.Parsers" Version="1.0.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.8.0" />
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
