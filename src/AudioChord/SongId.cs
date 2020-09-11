@@ -1,5 +1,4 @@
-﻿using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace AudioChord
@@ -39,11 +38,11 @@ namespace AudioChord
                 throw new FormatException("Invalid songId identifier (string too short)");
 
             // String should contain only one instance of the '#' character
-            if(id.Count(str => str == '#') != 1)
+            if (id.Count(str => str == '#') != 1)
                 throw new FormatException("Invalid songId identifier (invalid '#' count)");
 
             // String should not begin or end with '#'
-            if(id.First() == '#' || id.Last() == '#')
+            if (id.First() == '#' || id.Last() == '#')
                 throw new FormatException("Invalid songId identifier (string should not start or end with '#')");
 
             int bangPosition = id.IndexOf('#');
@@ -53,21 +52,19 @@ namespace AudioChord
         }
 
         public override string ToString()
-        {
-            return $"{ProcessorId}#{SourceId}";
-        }
+            => $"{ProcessorId}#{SourceId}";
 
         public override bool Equals(object obj)
         {
             // If it is not the same object fail
-            if(!(obj is SongId id))
+            if (!(obj is SongId id))
                 return false;
 
             // If both ids are the same its the same object
             return id.ProcessorId == ProcessorId && id.SourceId == SourceId;
         }
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
             => Tuple.Create(ProcessorId, SourceId).GetHashCode();
     }
 }
