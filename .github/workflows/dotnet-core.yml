@@ -20,6 +20,6 @@ jobs:
     - name: Create local packages store
       run: mkdir ./src/packages
     - name: Install dependencies
-      run: dotnet restore ./src/AudioChord/AudioChord.csproj --ignore-failed-sources
+      run: dotnet restore ./src/AudioChord/AudioChord.csproj -s https://api.nuget.org/v3/index.json
     - name: Build
       run: dotnet build ./src/AudioChord/AudioChord.csproj --configuration Release --no-restore
