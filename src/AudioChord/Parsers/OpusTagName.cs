@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AudioChord
+﻿namespace AudioChord.Parsers
 {
     /// <summary>
-    /// Specifies const string values for common tag names
+    ///     Specifies const string values for common tag names
     /// </summary>
     public class OpusTagName
     {

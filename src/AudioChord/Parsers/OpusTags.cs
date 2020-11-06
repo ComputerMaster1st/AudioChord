@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AudioChord
+namespace AudioChord.Parsers
 {
     /// <summary>
-    /// A set of tags that are read from / written to an Opus ogg file
+    ///     A set of tags that are read from / written to an Opus ogg file
     /// </summary>
     public class OpusTags
     {
