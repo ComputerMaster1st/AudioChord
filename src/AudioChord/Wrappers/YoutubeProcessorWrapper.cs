@@ -3,7 +3,7 @@ using AudioChord.Processors;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using YoutubeExplode;
+using YoutubeExplode.Videos;
 
 namespace AudioChord.Wrappers
 {
@@ -51,8 +51,9 @@ namespace AudioChord.Wrappers
         /// <exception cref="FormatException">The url given was not a valid youtube url</exception>
         public Task<ISong> DownloadAsync(Uri url)
         {
-            if(YoutubeClient.TryParseVideoId(url.ToString(), out string id))
-                return songCollection.DownloadFromYouTubeAsync(id);
+            var videoId = VideoId.TryParse(url.OriginalString);
+            if (videoId is null || !videoId.HasValue)
+                return songCollection.DownloadFromYouTubeAsync(videoId.Value);
 
             throw new FormatException("Invalid youtube video URL");
         }
@@ -65,9 +66,10 @@ namespace AudioChord.Wrappers
         /// <returns><see langword="true"/>if the capturing was succesfull</returns>
         public bool TryParseYoutubeUrl(string url, out string videoId)
         {
-            if(YoutubeClient.TryParseVideoId(url, out string id))
+            var vid = VideoId.TryParse(url);
+            if (vid is null || !vid.HasValue)
             {
-                videoId = id;
+                videoId = vid.Value.Value;
                 return true;
             }
 
