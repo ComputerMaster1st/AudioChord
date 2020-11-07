@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using AudioChord.Extractors;
 using YoutubeExplode;
+using YoutubeExplode.Videos;
 
 namespace AudioChord.Processors
 {
@@ -28,7 +29,7 @@ namespace AudioChord.Processors
 
         public async Task<ResolvingPlaylist> ProcessPlaylist(
                 Uri playlistLocation,
-                IProgress<SongProcessStatus> progress, 
+                IProgress<SongProcessStatus>? progress, 
                 CancellationToken token,
                 ExtractorConfiguration configuration
             )
@@ -39,14 +40,14 @@ namespace AudioChord.Processors
             Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
 
             //WARNING: Only one thread should be able to verify if songs are in the database
-            foreach (string url in await extractor.ParsePlaylistAsync(playlistLocation))
+            foreach (Video video in await extractor.ParsePlaylistAsync(playlistLocation))
             {
-                string videoId = YoutubeClient.ParseVideoId(url);
+                string videoId = video.Id;
                 // Convert the id to a SongId
                 SongId songId = new SongId(YouTubeExtractor.ProcessorPrefix, videoId);
 
                 // Check if the song already exists in the database
-                if (_songCollection.CheckAlreadyExists(songId))
+                if (await _songCollection.CheckAlreadyExistsAsync(songId))
                 {
                     // Add the song that was already found in the database
                     playlist.Songs.Add(_musicService.GetSongAsync(songId));
@@ -59,7 +60,7 @@ namespace AudioChord.Processors
                     // Song does not exist, add a placeholder that gives back the actual song when done
                     playlist.Songs.Add(
                         // Check if a placeholder already exists
-                        _allWork.GetOrAdd(url, songUrl =>
+                        _allWork.GetOrAdd(videoId, songUrl =>
                         {
                             // Always add progress reporting, there is a possibility that somebody who wants reports attaches later
                             StartableTask<ISong> work = new StartableTask<ISong>(()

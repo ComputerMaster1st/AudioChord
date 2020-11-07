@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace AudioChord.Processors
 {
     // ReSharper disable once IdentifierTypo
-    internal class FFmpegEncoder
+    public class FFmpegEncoder
     {
         private ProcessStartInfo CreateEncoderInfo(string filePath, bool redirectInput = false)
             => new ProcessStartInfo
@@ -18,7 +18,7 @@ namespace AudioChord.Processors
                 RedirectStandardOutput = true
             };
 
-        internal async Task<Stream> ProcessAsync(Stream input)
+        public async Task<Stream> ProcessAsync(Stream input)
         {
             MemoryStream output = new MemoryStream();
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();
@@ -47,7 +47,7 @@ namespace AudioChord.Processors
             return output;
         }
 
-        internal async Task<Stream> ProcessAsync(string filePath)
+        public async Task<Stream> ProcessAsync(string filePath)
         {
             MemoryStream output = new MemoryStream();
             TaskCompletionSource<int> awaitExitSource = new TaskCompletionSource<int>();

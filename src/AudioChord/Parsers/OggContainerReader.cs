@@ -5,57 +5,58 @@
  * See COPYING for license terms (Ms-PL).                                   *
  *                                                                          *
  ***************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
-namespace AudioChord
+namespace AudioChord.Parsers
 {
     /// <summary>
-    /// Provides an <see cref="IContainerReader"/> implementation for basic Ogg files.
+    ///     Provides an <see cref="Parsers.IContainerReader" /> implementation for basic Ogg files.
     /// </summary>
     internal class OggContainerReader : IContainerReader
     {
-        Crc _crc = new Crc();
-        BufferedReadStream _stream;
-        Dictionary<int, PacketReader> _packetReaders;
-        List<int> _disposedStreamSerials;
-        long _nextPageOffset;
-        byte[] _readBuffer = new byte[65025];   // up to a full page of data (but no more!)
-
-        long _containerBits;
-
-        /// <summary>
-        /// Gets the list of stream serials found in the container so far.
-        /// </summary>
-        public int[] StreamSerials
-        {
-            get { return System.Linq.Enumerable.ToArray<int>(_packetReaders.Keys); }
-        }
+        private readonly Crc _crc = new Crc();
+        private readonly List<int> _disposedStreamSerials;
+        private readonly Dictionary<int, PacketReader> _packetReaders;
+        private readonly byte[] _readBuffer = new byte[65025]; // up to a full page of data (but no more!)
+        private readonly BufferedReadStream _stream;
+        private long _containerBits;
+        private long _nextPageOffset;
 
         /// <summary>
-        /// Event raised when a new logical stream is found in the container.
-        /// </summary>
-        public event EventHandler<NewStreamEventArgs> NewStream;
-
-        /// <summary>
-        /// Creates a new instance with the specified stream.  Optionally sets to close the stream when disposed.
+        ///     Creates a new instance with the specified stream.  Optionally sets to close the stream when disposed.
         /// </summary>
         /// <param name="stream">The stream to read.</param>
-        /// <param name="closeOnDispose"><c>True</c> to close the stream when <see cref="Dispose"/> is called, otherwise <c>False</c>.</param>
+        /// <param name="closeOnDispose">
+        ///     <c>True</c> to close the stream when <see cref="Dispose" /> is called, otherwise
+        ///     <c>False</c>.
+        /// </param>
         public OggContainerReader(Stream stream, bool closeOnDispose)
         {
             _packetReaders = new Dictionary<int, PacketReader>();
             _disposedStreamSerials = new List<int>();
 
-            _stream = (stream as BufferedReadStream) ?? new BufferedReadStream(stream) { CloseBaseStream = closeOnDispose };
+            _stream = stream as BufferedReadStream ?? new BufferedReadStream(stream) {CloseBaseStream = closeOnDispose};
         }
 
         /// <summary>
-        /// Initializes the container and finds the first stream.
+        ///     Gets the list of stream serials found in the container so far.
         /// </summary>
-        /// <returns><see langword="true"/> if a valid logical stream is found, otherwise <see langword="false"/>.</returns>
+        public int[] StreamSerials => _packetReaders.Keys.ToArray();
+
+        /// <summary>
+        ///     Event raised when a new logical stream is found in the container.
+        /// </summary>
+        public event EventHandler<NewStreamEventArgs> NewStream;
+
+        /// <summary>
+        ///     Initializes the container and finds the first stream.
+        /// </summary>
+        /// <returns><see langword="true" /> if a valid logical stream is found, otherwise <see langword="false" />.</returns>
         public bool Init()
         {
             _stream.TakeLock();
@@ -70,15 +71,12 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Disposes this instance.
+        ///     Disposes this instance.
         /// </summary>
         public void Dispose()
         {
             // don't use _packetReaders directly since that'll change the enumeration...
-            foreach (var streamSerial in StreamSerials)
-            {
-                _packetReaders[streamSerial].Dispose();
-            }
+            foreach (int streamSerial in StreamSerials) _packetReaders[streamSerial].Dispose();
 
             _nextPageOffset = 0L;
             _containerBits = 0L;
@@ -88,61 +86,43 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Gets the <see cref="IPacketProvider"/> instance for the specified stream serial.
+        ///     Finds the next new stream in the container.
         /// </summary>
-        /// <param name="streamSerial">The stream serial to look for.</param>
-        /// <returns>An <see cref="IPacketProvider"/> instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">The specified stream serial was not found.</exception>
-        public IPacketProvider GetStream(int streamSerial)
-        {
-            PacketReader provider;
-            if (!_packetReaders.TryGetValue(streamSerial, out provider))
-            {
-                throw new ArgumentOutOfRangeException("streamSerial");
-            }
-            return provider;
-        }
-
-        /// <summary>
-        /// Finds the next new stream in the container.
-        /// </summary>
-        /// <returns><see langword="true"/> if a new stream was found, otherwise <see langword="false"/>.</returns>
-        /// <exception cref="InvalidOperationException"><see cref="CanSeek"/> is <c>False</c>.</exception>
+        /// <returns><see langword="true" /> if a new stream was found, otherwise <see langword="false" />.</returns>
+        /// <exception cref="InvalidOperationException"><see cref="CanSeek" /> is <c>False</c>.</exception>
         public bool FindNextStream()
         {
             if (!CanSeek) throw new InvalidOperationException();
 
             // goes through all the pages until the serial count increases
-            var cnt = this._packetReaders.Count;
-            while (this._packetReaders.Count == cnt)
+            int cnt = _packetReaders.Count;
+            while (_packetReaders.Count == cnt)
             {
                 _stream.TakeLock();
                 try
                 {
                     // acquire & release the lock every pass so we don't block any longer than necessary
-                    if (GatherNextPage() == -1)
-                    {
-                        break;
-                    }
+                    if (GatherNextPage() == -1) break;
                 }
                 finally
                 {
                     _stream.ReleaseLock();
                 }
             }
-            return cnt > this._packetReaders.Count;
+
+            return cnt > _packetReaders.Count;
         }
 
         /// <summary>
-        /// Gets the number of pages that have been read in the container.
+        ///     Gets the number of pages that have been read in the container.
         /// </summary>
         public int PagesRead { get; private set; }
 
         /// <summary>
-        /// Retrieves the total number of pages in the container.
+        ///     Retrieves the total number of pages in the container.
         /// </summary>
         /// <returns>The total number of pages.</returns>
-        /// <exception cref="InvalidOperationException"><see cref="CanSeek"/> is <c>False</c>.</exception>
+        /// <exception cref="InvalidOperationException"><see cref="CanSeek" /> is <c>False</c>.</exception>
         public int GetTotalPageCount()
         {
             if (!CanSeek) throw new InvalidOperationException();
@@ -154,10 +134,7 @@ namespace AudioChord
                 try
                 {
                     // acquire & release the lock every pass so we don't block any longer than necessary
-                    if (GatherNextPage() == -1)
-                    {
-                        break;
-                    }
+                    if (GatherNextPage() == -1) break;
                 }
                 finally
                 {
@@ -169,33 +146,30 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Gets whether the container supports seeking.
+        ///     Gets whether the container supports seeking.
         /// </summary>
-        public bool CanSeek
-        {
-            get { return _stream.CanSeek; }
-        }
+        public bool CanSeek => _stream.CanSeek;
 
         /// <summary>
-        /// Gets the number of bits in the container that are not associated with a logical stream.
+        ///     Gets the number of bits in the container that are not associated with a logical stream.
         /// </summary>
         public long WasteBits { get; private set; }
 
-
-        // private implmentation bits
-        class PageHeader
+        /// <summary>
+        ///     Gets the <see cref="Parsers.IPacketProvider" /> instance for the specified stream serial.
+        /// </summary>
+        /// <param name="streamSerial">The stream serial to look for.</param>
+        /// <returns>An <see cref="Parsers.IPacketProvider" /> instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The specified stream serial was not found.</exception>
+        public IPacketProvider GetStream(int streamSerial)
         {
-            public int StreamSerial { get; set; }
-            public PageFlags Flags { get; set; }
-            public long GranulePosition { get; set; }
-            public int SequenceNumber { get; set; }
-            public long DataOffset { get; set; }
-            public int[] PacketSizes { get; set; }
-            public bool LastPacketContinues { get; set; }
-            public bool IsResync { get; set; }
+            PacketReader provider;
+            if (!_packetReaders.TryGetValue(streamSerial, out provider))
+                throw new ArgumentOutOfRangeException("streamSerial");
+            return provider;
         }
 
-        PageHeader ReadPageHeader(long position)
+        private PageHeader ReadPageHeader(long position)
         {
             // set the stream's position
             _stream.Seek(position, SeekOrigin.Begin);
@@ -219,10 +193,10 @@ namespace AudioChord
             }
 
             // start populating the header
-            var hdr = new PageHeader();
+            PageHeader? hdr = new PageHeader();
 
             // bit flags
-            hdr.Flags = (PageFlags)_readBuffer[5];
+            hdr.Flags = (PageFlags) _readBuffer[5];
 
             // granulePosition
             hdr.GranulePosition = BitConverter.ToInt64(_readBuffer, 6);
@@ -234,14 +208,11 @@ namespace AudioChord
             hdr.SequenceNumber = BitConverter.ToInt32(_readBuffer, 18);
 
             // save off the CRC
-            var crc = BitConverter.ToUInt32(_readBuffer, 22);
+            uint crc = BitConverter.ToUInt32(_readBuffer, 22);
 
             // start calculating the CRC value for this page
             _crc.Reset();
-            for (int i = 0; i < 22; i++)
-            {
-                _crc.Update(_readBuffer[i]);
-            }
+            for (int i = 0; i < 22; i++) _crc.Update(_readBuffer[i]);
             _crc.Update(0);
             _crc.Update(0);
             _crc.Update(0);
@@ -249,19 +220,20 @@ namespace AudioChord
             _crc.Update(_readBuffer[26]);
 
             // figure out the length of the page
-            var segCnt = (int)_readBuffer[26];
+            int segCnt = _readBuffer[26];
             if (_stream.Read(_readBuffer, 0, segCnt) != segCnt)
             {
-                Debug.WriteLine("Page header reports that there are " + segCnt + " lacing segments, but not that many bytes were found in the buffer!");
+                Debug.WriteLine("Page header reports that there are " + segCnt +
+                                " lacing segments, but not that many bytes were found in the buffer!");
                 return null;
             }
 
-            var packetSizes = new List<int>(segCnt);
+            List<int>? packetSizes = new List<int>(segCnt);
 
             int size = 0, idx = 0;
             for (int i = 0; i < segCnt; i++)
             {
-                var temp = _readBuffer[i];
+                byte temp = _readBuffer[i];
                 _crc.Update(temp);
 
                 if (idx == packetSizes.Count) packetSizes.Add(0);
@@ -278,6 +250,7 @@ namespace AudioChord
 
                 size += temp;
             }
+
             hdr.PacketSizes = packetSizes.ToArray();
             hdr.DataOffset = position + 27 + segCnt;
 
@@ -288,10 +261,7 @@ namespace AudioChord
                 return null;
             }
 
-            for (int i = 0; i < size; i++)
-            {
-                _crc.Update(_readBuffer[i]);
-            }
+            for (int i = 0; i < size; i++) _crc.Update(_readBuffer[i]);
 
             //Debug.WriteLine("Calculated CRC for page is " + _crc.Value + " (expecting " + crc + ")");
             if (_crc.Test(crc))
@@ -305,11 +275,11 @@ namespace AudioChord
             return null;
         }
 
-        PageHeader FindNextPageHeader()
+        private PageHeader FindNextPageHeader()
         {
-            var startPos = _nextPageOffset;
+            long startPos = _nextPageOffset;
 
-            var isResync = false;
+            bool isResync = false;
             PageHeader hdr;
             while ((hdr = ReadPageHeader(startPos)) == null)
             {
@@ -317,10 +287,10 @@ namespace AudioChord
                 WasteBits += 8;
                 _stream.Position = ++startPos;
 
-                var cnt = 0;
+                int cnt = 0;
                 do
                 {
-                    var b = _stream.ReadByte();
+                    int b = _stream.ReadByte();
                     if (b == 0x4f)
                     {
                         if (_stream.ReadByte() == 0x67 && _stream.ReadByte() == 0x67 && _stream.ReadByte() == 0x53)
@@ -329,67 +299,65 @@ namespace AudioChord
                             startPos += cnt;
                             break;
                         }
-                        else
-                        {
-                            _stream.Seek(-3, SeekOrigin.Current);
-                        }
+
+                        _stream.Seek(-3, SeekOrigin.Current);
                     }
                     else if (b == -1)
                     {
                         Debug.WriteLine("End of stream reached while looking for next page");
                         return null;
                     }
+
                     WasteBits += 8;
-                } while (++cnt < 65536);    // we will only search through 64KB of data to find the next sync marker.  if it can't be found, we have a badly corrupted stream.
+                } while (++cnt < 65536
+                ); // we will only search through 64KB of data to find the next sync marker.  if it can't be found, we have a badly corrupted stream.
+
                 if (cnt == 65536)
                 {
-                    Debug.WriteLine("Could not find the next page after searching through 64Kb of data. Assuming the stream is badly corrupted");
+                    Debug.WriteLine(
+                        "Could not find the next page after searching through 64Kb of data. Assuming the stream is badly corrupted");
                     return null;
                 }
             }
+
             hdr.IsResync = isResync;
 
             _nextPageOffset = hdr.DataOffset;
-            for (int i = 0; i < hdr.PacketSizes.Length; i++)
-            {
-                _nextPageOffset += hdr.PacketSizes[i];
-            }
+            for (int i = 0; i < hdr.PacketSizes.Length; i++) _nextPageOffset += hdr.PacketSizes[i];
 
             return hdr;
         }
 
-        bool AddPage(PageHeader header)
+        private bool AddPage(PageHeader header)
         {
             // get our packet reader (create one if we have to)
             PacketReader packetReader;
             if (!_packetReaders.TryGetValue(header.StreamSerial, out packetReader))
-            {
                 packetReader = new PacketReader(this, header.StreamSerial);
-            }
 
             // save off the container bits
             packetReader.ContainerBits += _containerBits;
             _containerBits = 0;
 
             // get our flags prepped
-            var isContinued = header.PacketSizes.Length == 1 && header.LastPacketContinues;
-            var isContinuation = (header.Flags & PageFlags.ContinuesPacket) == PageFlags.ContinuesPacket;
-            var isEOS = false;
-            var isResync = header.IsResync;
+            bool isContinued = header.PacketSizes.Length == 1 && header.LastPacketContinues;
+            bool isContinuation = (header.Flags & PageFlags.ContinuesPacket) == PageFlags.ContinuesPacket;
+            bool isEOS = false;
+            bool isResync = header.IsResync;
 
             // add all the packets, making sure to update flags as needed
-            var dataOffset = header.DataOffset;
-            var count = header.PacketSizes.Length;
-            foreach (var size in header.PacketSizes)
+            long dataOffset = header.DataOffset;
+            int count = header.PacketSizes.Length;
+            foreach (int size in header.PacketSizes)
             {
-                var packet = new Packet(this, dataOffset, size)
+                Packet? packet = new Packet(this, dataOffset, size)
                 {
                     PageGranulePosition = header.GranulePosition,
                     IsEndOfStream = isEOS,
                     PageSequenceNumber = header.SequenceNumber,
                     IsContinued = isContinued,
                     IsContinuation = isContinuation,
-                    IsResync = isResync,
+                    IsResync = isResync
                 };
                 packetReader.AddPacket(packet);
 
@@ -414,23 +382,18 @@ namespace AudioChord
                 _packetReaders.Add(header.StreamSerial, packetReader);
                 return true;
             }
-            else
-            {
-                // otherwise, indicate an existing stream to the caller
-                return false;
-            }
+
+            // otherwise, indicate an existing stream to the caller
+            return false;
         }
 
-        int GatherNextPage()
+        private int GatherNextPage()
         {
             while (true)
             {
                 // get our next header
-                var header = FindNextPageHeader();
-                if (header is null)
-                {
-                    return -1;
-                }
+                PageHeader? header = FindNextPageHeader();
+                if (header is null) return -1;
 
                 // if it's in a disposed stream, grab the next page instead
                 if (_disposedStreamSerials.Contains(header.StreamSerial)) continue;
@@ -438,10 +401,10 @@ namespace AudioChord
                 // otherwise, add it
                 if (AddPage(header))
                 {
-                    var callback = NewStream;
+                    EventHandler<NewStreamEventArgs>? callback = NewStream;
                     if (callback != null)
                     {
-                        var ea = new NewStreamEventArgs(_packetReaders[header.StreamSerial]);
+                        NewStreamEventArgs? ea = new NewStreamEventArgs(_packetReaders[header.StreamSerial]);
                         callback(this, ea);
                         if (ea.IgnoreStream)
                         {
@@ -504,13 +467,9 @@ namespace AudioChord
                     nextSerial = GatherNextPage();
                     if (nextSerial == -1)
                     {
-                        foreach (var reader in _packetReaders)
-                        {
+                        foreach (KeyValuePair<int, PacketReader> reader in _packetReaders)
                             if (!reader.Value.HasEndOfStream)
-                            {
                                 reader.Value.SetEndOfStream();
-                            }
-                        }
                         break;
                     }
                 }
@@ -519,6 +478,20 @@ namespace AudioChord
                     _stream.ReleaseLock();
                 }
             } while (nextSerial != streamSerial);
+        }
+
+
+        // private implmentation bits
+        private class PageHeader
+        {
+            public int StreamSerial { get; set; }
+            public PageFlags Flags { get; set; }
+            public long GranulePosition { get; set; }
+            public int SequenceNumber { get; set; }
+            public long DataOffset { get; set; }
+            public int[] PacketSizes { get; set; }
+            public bool LastPacketContinues { get; set; }
+            public bool IsResync { get; set; }
         }
     }
 }

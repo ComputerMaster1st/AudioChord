@@ -5,15 +5,14 @@ namespace AudioChord
 {
     public class Song : ISong
     {
-        public SongId Id { get; private set; }
         public SongMetadata Metadata { get; private set; }
 
         private readonly Stream _songStream;
 
-        internal Song(SongId id, SongMetadata metadata, Stream stream)
+        public Song(SongId id, SongMetadata metadata, Stream stream)
         {
-            Id = id;
             Metadata = metadata;
+            Metadata.Id = id;
             _songStream = stream;
         }
 

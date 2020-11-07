@@ -21,7 +21,7 @@ namespace AudioChord.Caching.InMemory
 
         public async Task CacheSongAsync(ISong song)
         {
-            _cache.Add(song.Id, await song.GetMusicStreamAsync());
+            _cache.Add(song.Metadata.Id, await song.GetMusicStreamAsync());
         }
     }
 }

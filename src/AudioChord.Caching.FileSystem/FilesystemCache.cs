@@ -43,14 +43,15 @@ namespace AudioChord.Caching.FileSystem
             // Clean the cache
             _cleaner.CleanExpiredEntries();
             
-            string fileLocation = Path.Combine(_storageLocation, $"{song.Id}.opus");
+            string fileLocation = Path.Combine(_storageLocation, $"{song.Metadata.Id}.opus");
 
             if (!File.Exists(fileLocation))
             {
                 try
                 {
-                    // Open a new file with shared read access, throws an exception if the file already exists
-                    using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read))
+                    // Open a new file with no shared access, since we are still writing the file
+                    // throws an exception if the file already exists
+                    using (FileStream newFile = new FileStream(fileLocation, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
                     {
                         Stream stream = await song.GetMusicStreamAsync();
 
@@ -59,7 +60,7 @@ namespace AudioChord.Caching.FileSystem
                         await newFile.FlushAsync();
                         
                         // Update the database
-                        _cleaner.InsertEntry(song.Id);
+                        _cleaner.InsertEntry(song.Metadata.Id);
                     }
                 }
                 catch (IOException)
