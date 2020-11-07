@@ -10,8 +10,6 @@ using YoutubeExplode.Playlists;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 
-using YtPlaylist = YoutubeExplode.Playlists.Playlist;
-
 namespace AudioChord.Extractors
 {
     /// <summary>
