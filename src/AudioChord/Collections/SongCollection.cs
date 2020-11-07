@@ -118,7 +118,7 @@ namespace AudioChord.Collections
                 return retrieved;
 
             // Not in the cache, extract the audio from the url
-            IAudioExtractor extractor = new YouTubeExtractor();
+            IAudioExtractor extractor = configuration.ImportedHttpClient == null ? new YouTubeExtractor() : new YouTubeExtractor(configuration.ImportedHttpClient);
             ISong directlyDownloaded = await extractor.ExtractAsync(url, configuration);
 
             // Cache the song so that we do not need to download it again

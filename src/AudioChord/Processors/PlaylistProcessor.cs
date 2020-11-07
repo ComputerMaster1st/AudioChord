@@ -34,7 +34,7 @@ namespace AudioChord.Processors
                 ExtractorConfiguration configuration
             )
         {
-            YouTubeExtractor extractor = new YouTubeExtractor();
+            YouTubeExtractor extractor = configuration.ImportedHttpClient == null ? new YouTubeExtractor() : new YouTubeExtractor(configuration.ImportedHttpClient);
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
 
             Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
