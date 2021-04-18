@@ -6,8 +6,8 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Threading;
 using AudioChord.Extractors;
-using YoutubeExplode;
-using YoutubeExplode.Videos;
+using YoutubeExplode.Common;
+using YoutubeExplode.Playlists;
 
 namespace AudioChord.Processors
 {
@@ -34,13 +34,13 @@ namespace AudioChord.Processors
                 ExtractorConfiguration configuration
             )
         {
-            YouTubeExtractor extractor = new YouTubeExtractor();
+            YouTubeExtractor extractor = configuration.ImportedHttpClient == null ? new YouTubeExtractor() : new YouTubeExtractor(configuration.ImportedHttpClient);
             ResolvingPlaylist playlist = new ResolvingPlaylist(ObjectId.GenerateNewId().ToString());
 
             Queue<StartableTask<ISong>> backlog = new Queue<StartableTask<ISong>>();
 
             //WARNING: Only one thread should be able to verify if songs are in the database
-            foreach (Video video in await extractor.ParsePlaylistAsync(playlistLocation))
+            foreach (PlaylistVideo video in await extractor.ParsePlaylistAsync(playlistLocation))
             {
                 string videoId = video.Id;
                 // Convert the id to a SongId
