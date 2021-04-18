@@ -5,9 +5,10 @@
  * See COPYING for license terms (Ms-PL).                                   *
  *                                                                          *
  ***************************************************************************/
+
 using System;
 
-namespace AudioChord
+namespace AudioChord.Parsers
 {
     [Flags]
     internal enum PageFlags
@@ -15,6 +16,6 @@ namespace AudioChord
         None = 0,
         ContinuesPacket = 1,
         BeginningOfStream = 2,
-        EndOfStream = 4,
+        EndOfStream = 4
     }
 }
