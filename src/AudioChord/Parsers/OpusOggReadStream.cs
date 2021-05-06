@@ -2,61 +2,60 @@
 using System.IO;
 using System.Text;
 
-namespace AudioChord
+namespace AudioChord.Parsers
 {
     /// <summary>
-    /// Provides functionality to decode a basic .opus Ogg file, decoding the audio packets individually and returning them. Tags are also parsed if present.
-    /// Note that this currently assumes the input file only has 1 elementary stream; anything more advanced than that will probably not work.
+    ///     Provides functionality to decode a basic .opus Ogg file, decoding the audio packets individually and returning
+    ///     them. Tags are also parsed if present.
+    ///     Note that this currently assumes the input file only has 1 elementary stream; anything more advanced than that will
+    ///     probably not work.
     /// </summary>
     public class OpusOggReadStream : IDisposable
     {
-        private Stream _inputStream;
+        private readonly Stream _inputStream;
+        private bool _endOfStream;
         private byte[] _nextDataPacket;
         private IPacketProvider _packetProvider;
-        private bool _endOfStream = false;
         private OggContainerReader _reader;
 
         /// <summary>
-        /// Builds an Ogg file reader that decodes Opus packets from the given input stream, using a 
-        /// specified output sample rate and channel count. The given decoder will be used as-is
-        /// and return the decoded PCM buffers directly.
+        ///     Builds an Ogg file reader that decodes Opus packets from the given input stream, using a
+        ///     specified output sample rate and channel count. The given decoder will be used as-is
+        ///     and return the decoded PCM buffers directly.
         /// </summary>
         /// <param name="oggFileInput">The input stream for an Ogg formatted .opus file. The stream will be read from immediately</param>
         public OpusOggReadStream(Stream oggFileInput)
         {
             _inputStream = oggFileInput ?? throw new ArgumentNullException("oggFileInput");
-            if (!Initialize())
-            {
-                _endOfStream = true;
-            }
+            if (!Initialize()) _endOfStream = true;
         }
 
         /// <summary>
-        /// Gets the tags that were parsed from the OpusTags Ogg packet, or NULL if no such packet was found.
+        ///     Gets the tags that were parsed from the OpusTags Ogg packet, or NULL if no such packet was found.
         /// </summary>
         public OpusTags Tags { get; private set; }
 
         /// <summary>
-        /// Returns true if there is still another data packet to be decoded from the current Ogg stream.
-        /// Note that this decoder currently only assumes that the input has 1 elementary stream with no splices
-        /// or other fancy things.
+        ///     Returns true if there is still another data packet to be decoded from the current Ogg stream.
+        ///     Note that this decoder currently only assumes that the input has 1 elementary stream with no splices
+        ///     or other fancy things.
         /// </summary>
         public bool HasNextPacket => !_endOfStream;
 
         /// <summary>
-        /// If an error happened either in stream initialization, reading, or decoding, the message will appear here.
+        ///     If an error happened either in stream initialization, reading, or decoding, the message will appear here.
         /// </summary>
         public string LastError { get; private set; }
 
         public void Dispose()
         {
-            ((IDisposable)_reader).Dispose();
+            ((IDisposable) _reader).Dispose();
         }
 
         /// <summary>
-        /// Reads the next packet from the Ogg stream and returns it.
-        /// If there are no more packets to decode, this returns NULL. If an error occurs, this also returns
-        /// NULL and puts the error message into the LastError field
+        ///     Reads the next packet from the Ogg stream and returns it.
+        ///     If there are no more packets to decode, this returns NULL. If an error occurs, this also returns
+        ///     NULL and puts the error message into the LastError field
         /// </summary>
         /// <returns>The next opus audio packet (or frame) in the stream, or NULL</returns>
         public byte[] RetrieveNextPacket()
@@ -75,8 +74,8 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Creates an opus decoder and reads from the ogg stream until a data packet is encountered,
-        /// queuing it up for future decoding. Tags are also parsed if they are encountered.
+        ///     Creates an opus decoder and reads from the ogg stream until a data packet is encountered,
+        ///     queuing it up for future decoding. Tags are also parsed if they are encountered.
         /// </summary>
         /// <returns>True if the stream is valid and ready to be decoded</returns>
         private bool Initialize()
@@ -110,15 +109,12 @@ namespace AudioChord
         }
 
         /// <summary>
-        /// Looks for the next opus data packet in the Ogg stream and queues it up.
-        /// If the end of stream has been reached, this does nothing.
+        ///     Looks for the next opus data packet in the Ogg stream and queues it up.
+        ///     If the end of stream has been reached, this does nothing.
         /// </summary>
         private void QueueNextPacket()
         {
-            if (_endOfStream)
-            {
-                return;
-            }
+            if (_endOfStream) return;
 
             DataPacket packet = _packetProvider.GetNextPacket();
             if (packet == null || packet.IsEndOfStream)

@@ -10,8 +10,6 @@ using YoutubeExplode.Playlists;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 
-using YtPlaylist = YoutubeExplode.Playlists.Playlist;
-
 namespace AudioChord.Extractors
 {
     /// <summary>
@@ -47,7 +45,7 @@ namespace AudioChord.Extractors
 
         public Task<ISong> ExtractAsync(string url, ExtractorConfiguration configuration)
         {
-            VideoId id = new VideoId(url);
+            VideoId id = VideoId.Parse(url);
             return ExtractSongAsync(id, configuration.MaxSongDuration);
         }
 
@@ -79,7 +77,7 @@ namespace AudioChord.Extractors
             {
                 // Select the highest bitrate audio stream since we do not have any audio stream that meets or exceeds the previous quality guarantee
                 optimalStreams = manifest
-                    .GetAudio()
+                    .GetAudioOnlyStreams()
                     .OrderByDescending(audioStreams => audioStreams.Bitrate)
                     .ToArray();
             }
@@ -110,8 +108,8 @@ namespace AudioChord.Extractors
             return new SongMetadata
             {
                 Title = videoInfo.Title, 
-                Duration = videoInfo.Duration, 
-                Uploader = videoInfo.Author, 
+                Duration = videoInfo.Duration.GetValueOrDefault(), 
+                Uploader = videoInfo.Author.Title, 
                 Source = videoInfo.Url
             };
         }
@@ -121,7 +119,7 @@ namespace AudioChord.Extractors
         /// </summary>
         /// <param name="playlistLocation">The url to the targeted playlist</param>
         /// <returns></returns>
-        internal IAsyncEnumerable<Video> ParsePlaylistAsync(Uri playlistLocation)
+        internal IAsyncEnumerable<PlaylistVideo> ParsePlaylistAsync(Uri playlistLocation)
         {
             if (playlistLocation is null)
                 throw new ArgumentNullException(nameof(playlistLocation), "The uri passed to this method is null");
@@ -131,7 +129,7 @@ namespace AudioChord.Extractors
                 throw new ArgumentException("Invalid playlist url given", nameof(playlistLocation));
 
             // Retrieve all the videos
-            return _client.Playlists.GetVideosAsync(playlistId.Value);
+            return _client.Playlists.GetVideosAsync(playlistId.GetValueOrDefault());
         }
     }
 }
